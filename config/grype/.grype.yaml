@@ -1,0 +1,4 @@
+fail-on-severity: medium
+output: json
+# See https://github.com/anchore/grype?tab=readme-ov-file#specifying-matches-to-ignore
+ignore: {}

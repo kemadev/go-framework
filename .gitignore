@@ -1,0 +1,23 @@
+# Mac OS X files
+.DS_Store
+
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.out
+
+# Test binary, build with `go test -c`
+*.test
+
+# Go workspace file
+go.work
+go.work.sum
+
+# Build artifacts
+dist/*
+!dist/PURPOSE.md
+# tmp files
+tmp/*

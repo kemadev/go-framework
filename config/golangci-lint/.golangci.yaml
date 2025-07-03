@@ -1,0 +1,301 @@
+version: '2'
+
+linters:
+  enable:
+    # Check for pass []any as any in variadic func(...any).
+    - asasalint
+    # Checks that all code identifiers does not have non-ASCII symbols in the name.
+    - asciicheck
+    # Checks for dangerous unicode character sequences.
+    - bidichk
+    # Checks whether HTTP response body is closed successfully.
+    - bodyclose
+    # Checks whether net/http.Header uses canonical header.
+    - canonicalheader
+    # Detects struct contained context.Context field.
+    - containedctx
+    # Check whether the function uses a non-inherited context.
+    - contextcheck
+    # Detects places where loop variables are copied.
+    - copyloopvar
+    # Checks function and package cyclomatic complexity.
+    - cyclop
+    # Checks declaration order and count of types, constants, variables and functions.
+    - decorder
+    # Detects duplicate fragments of code.
+    - dupl
+    # Check for two durations multiplied together.
+    - durationcheck
+    # Checks the errors handling expressions.
+    - err113
+    # Checks that sentinel errors are prefixed with the Err and error types are suffixed with the Error.
+    - errname
+    # Checks for unchecked errors.
+    - errcheck
+    # Finds code that will cause problems with the error wrapping scheme introduced in Go 1.13.
+    - errorlint
+    # Checks exhaustiveness of enum switch statements.
+    - exhaustive
+    # Checks if all structure fields are initialized.
+    - exhaustruct
+    # Detects functions from golang.org/x/exp/ that can be replaced by std functions.
+    - exptostd
+    # Detects nested contexts in loops and function literals.
+    - fatcontext
+    # Finds forced type assertions.
+    - forcetypeassert
+    # Checks the order of functions, methods, and constructors.
+    - funcorder
+    # Checks for long functions.
+    - funlen
+    # Checks that go compiler directive comments (//go:) are valid.
+    - gocheckcompilerdirectives
+    # Checks that no global variables exist.
+    - gochecknoglobals
+    # Finds repeated strings that could be replaced by a constant.
+    - goconst
+    # Provides diagnostics that check for bugs, performance and style issues.
+    - gocritic
+    # Checks if comments end in a period.
+    - godot
+    # Detects usage of FIXME, TODO and other keywords inside comments.
+    - godox
+    # Manages the use of 'replace', 'retract', and 'excludes' directives in go.mod.
+    - gomoddirectives
+    # Allow and block list linter for direct Go module dependencies.
+    - gomodguard
+    # Inspects source code for security problems.
+    - gosec
+    # Reports certain i18n/l10n anti-patterns in your Go codebase.
+    - gosmopolitan
+    # Reports suspicious constructs.
+    - govet
+    # Detects the incorrect use of interfaces.
+    - iface
+    # Enforces consistent import aliases.
+    - importas
+    # Reports interfaces with unnamed method parameters.
+    - inamedparam
+    # Detects when assignments to existing variables are not used.
+    - ineffassign
+    # Checks the number of methods inside an interface.
+    - interfacebloat
+    # Finds places where for loops could make use of an integer range.
+    - intrange
+    # Accept Interfaces, Return Concrete Types.
+    - ireturn
+    # Checks key value pairs for common logger
+    - loggercheck
+    # Finds slice declarations with non-zero initial length.
+    - makezero
+    # Reports wrong mirror patterns of bytes/strings usage.
+    - mirror
+    # Finds commonly misspelled English words.
+    - misspell
+    # Detects magic numbers.
+    - mnd
+    # Enforces field tags in (un)marshaled structs.
+    - musttag
+    # Checks that functions with naked returns are not longer than a maximum size.
+    - nakedret
+    # Reports deeply nested if statements.
+    - nestif
+    # Finds the code that returns nil even if it checks that the error is not nil.
+    - nilerr
+    # Reports constructs that checks for err != nil, but returns a different nil value error.
+    - nilnesserr
+    # Checks that there is no simultaneous return of nil error and an invalid value.
+    - nilnil
+    # Checks for a new line before return and branch statements to increase code clarity.
+    - nlreturn
+    # Finds sending http request without context.Context.
+    - noctx
+    # Reports ill-formed or insufficient nolint directives.
+    - nolintlint
+    # Reports all named returns.
+    - nonamedreturns
+    # Checks for misuse of Sprintf to construct a host with port in a URL.
+    - nosprintfhostport
+    # Detects missing usage of t.Parallel() method in your Go test.
+    - paralleltest
+    # Checks that fmt.Sprintf can be replaced with a faster alternative.
+    - perfsprint
+    # Finds code that shadows one of Go's predeclared identifiers.
+    - predeclared
+    # Reports direct reads from proto message fields when getters should be used.
+    - protogetter
+    # Checks that package variables are not reassigned.
+    - reassign
+    # Checks for receiver type consistency.
+    - recvcheck
+    # Basically lints.
+    - revive
+    # Ensures consistent code style when using log/slog.
+    - sloglint
+    # Checks for mistakes with OpenTelemetry/Census spans.
+    - spancheck
+    # Runs staticcheck.
+    - staticcheck
+    # Checks that struct tags are well aligned.
+    - tagalign
+    # Checks the struct tags.
+    - tagliatelle
+    # Linter checks if examples are testable (have an expected output).
+    - testableexamples
+    # Checks usage of github.com/stretchr/testify.
+    - testifylint
+    # Checks for the use of separate _test package.
+    - testpackage
+    # Detects inappropriate usage of t.Parallel() method in your Go test codes.
+    - tparallel
+    # Removes unnecessary type conversions.
+    - unconvert
+    # Reports unused function parameters.
+    - unparam
+    # Checks for unused constants, variables, functions and types.
+    - unused
+    # Detects the possibility to use variables/constants from the Go standard library.
+    - usestdlibvars
+    # Reports uses of functions with replacement inside the testing package.
+    - usetesting
+    # Checks that the length of a variable's name matches its scope.
+    - varnamelen
+    # Finds wasted assignment statements.
+    - wastedassign
+    # Checks for unnecessary newlines at the start and end of functions, if, for, etc.
+    - whitespace
+    # Checks that errors returned from external packages are wrapped.
+    - wrapcheck
+    # Add or remove empty lines.
+    - wsl
+
+  settings:
+    cyclop:
+      max-complexity: 15
+      package-average: 10
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+    funlen:
+      lines: 80
+      statements: 50
+    goconst:
+      numbers: true
+      find-duplicates: true
+      eval-const-expressions: true
+    godot:
+      capital: true
+    godox:
+      keywords:
+        - BUG
+        - HACK
+        - ERROR
+        - FIXME
+        - TODO
+        - ONGOING
+        - OPTIMIZE
+        - IMPROVE
+        - REFACTOR
+        - REVIEW
+        - ESCALATE
+        - CHANGED
+        - DEPRECATED
+        # - IDEA
+        - WARNING
+        # - REF
+    iface:
+      enable:
+        - identical
+        - opaque
+        - unused
+    nilnil:
+      detect-opposite: true
+    nolintlint:
+      require-specific: true
+      require-explanation: true
+    nonamedreturns:
+      report-error-in-defer: true
+    perfsprint:
+      error-format: false
+      err-error: false
+    predeclared:
+      qualified-name: true
+    reassign:
+      patterns:
+        - '.*'
+    sloglint:
+      attr-only: true
+      static-msg: true
+    spancheck:
+      checks:
+        - record-error
+        - set-status
+        - end
+    tagliatelle:
+      case:
+        use-field-name: true
+        rules:
+          json: goCamel
+          yaml: goCamel
+          xml: goCamel
+          toml: goCamel
+          bson: goCamel
+          env: goCamel
+          envconfig: goCamel
+    usestdlibvars:
+      time-month: true
+      time-layout: true
+      crypto-hash: true
+      default-rpc-path: true
+      sql-isolation-level: true
+      tls-signature-scheme: true
+      constant-kind: true
+      time-weekday: true
+      http-method: true
+      http-status-code: true
+    usetesting:
+      os-temp-dir: true
+    wsl:
+      force-err-cuddling: true
+
+  exclusions:
+    generated: 'strict'
+    warn-unused: true
+    presets:
+      - comments
+      - std-error-handling
+      - common-false-positives
+      - legacy
+
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+    - golines
+  settings:
+    gofumpt:
+      extra-rules: true
+    golines:
+      max-len: 200
+      tab-len: 4
+      shorten-comments: false
+      reformat-tags: true
+    gofmt:
+      rewrite-rules:
+        - pattern: 'interface{}'
+          replacement: 'any'
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  uniq-by-line: false
+
+run:
+  tests: true
+  relative-path-mode: gitroot
+  modules-download-mode: readonly
+
+severity:
+  default: error

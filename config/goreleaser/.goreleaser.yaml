@@ -1,0 +1,92 @@
+version: 2
+
+dist: dist/goreleaser
+
+builds:
+  - id: default
+    main: ./cmd/main
+    flags:
+      - -buildvcs=true
+    ldflags:
+      - -s -w
+    # asmflags:
+    # gcflags:
+    # buildmode:
+    # tags:
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      # - darwin
+    goarch:
+      - amd64
+      # - arm64
+    goamd64:
+      # See https://en.wikipedia.org/wiki/X86-64#Microarchitecture_levels
+      - v4
+    # goarm64:
+    #   # Neoverse N1 / E1 - Cortex A76 (e.g. Raspberry Pi 5)
+    #   - v8.2
+    #   # Apple M1 - Neoverse V1
+    #   - v8.4
+    #   # Apple M2 / M3
+    #   - v8.6
+    #   # Neoverse V2 / N2 / E2
+    #   - v9.0
+    #   # Apple M4 - Neoverse V3 / N3
+    #   - v9.2
+    mod_timestamp: '{{ .CommitTimestamp }}'
+
+gomod:
+  proxy: false
+  # env:
+  #   - GOPROXY=proxy.golang.org,direct
+  #   - GOSUMDB=sum.golang.org
+  #   - GOPRIVATE=vcs.tld/foo/bar
+  mod: mod
+
+snapshot:
+  version_template: '{{ .Version }}-devel-{{ .ShortCommit }}'
+
+report_sizes: true
+
+archives:
+  - id: default
+    files:
+      - LICENSE*
+      - README*
+
+source:
+  enabled: true
+
+checksum:
+  split: true
+
+sboms:
+  - id: default
+    artifacts: binary
+
+changelog:
+  format: '{{.SHA}}: {{.Message}} (@{{.AuthorName}})'
+  abbrev: 8
+  groups:
+    - title: Breaking Changes 💥
+      regexp: '^.*?[[:word:]](\([[:word:]]+\))??!:.+$'
+      order: 0
+    - title: Security Updates 🔒
+      regexp: '^.*?security(\([[:word:]]+\))??!?:.+$'
+      order: 100
+    - title: New Features 🚀
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 200
+    - title: Performance Improvements ⚡
+      regexp: '^.*?perf(\([[:word:]]+\))??!?:.+$'
+      order: 300
+    - title: Bug Fixes 🐛
+      regexp: '^.*?bug(\([[:word:]]+\))??!?:.+$'
+      order: 400
+    - title: Dependency Updates 📦
+      regexp: '^.*?chore(\(deps\))??!?:.+$'
+      order: 500
+    - title: Other Changes 🔄
+      order: 999

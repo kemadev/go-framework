@@ -1,0 +1,6 @@
+name: github-com-kemadev-go-framework-deploy-00-dev-cluster
+description: Dev cluster creation for go-framework
+runtime: go
+config: {}
+backend:
+  url: file://./pulumi-backend
