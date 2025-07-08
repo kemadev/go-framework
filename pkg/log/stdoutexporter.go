@@ -77,7 +77,8 @@ func appendSourceAttrs(attrs []string, filepath string, lineno int64, function s
 func (e *Exporter) Export(ctx context.Context, records []sdklog.Record) error {
 	for _, record := range records {
 		// Honor context cancellation.
-		if err := ctx.Err(); err != nil {
+		err := ctx.Err()
+		if err != nil {
 			return err
 		}
 		var attrs []string
