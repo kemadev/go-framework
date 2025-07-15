@@ -168,17 +168,17 @@ func newHTTPHandler(routes HTTPRoutesToRegister, conf *config.Config) http.Handl
 // It should be used to send JSON responses to the client.
 // No further writing should be done after calling this function.
 func SendJSONResponse(
-	c HTTPClientInfo,
+	clientInfo HTTPClientInfo,
 	statusCode int,
 	data any,
 ) {
-	c.Writer.Header().Set(ContentTypeHeaderKey, ContentTypeJSON)
-	c.Writer.WriteHeader(statusCode)
+	clientInfo.Writer.Header().Set(ContentTypeHeaderKey, ContentTypeJSON)
+	clientInfo.Writer.WriteHeader(statusCode)
 
-	err := json.NewEncoder(c.Writer).Encode(data)
+	err := json.NewEncoder(clientInfo.Writer).Encode(data)
 	if err != nil {
 		SendErrorResponse(
-			c,
+			clientInfo,
 			http.StatusInternalServerError,
 			ErrInternalServerError,
 			err,
@@ -191,24 +191,24 @@ func SendJSONResponse(
 // allowing to send a different error message to the client than the one logged, thus
 // allowing to hide information from the client while logging it.
 func SendErrorResponse(
-	c HTTPClientInfo,
+	clientInfo HTTPClientInfo,
 	statusCode int,
 	errToSend error,
 	errToLog error,
 ) {
-	e := map[string]string{
+	errMap := map[string]string{
 		"error": errToSend.Error(),
 	}
 
-	c.Writer.Header().Set(ContentTypeHeaderKey, ContentTypeJSON)
-	c.Writer.WriteHeader(statusCode)
-	InstrumentError(c.Ctx, c.Logger, c.Span, errToLog)
+	clientInfo.Writer.Header().Set(ContentTypeHeaderKey, ContentTypeJSON)
+	clientInfo.Writer.WriteHeader(statusCode)
+	InstrumentError(clientInfo.Ctx, clientInfo.Logger, clientInfo.Span, errToLog)
 
-	err := json.NewEncoder(c.Writer).Encode(e)
+	err := json.NewEncoder(clientInfo.Writer).Encode(errMap)
 	if err != nil {
-		InstrumentError(c.Ctx, c.Logger, c.Span, err)
+		InstrumentError(clientInfo.Ctx, clientInfo.Logger, clientInfo.Span, err)
 		http.Error(
-			c.Writer,
+			clientInfo.Writer,
 			http.StatusText(http.StatusInternalServerError),
 			http.StatusInternalServerError,
 		)
@@ -234,18 +234,18 @@ func InstrumentError(
 }
 
 func SendResponse(
-	c HTTPClientInfo,
+	clientInfo HTTPClientInfo,
 	statusCode int,
 	contentType string,
 	data []byte,
 ) {
-	c.Writer.Header().Set(ContentTypeHeaderKey, contentType)
-	c.Writer.WriteHeader(statusCode)
+	clientInfo.Writer.Header().Set(ContentTypeHeaderKey, contentType)
+	clientInfo.Writer.WriteHeader(statusCode)
 
-	_, err := c.Writer.Write([]byte(data))
+	_, err := clientInfo.Writer.Write([]byte(data))
 	if err != nil {
 		SendErrorResponse(
-			c,
+			clientInfo,
 			http.StatusInternalServerError,
 			ErrInternalServerError,
 			err,

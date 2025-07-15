@@ -191,7 +191,7 @@ func NewConfig() (*Config, error) {
 	}
 
 	for _, env := range envVarsConfig {
-		switch d := env.Dest.(type) {
+		switch dest := env.Dest.(type) {
 		case *string:
 			res, err := getFromEnvVar(env)
 			if err != nil {
@@ -203,7 +203,7 @@ func NewConfig() (*Config, error) {
 				return nil, ErrEnvVarsMappingsInvalid
 			}
 
-			*d = s
+			*dest = s
 		case *int:
 			res, err := getFromEnvVar(env)
 			if err != nil {
@@ -215,7 +215,7 @@ func NewConfig() (*Config, error) {
 				return nil, ErrEnvVarsMappingsInvalid
 			}
 
-			*d = i
+			*dest = i
 		case *url.URL:
 			res, err := getFromEnvVar(env)
 			if err != nil {
@@ -227,7 +227,7 @@ func NewConfig() (*Config, error) {
 				return nil, ErrEnvVarsMappingsInvalid
 			}
 
-			*d = u
+			*dest = u
 		default:
 			return nil, fmt.Errorf("%s: %w", env.Key, ErrEnvVarsMappingsInvalid)
 		}

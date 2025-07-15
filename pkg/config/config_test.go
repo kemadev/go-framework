@@ -283,18 +283,18 @@ func TestNewConfig(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
 			envVarsMappings := map[string]string{
-				tt.runtimeEnvVarValue:      config.EnvVarKeyRuntimeEnv,
-				tt.otelEnpointUrl:          config.EnvVarKeyOtelEndpointURL,
-				tt.otelExporterCompression: config.EnvVarKeyOtelExporterCompression,
-				tt.appVersion:              config.EnvVarKeyAppVersion,
-				tt.appName:                 config.EnvVarKeyAppName,
-				tt.appNamespace:            config.EnvVarKeyAppNamespace,
-				tt.servePort:               config.EnvVarKeyHTTPServePort,
-				tt.readTimeout:             config.EnvVarKeyHTTPReadTimeout,
-				tt.writeTimeout:            config.EnvVarKeyHTTPWriteTimeout,
+				testCase.runtimeEnvVarValue:      config.EnvVarKeyRuntimeEnv,
+				testCase.otelEnpointUrl:          config.EnvVarKeyOtelEndpointURL,
+				testCase.otelExporterCompression: config.EnvVarKeyOtelExporterCompression,
+				testCase.appVersion:              config.EnvVarKeyAppVersion,
+				testCase.appName:                 config.EnvVarKeyAppName,
+				testCase.appNamespace:            config.EnvVarKeyAppNamespace,
+				testCase.servePort:               config.EnvVarKeyHTTPServePort,
+				testCase.readTimeout:             config.EnvVarKeyHTTPReadTimeout,
+				testCase.writeTimeout:            config.EnvVarKeyHTTPWriteTimeout,
 			}
 			for k, v := range envVarsMappings {
 				if k != "" {
@@ -303,14 +303,14 @@ func TestNewConfig(t *testing.T) {
 			}
 
 			got, err := config.NewConfig()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("error = %v, wantErr %v", err, tt.wantErr)
+			if (err != nil) != testCase.wantErr {
+				t.Errorf("error = %v, wantErr %v", err, testCase.wantErr)
 
 				return
 			}
 
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewConfig() = %v, want %v", got, tt.want)
+			if !reflect.DeepEqual(got, testCase.want) {
+				t.Errorf("NewConfig() = %v, want %v", got, testCase.want)
 			}
 		})
 	}

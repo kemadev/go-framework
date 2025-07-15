@@ -57,11 +57,11 @@ func init() {
 }
 
 // rolldice is the handler for the /rolldice/{player} endpoint.
-func rolldice(w http.ResponseWriter, r *http.Request) {
+func rolldice(writter http.ResponseWriter, req *http.Request) {
 	// Init trace span
 	ctx, span := tracer.Start(
 		// Get propagated context from parent, or create new one if there is none
-		r.Context(),
+		req.Context(),
 		// Use a meaningful name, see https://opentelemetry.io/docs/specs/otel/trace/api/#span
 		"roll",
 		// Set appropriate kind, see https://opentelemetry.io/docs/specs/otel/trace/api/#spankind
@@ -71,7 +71,7 @@ func rolldice(w http.ResponseWriter, r *http.Request) {
 
 	kclient := khttp.HTTPClientInfo{
 		Ctx:    ctx,
-		Writer: w,
+		Writer: writter,
 		Logger: logger,
 		Span:   span,
 	}
@@ -88,7 +88,7 @@ func rolldice(w http.ResponseWriter, r *http.Request) {
 
 	var msg, player string
 
-	player = r.PathValue("player")
+	player = req.PathValue("player")
 	if player != "" {
 		msg = player + " is rolling the dice"
 	} else {

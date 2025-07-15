@@ -99,16 +99,16 @@ func (e *Exporter) Export(ctx context.Context, records []sdklog.Record) error {
 			color = ""
 		}
 
-		record.WalkAttributes(func(kv log.KeyValue) bool {
-			switch kv.Key {
+		record.WalkAttributes(func(logKV log.KeyValue) bool {
+			switch logKV.Key {
 			case "code.filepath":
-				filepath = kv.Value.AsString()
+				filepath = logKV.Value.AsString()
 			case "code.function":
-				function = kv.Value.AsString()
+				function = logKV.Value.AsString()
 			case "code.lineno":
-				lineno = kv.Value.AsInt64()
+				lineno = logKV.Value.AsInt64()
 			default:
-				attrs = append(attrs, formatAttr(kv.Key, kv.Value.String()))
+				attrs = append(attrs, formatAttr(logKV.Key, logKV.Value.String()))
 			}
 
 			return true
