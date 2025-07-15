@@ -7,7 +7,6 @@ import (
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
-	otelLog "go.opentelemetry.io/otel/log"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -21,9 +20,7 @@ func CreateFallbackLogger() *slog.Logger {
 			&slog.HandlerOptions{
 				Level: slog.LevelDebug,
 			},
-		).WithAttrs([]slog.Attr{
-			slog.Int("Severity", int(otelLog.SeverityError1)),
-		}),
+		),
 	)
 }
 

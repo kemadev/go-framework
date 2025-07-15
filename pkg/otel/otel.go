@@ -80,6 +80,7 @@ func SetupOTelSDK(
 			attribute.String(string(semconv.ServiceNamespaceKey), conf.AppNamespace),
 			attribute.String(string(semconv.ServiceNameKey), conf.AppName),
 			attribute.String(string(semconv.ServiceVersionKey), conf.AppVersion),
+			attribute.String(string(semconv.DeploymentEnvironmentKey), conf.RuntimeEnv),
 		),
 	)
 	if err != nil {
