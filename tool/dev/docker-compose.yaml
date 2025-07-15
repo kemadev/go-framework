@@ -74,7 +74,6 @@ volumes:
 services:
   postgresql:
     image: bitnami/postgresql:17
-    container_name: postgresql
     profiles:
       - never
     environment:
@@ -99,7 +98,6 @@ volumes:
 services:
   valkey:
     image: bitnami/valkey:8.1
-    container_name: valkey
     profiles:
       - never
     environment:
@@ -130,7 +128,6 @@ services:
     profiles:
       - never
     image: opensearchproject/opensearch:3
-    container_name: opensearch-node1
     environment:
       cluster.name: dev
       node.name: opensearch-node1
@@ -158,7 +155,6 @@ services:
     profiles:
       - never
     image: opensearchproject/opensearch:3
-    container_name: opensearch-node2
     environment:
       cluster.name: dev
       node.name: opensearch-node2
@@ -183,7 +179,6 @@ services:
     profiles:
       - never
     image: opensearchproject/opensearch-dashboards:3
-    container_name: opensearch-dashboards
     ports:
       - 5601:5601
     environment:
@@ -195,7 +190,6 @@ services:
 services:
   jaeger:
     image: bitnami/jaeger:2
-    container_name: jaeger
     profiles:
       - never
     environment:
