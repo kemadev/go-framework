@@ -31,7 +31,7 @@ services:
       APP_NAME: go-framework
       APP_VERSION: dev
       APP_NAMESPACE: whatever
-      OTEL_ENDPOINT_URL: http://localhost:4317
+      OTEL_ENDPOINT_URL: http://kemadev-go-framework-jaeger-1:4317
       OTEL_EXPORTER_COMPRESSION: gzip
       HTTP_SERVE_PORT: 8080
       HTTP_READ_TIMEOUT: 5
