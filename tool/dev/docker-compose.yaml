@@ -158,9 +158,9 @@ services:
     image: opensearchproject/opensearch:3
     environment:
       cluster.name: dev
-      node.name: opensearch-node1
-      discovery.seed_hosts: opensearch-node1,opensearch-node2
-      cluster.initial_cluster_manager_nodes: opensearch-node1,opensearch-node2
+      node.name: kemadev-go-frameworkopensearch-node1-1
+      discovery.seed_hosts: kemadev-go-frameworkopensearch-node1-1,kemadev-go-frameworkopensearch-node2-1
+      cluster.initial_cluster_manager_nodes: kemadev-go-frameworkopensearch-node1-1,kemadev-go-frameworkopensearch-node2-1
       bootstrap.memory_lock: true
       OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
       OPENSEARCH_INITIAL_ADMIN_PASSWORD: OpenSearchDev_1
@@ -185,9 +185,9 @@ services:
     image: opensearchproject/opensearch:3
     environment:
       cluster.name: dev
-      node.name: opensearch-node2
-      discovery.seed_hosts: opensearch-node1,opensearch-node2
-      cluster.initial_cluster_manager_nodes: opensearch-node1,opensearch-node2
+      node.name: kemadev-go-frameworkopensearch-node2-1
+      discovery.seed_hosts: kemadev-go-frameworkopensearch-node1-1,kemadev-go-frameworkopensearch-node2-1
+      cluster.initial_cluster_manager_nodes: kemadev-go-frameworkopensearch-node1-1,kemadev-go-frameworkopensearch-node2-1
       bootstrap.memory_lock: true
       OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
       OPENSEARCH_INITIAL_ADMIN_PASSWORD: OpenSearchDev_1
@@ -210,6 +210,6 @@ services:
     ports:
       - 5601:5601
     environment:
-      OPENSEARCH_HOSTS: '["https://opensearch-node1:9200","https://opensearch-node2:9200"]'
+      OPENSEARCH_HOSTS: '["https://kemadev-go-frameworkopensearch-node1-1:9200","https://kemadev-go-frameworkopensearch-node2-1:9200"]'
     networks:
       - opensearch
