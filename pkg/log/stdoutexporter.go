@@ -40,15 +40,6 @@ const (
 	reset = "\033[0m"
 )
 
-// severityColor maps log severity levels to their corresponding colors.
-var severityColor = map[string]string{
-	"DEBUG": cyan,
-	"INFO":  green,
-	"WARN":  yellow,
-	"ERROR": red,
-	"FATAL": magenta,
-}
-
 // Exporter is a custom log exporter that formats and outputs log records to stdout.
 // It uses the OpenTelemetry SDK's stdoutlog.Exporter as a base, but formats the output
 // to make it human-readable and color-coded for different severity levels.
@@ -93,6 +84,15 @@ func (e *Exporter) Export(ctx context.Context, records []sdklog.Record) error {
 		var lineno int64
 
 		severity := record.Severity().String()
+
+		// severityColor maps log severity levels to their corresponding colors.
+		severityColor := map[string]string{
+			"DEBUG": cyan,
+			"INFO":  green,
+			"WARN":  yellow,
+			"ERROR": red,
+			"FATAL": magenta,
+		}
 
 		color, ok := severityColor[severity]
 		if !ok {
