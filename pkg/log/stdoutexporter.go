@@ -19,21 +19,21 @@ import (
 // Colors definitions using ANSI escape codes
 // These colors are used to format the log output in the terminal.
 const (
-	// Gray color as ANSI escape code
+	// Gray color as ANSI escape code.
 	gray = "\033[90m"
-	// Blue color as ANSI escape code
+	// Blue color as ANSI escape code.
 	blue = "\033[34m"
-	// Cyan color as ANSI escape code
+	// Cyan color as ANSI escape code.
 	cyan = "\033[36m"
-	// Green color as ANSI escape code
+	// Green color as ANSI escape code.
 	green = "\033[32m"
-	// Yellow color as ANSI escape code
+	// Yellow color as ANSI escape code.
 	yellow = "\033[33m"
-	// Red color as ANSI escape code
+	// Red color as ANSI escape code.
 	red = "\033[31m"
-	// Magenta color as ANSI escape code
+	// Magenta color as ANSI escape code.
 	magenta = "\033[35m"
-	// Reset color as ANSI escape code, reverts to default terminal color
+	// Reset color as ANSI escape code, reverts to default terminal color.
 	reset = "\033[0m"
 )
 
@@ -55,13 +55,13 @@ type Exporter struct {
 
 // formatAttr returns a formatted string for a log attribute, using ANSI escape codes
 // to colorize the key and value. The key is colored gray, and the value is colored cyan.
-func formatAttr(key string, value interface{}) string {
+func formatAttr(key string, value any) string {
 	return fmt.Sprintf("%s%s%s=%s%v%s", gray, key, reset, cyan, value, reset)
 }
 
 func appendSourceAttrs(attrs []string, filepath string, lineno int64, function string) []string {
 	if filepath != "" && function != "" && lineno != 0 {
-		f := formatAttr(string(semconv.CodeFunctionKey), fmt.Sprintf("%s", function))
+		f := formatAttr(string(semconv.CodeFunctionKey), function)
 		attrs = append(attrs, f)
 		// Add a leading space to enable hyperlink detection in terminals, remove leading mount
 		// path to make it relative to application root.
@@ -70,6 +70,7 @@ func appendSourceAttrs(attrs []string, filepath string, lineno int64, function s
 		source := formatAttr(string(semconv.CodeFilepathKey), fmt.Sprintf(" %s:%v", path, lineno))
 		attrs = append(attrs, source)
 	}
+
 	return attrs
 }
 
@@ -81,11 +82,15 @@ func (e *Exporter) Export(ctx context.Context, records []sdklog.Record) error {
 		if err != nil {
 			return err
 		}
+
 		var attrs []string
+
 		var filepath, function string
+
 		var lineno int64
 
 		severity := record.Severity().String()
+
 		color, ok := severityColor[severity]
 		if !ok {
 			color = ""
@@ -102,6 +107,7 @@ func (e *Exporter) Export(ctx context.Context, records []sdklog.Record) error {
 			default:
 				attrs = append(attrs, formatAttr(kv.Key, kv.Value.String()))
 			}
+
 			return true
 		})
 
@@ -124,5 +130,6 @@ func NewExporter(opts ...stdoutlog.Option) (*Exporter, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &Exporter{Exporter: exp}, nil
 }

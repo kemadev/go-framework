@@ -27,16 +27,16 @@ const name = "github.com/kemadev/go-framework/cmd/main"
 
 // Telemetry components should be package-scoped.
 var (
-	// Tracing instrument
+	// Tracing instrument.
 	tracer = otel.Tracer(name)
-	// Metring instrument
+	// Metring instrument.
 	meter = otel.Meter(name)
-	// Logging instrument
+	// Logging instrument.
 	logger = otelslog.NewLogger(
 		"default",
 		otelslog.WithSource(true),
 	)
-	// Count of rolls
+	// Count of rolls.
 	rollCnt metric.Int64Counter
 )
 
@@ -82,6 +82,7 @@ func rolldice(w http.ResponseWriter, r *http.Request) {
 	roll := 1 + rand.Intn(6)
 
 	var msg, player string
+
 	player = r.PathValue("player")
 	if player != "" {
 		msg = player + " is rolling the dice"
@@ -133,7 +134,7 @@ func rolldice(w http.ResponseWriter, r *http.Request) {
 	span.SetStatus(codes.Ok, "roll successful")
 }
 
-// subTask is a helper function to show how to call another service
+// subTask is a helper function to show how to call another service.
 func subTask(ctx context.Context, roll int) (*http.Response, error) {
 	// You can create nested spans, see https://opentelemetry.io/docs/languages/go/instrumentation/#create-nested-spans
 	// Nested spans are useful to track different parts of the handling, such as external calls like in this example

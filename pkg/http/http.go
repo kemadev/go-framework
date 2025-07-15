@@ -163,10 +163,11 @@ func newHTTPHandler(routes HTTPRoutesToRegister, conf *config.Config) http.Handl
 func SendJSONResponse(
 	c HTTPClientInfo,
 	statusCode int,
-	data interface{},
+	data any,
 ) {
 	c.Writer.Header().Set(ContentTypeHeaderKey, ContentTypeJSON)
 	c.Writer.WriteHeader(statusCode)
+
 	err := json.NewEncoder(c.Writer).Encode(data)
 	if err != nil {
 		SendErrorResponse(
@@ -178,13 +179,7 @@ func SendJSONResponse(
 	}
 }
 
-// SendErrorResponse sends an error response to the client.
-// It sets the content type to JSON and writes the response with the given status code.
-// It uses [encoding/json.Encoder] to encode the error message to JSON.
-// If the JSON encoding fails, it sends an internal server error response.
-// It should be used to send error responses to the client.
-// No further writing should be done after calling this function.
-// errToSend is sent to client but not logged,
+// ErrToSend is sent to client but not logged,
 // errToLog is logged but not sent to client. Those two can be identical or different,
 // allowing to send a different error message to the client than the one logged, thus
 // allowing to hide information from the client while logging it.
@@ -197,9 +192,11 @@ func SendErrorResponse(
 	e := map[string]string{
 		"error": errToSend.Error(),
 	}
+
 	c.Writer.Header().Set(ContentTypeHeaderKey, ContentTypeJSON)
 	c.Writer.WriteHeader(statusCode)
 	InstrumentError(c.Ctx, c.Logger, c.Span, errToLog)
+
 	err := json.NewEncoder(c.Writer).Encode(e)
 	if err != nil {
 		InstrumentError(c.Ctx, c.Logger, c.Span, err)
@@ -237,6 +234,7 @@ func SendResponse(
 ) {
 	c.Writer.Header().Set(ContentTypeHeaderKey, contentType)
 	c.Writer.WriteHeader(statusCode)
+
 	_, err := c.Writer.Write([]byte(data))
 	if err != nil {
 		SendErrorResponse(

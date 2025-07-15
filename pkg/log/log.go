@@ -33,7 +33,8 @@ func AddAttributesToInstruments(
 	attributes []attribute.KeyValue,
 ) (metric.Meter, trace.Span, *slog.Logger) {
 	for _, attr := range attributes {
-		var slogAttr interface{}
+		var slogAttr any
+
 		switch attr.Value.Type() {
 		case attribute.STRING:
 			slogAttr = slog.String(string(attr.Key), attr.Value.AsString())
@@ -54,9 +55,12 @@ func AddAttributesToInstruments(
 		default:
 			slogAttr = attr.Value.AsInterface()
 		}
+
 		meter = otel.Meter(name, metric.WithInstrumentationAttributes(attr))
 		tracer.SetAttributes(attr)
+
 		logger = logger.With(slogAttr)
 	}
+
 	return meter, tracer, logger
 }

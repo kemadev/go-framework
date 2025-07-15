@@ -103,6 +103,7 @@ func getFromEnvVar(cfg envVarConf) (any, error) {
 		if err != nil {
 			return nil, fmt.Errorf("parsing %s to url failed: %w", env, err)
 		}
+
 		res = *u
 	default:
 		return nil, fmt.Errorf("%s: %w", cfg.Key, ErrEnvVarsMappingsInvalid)
@@ -217,10 +218,12 @@ func NewConfig() (*Config, error) {
 			if err != nil {
 				return nil, err
 			}
+
 			u, ok := res.(url.URL)
 			if !ok {
 				return nil, ErrEnvVarsMappingsInvalid
 			}
+
 			*d = u
 		default:
 			return nil, fmt.Errorf("%s: %w", env.Key, ErrEnvVarsMappingsInvalid)
