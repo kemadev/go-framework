@@ -78,6 +78,11 @@
 
 - Common tasks such as running, testing, creating new IaC components, updating Cloud resources, ... are done by using [kemutil](https://github.com/kemadev/ci-cd/tree/main/tool/kemutil). You are encouraged to install and use it!
 
+#### Debugging
+
+- Debugger support is available in VSCode, using [vscode-go](https://github.com/golang/vscode-go/wiki/debugging) extension. A task is available in [.vscode/tasks.json](.vscode/tasks.json) to run the debugger.
+  Please note that you first need to run the application through docker compose with `debug` profile, e.g. via `kemutil`
+
 #### CI / CD
 
 ##### Locally

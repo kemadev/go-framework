@@ -80,45 +80,6 @@ dockers:
       - '--label=org.opencontainers.image.title={{ .ProjectName }}'
       - '--label=org.opencontainers.image.revision={{ .FullCommit }}'
       - '--label=org.opencontainers.image.version={{ .Version }}'
-  - image_templates:
-      - 'ghcr.io/kemadev/{{ .ProjectName }}:v{{ .Version }}-dev-amd64'
-    use: buildx
-    goos: linux
-    goarch: amd64
-    goamd64: v3
-    ids:
-      - default
-    dockerfile: build/Dockerfile
-    extra_files:
-      - go.mod
-    build_flag_templates:
-      - '--pull'
-      - '--secret=id=netrc,src=/tmp/netrc'
-      - '--platform=linux/amd64'
-      - '--target=dev'
-      - '--label=org.opencontainers.image.created={{ .Date }}'
-      - '--label=org.opencontainers.image.title={{ .ProjectName }}'
-      - '--label=org.opencontainers.image.revision={{ .FullCommit }}'
-      - '--label=org.opencontainers.image.version={{ .Version }}'
-  - image_templates:
-      - 'ghcr.io/kemadev/{{ .ProjectName }}:v{{ .Version }}-dev-arm64'
-    use: buildx
-    goos: linux
-    goarch: arm64
-    ids:
-      - default
-    dockerfile: build/Dockerfile
-    extra_files:
-      - go.mod
-    build_flag_templates:
-      - '--pull'
-      - '--secret=id=netrc,src=/tmp/netrc'
-      - '--platform=linux/arm64'
-      - '--target=dev'
-      - '--label=org.opencontainers.image.created={{ .Date }}'
-      - '--label=org.opencontainers.image.title={{ .ProjectName }}'
-      - '--label=org.opencontainers.image.revision={{ .FullCommit }}'
-      - '--label=org.opencontainers.image.version={{ .Version }}'
 docker_manifests:
   - name_template: 'ghcr.io/kemadev/{{ .ProjectName }}:v{{ .Version }}'
     image_templates:
@@ -128,14 +89,6 @@ docker_manifests:
     image_templates:
       - 'ghcr.io/kemadev/{{ .ProjectName }}:v{{ .Version }}-amd64'
       - 'ghcr.io/kemadev/{{ .ProjectName }}:v{{ .Version }}-arm64'
-  - name_template: 'ghcr.io/kemadev/{{ .ProjectName }}:v{{ .Version }}-dev'
-    image_templates:
-      - 'ghcr.io/kemadev/{{ .ProjectName }}:v{{ .Version }}-dev-amd64'
-      - 'ghcr.io/kemadev/{{ .ProjectName }}:v{{ .Version }}-dev-arm64'
-  - name_template: 'ghcr.io/kemadev/{{ .ProjectName }}:dev-latest'
-    image_templates:
-      - 'ghcr.io/kemadev/{{ .ProjectName }}:v{{ .Version }}-dev-amd64'
-      - 'ghcr.io/kemadev/{{ .ProjectName }}:v{{ .Version }}-dev-arm64'
 archives:
   - id: default
     files:
