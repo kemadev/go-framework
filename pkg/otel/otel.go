@@ -23,7 +23,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 )
 
 var (
@@ -83,7 +83,7 @@ func SetupOTelSDK(
 			attribute.String(string(semconv.ServiceNamespaceKey), conf.AppNamespace),
 			attribute.String(string(semconv.ServiceNameKey), conf.AppName),
 			attribute.String(string(semconv.ServiceVersionKey), conf.AppVersion),
-			attribute.String(string(semconv.DeploymentEnvironmentKey), conf.RuntimeEnv),
+			attribute.String(string(semconv.DeploymentEnvironmentNameKey), conf.RuntimeEnv),
 		),
 	)
 	if err != nil {
