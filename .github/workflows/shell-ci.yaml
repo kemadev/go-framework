@@ -1,0 +1,32 @@
+name: Shell - CI
+
+on:
+  schedule:
+    # Each day at 3:00 AM
+    - cron: 0 3 * * *
+  pull_request:
+    paths:
+      - '**.sh'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  shell-lint:
+    name: Shell lint
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/kemadev/ci-cd:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+      - name: Shell lint
+        id: shell-lint
+        run: kema-runner shell

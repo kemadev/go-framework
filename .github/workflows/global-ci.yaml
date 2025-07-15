@@ -1,0 +1,73 @@
+name: Global - CI
+
+on:
+  schedule:
+    # Each day at 3:00 AM
+    - cron: 0 3 * * *
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - unlocked
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  secrets-scan:
+    name: Secrets scan
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/kemadev/ci-cd:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+      - name: Set git safe directory
+        run: git config --global --add safe.directory "${GITHUB_WORKSPACE//\/home\/runner\/work\//\/__w\/}"
+      - name: Secrets scan
+        id: secrets-scan
+        run: kema-runner secrets
+
+  deps-scan:
+    name: Dependencies scan
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/kemadev/ci-cd:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+      - name: Dependencies scan
+        id: deps-scan
+        run: kema-runner deps
+
+  sast:
+    name: Static Application Security Testing
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/kemadev/ci-cd:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+      - name: Static Application Security Testing
+        id: sast
+        run: kema-runner sast

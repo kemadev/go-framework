@@ -2,5 +2,7 @@ MD013:
   line_length: 400
 MD026:
   punctuation: ',;'
-MD033: false # Allow inline HTML
-MD036: false # Allow emphasis instead of headings
+# Allow inline HTML
+MD033: false
+# Allow emphasis instead of headings
+MD036: false

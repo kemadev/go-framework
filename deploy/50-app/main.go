@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/url"
 	"time"
 
@@ -26,7 +27,7 @@ func main() {
 			},
 		})
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to deploy basic HTTP app: %w", err)
 		}
 		return nil
 	})

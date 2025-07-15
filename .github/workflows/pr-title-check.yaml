@@ -1,0 +1,34 @@
+name: PR - Title Check
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+      - unlocked
+
+permissions:
+  contents: none
+
+jobs:
+  pr-title-check:
+    name: PR title check
+    permissions:
+      contents: none
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/kemadev/ci-cd:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+      - name: PR title check
+        id: pr-title-check
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: kema-runner pr-title-check "${PR_TITLE}"

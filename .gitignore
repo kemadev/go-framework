@@ -21,3 +21,6 @@ dist/*
 !dist/PURPOSE.md
 # tmp files
 tmp/*
+
+# Pulumi local backend
+pulumi-backend/

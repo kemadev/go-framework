@@ -1,0 +1,29 @@
+name: Housekeeping -  Repo template staleness check
+
+on:
+  schedule:
+    # Each day at 3:00 AM
+    - cron: 0 3 * * *
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  repo-template-stale-check:
+    name: Repo template staleness check
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/kemadev/ci-cd:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+      - name: Repo template staleness check
+        id: repo-template-stale-check
+        run: kema-runner repo-template-stale-check

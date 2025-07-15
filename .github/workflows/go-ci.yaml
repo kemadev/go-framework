@@ -1,0 +1,156 @@
+name: Go - CI
+
+on:
+  schedule:
+    # Each day at 3:00 AM
+    - cron: 0 3 * * *
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - unlocked
+    paths:
+      - '**go.mod'
+      - '**go.sum'
+      - '**.go'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  go-unit-test:
+    name: Go unit test
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/kemadev/ci-cd:latest
+      env:
+        # Make race detection possible
+        CGO_ENABLED: 1
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+      - name: Go unit test
+        id: go-unit-test
+        run: kema-runner go-test
+
+  go-test-coverage:
+    name: Go test coverage
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/kemadev/ci-cd:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+      - name: Go test coverage
+        id: go-test-coverage
+        run: kema-runner go-cover
+
+  go-build:
+    name: Go build
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/kemadev/ci-cd:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+      - name: Set git safe directory
+        run: git config --global --add safe.directory "${GITHUB_WORKSPACE//\/home\/runner\/work\//\/__w\/}"
+      - name: Login to GitHub Packages
+        env:
+          USERNAME: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "${GITHUB_TOKEN}" | docker login ghcr.io --username "${USERNAME}" --password-stdin
+      - name: Create git secrets
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GORELEASER_PAT }}
+        run: |
+          echo -e "machine $(git remote get-url origin | sed -E 's|(https?://)?([^/@:]+).*|\2|')\nlogin git\npassword ${GITHUB_TOKEN}\n" > "/tmp/netrc"
+          cp /tmp/netrc "${HOME}/.netrc"
+      - name: Go build
+        id: go-build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          kema-runner go-build
+      - name: Clean up
+        if: always()
+        shell: bash
+        run: |
+          rm -f /tmp/netrc || { echo "Git credentials file removal failed" && exit 1; }
+
+  go-check-mod-tidy:
+    name: Go go.mod tidyness
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/kemadev/ci-cd:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+      - name: Go go.mod tidyness
+        id: go-check-mod-tidy
+        run: kema-runner go-mod-tidy
+
+  go-check-mod-name:
+    name: Go go.mod name
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/kemadev/ci-cd:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+      - name: Go go.mod name
+        id: go-check-mod-name
+        run: kema-runner go-mod-name
+
+  go-lint:
+    name: Go lint
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/kemadev/ci-cd:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+      - name: Set git safe directory
+        run: git config --global --add safe.directory "${GITHUB_WORKSPACE//\/home\/runner\/work\//\/__w\/}"
+      - name: Go lint
+        id: go-lint
+        run: kema-runner go-lint

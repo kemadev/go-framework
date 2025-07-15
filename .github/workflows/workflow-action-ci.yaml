@@ -1,0 +1,40 @@
+name: Workflows - CI
+
+on:
+  schedule:
+    # Each day at 3:00 AM
+    - cron: 0 3 * * *
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - unlocked
+    paths:
+      - .github/workflows/*
+      - .github/actions/*
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  workflow-lint:
+    name: Workflows lint
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/kemadev/ci-cd:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+      - name: Set git safe directory
+        run: git config --global --add safe.directory "${GITHUB_WORKSPACE//\/home\/runner\/work\//\/__w\/}"
+      - name: Workflows lint
+        id: workflow-lint
+        run: kema-runner gha

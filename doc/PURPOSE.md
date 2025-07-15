@@ -4,4 +4,4 @@
 
 - Are documentation files for the project
 - Should be written in Markdown format
-- Can (should) be built into a static site
+- Can be built into a static site

@@ -1,0 +1,61 @@
+name: Go - Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  go-release:
+    name: Go release
+    permissions:
+      contents: write
+      packages: write
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/kemadev/ci-cd:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
+    concurrency:
+      group: go-release
+    steps:
+      - name: Start buildkitd
+        run: |
+          nohup buildkitd > /tmp/buildkitd.log 2>&1 &
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Set git safe directory
+        run: git config --global --add safe.directory "${GITHUB_WORKSPACE//\/home\/runner\/work\//\/__w\/}"
+      - name: Login to GitHub Packages
+        env:
+          USERNAME: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "${GITHUB_TOKEN}" | docker login ghcr.io --username "${USERNAME}" --password-stdin
+      - name: Create git secrets
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GORELEASER_PAT }}
+        run: |
+          echo -e "machine $(git remote get-url origin | sed -E 's|(https?://)?([^/@:]+).*|\2|')\nlogin git\npassword ${GITHUB_TOKEN}\n" > "/tmp/netrc"
+          cp /tmp/netrc "${HOME}/.netrc"
+      - name: Go release
+        id: go-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          kema-runner release
+      - name: Clean up
+        if: always()
+        shell: bash
+        run: |
+          rm -f /tmp/netrc || { echo "Git credentials file removal failed" && exit 1; }
+          docker logout ghcr.io || { echo "Docker logout failed" && exit 1; }

@@ -1,0 +1,45 @@
+name: Housekeeping - Issues & PRs staleness housekeeping
+
+on:
+  schedule:
+    # Each day at 3:00 AM
+    - cron: 0 3 * * *
+  workflow_dispatch: {}
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: none
+
+jobs:
+  issue-pr-stale-housekeep:
+    name:
+    permissions:
+      contents: none
+      issues: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Issues & PRs staleness housekeeping
+        id: issue-pr-stale-housekeep
+        uses: actions/stale@v9
+        with:
+          enable-statistics: true
+          exempt-all-milestones: true
+          # Can be restored anytime from <repo root URL>/activity?activity_type=branch_deletion
+          delete-branch: true
+          remove-stale-when-updated: true
+          days-before-stale: 30
+          days-before-close: 30
+          close-issue-reason: not_planned
+          stale-issue-label: status/stale
+          stale-pr-label: status/stale
+          close-issue-label: status/stale
+          close-pr-label: status/stale
+          labels-to-remove-when-unstale: status/stale
+          stale-issue-message: This issue has been automatically marked as stale because it has not had recent activity. It will be closed in 7 days if no further activity occurs. If you think this is still a valid issue, please add a comment to prevent closure. Thank you for your contributions! (Maintainers can also add the issue to a milestone to prevent staleness)
+          stale-pr-message: This pull request has been automatically marked as stale because it has not had recent activity. It will be closed in 7 days if no further activity occurs. If you think this is still a valid pull request, please add a comment to prevent closure. Thank you for your contributions! (Maintainers can also add the PR to a milestone to prevent staleness)
+          close-issue-message: This issue has been automatically closed due to inactivity. If you think this is still a valid issue, please open a new issue and reference this one. Thank you for your contributions!
+          close-pr-message: This pull request has been automatically closed due to inactivity. If you think this is still a valid pull request, please open a new pull request and reference this one. Thank you for your contributions!

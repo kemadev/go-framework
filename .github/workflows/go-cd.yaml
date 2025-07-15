@@ -1,0 +1,37 @@
+name: Go - CD
+
+on:
+  push:
+    branches:
+      - main
+      - next
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  go-cd:
+    name: Go CD
+    permissions:
+      contents: write
+      packages: write
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/kemadev/ci-cd:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
+    concurrency:
+      group: go-cd-${{ github.ref_name }}
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+      - name: Go CD
+        id: go-cd
+        env:
+          BRANCH: ${{ github.ref_name }}
+          KUBECONFIG: ${{ secrets.KUBECONFIG }}
+        run: |
+          kema-runner cd

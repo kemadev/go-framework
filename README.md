@@ -1,3 +1,19 @@
+<!-- markdownlint-disable MD041 -->
+<div align=center>
+  <a href="https://github.com/kemadev/go-framework/actions/workflows/go-cd.yaml"><img alt="Go - CD - main" src="https://github.com/kemadev/go-framework/actions/workflows/go-cd.yaml/badge.svg?branch=main&event=push"></a>
+  <a href="https://github.com/kemadev/go-framework/actions/workflows/go-cd.yaml"><img alt="Go - CD - next" src="https://github.com/kemadev/go-framework/actions/workflows/go-cd.yaml/badge.svg?branch=next&event=push"></a>
+  <a href="https://github.com/kemadev/go-framework/actions/workflows/go-release.yaml"><img alt="Go - Release" src="https://github.com/kemadev/go-framework/actions/workflows/go-release.yaml/badge.svg?branch=main&event=push"></a>
+  <a href="https://github.com/kemadev/go-framework/actions/workflows/docker-ci.yaml"><img alt="Docker - CI" src="https://github.com/kemadev/go-framework/actions/workflows/docker-ci.yaml/badge.svg?branch=main&event=schedule"></a>
+  <a href="https://github.com/kemadev/go-framework/actions/workflows/global-ci.yaml"><img alt="Global - CI" src="https://github.com/kemadev/go-framework/actions/workflows/global-ci.yaml/badge.svg?branch=main&event=schedule"></a>
+  <a href="https://github.com/kemadev/go-framework/actions/workflows/go-ci.yaml"><img alt="Go - CI" src="https://github.com/kemadev/go-framework/actions/workflows/go-ci.yaml/badge.svg?branch=main&event=schedule"></a>
+  <a href="https://github.com/kemadev/go-framework/actions/workflows/repo-template-stale.yaml"><img alt="Housekeeping - Repo template staleness check" src="https://github.com/kemadev/go-framework/actions/workflows/repo-template-stale.yaml/badge.svg?branch=main&event=schedule"></a>
+  <a href="https://github.com/kemadev/go-framework/actions/workflows/branch-stale.yaml"><img alt="Housekeeping - Branches staleness check" src="https://github.com/kemadev/go-framework/actions/workflows/branch-stale.yaml/badge.svg?branch=main&event=schedule"></a>
+  <a href="https://github.com/kemadev/go-framework/actions/workflows/issue-pr-stale.yaml"><img alt="Housekeeping - Issues & PRs staleness housekeeping" src="https://github.com/kemadev/go-framework/actions/workflows/issue-pr-stale.yaml/badge.svg?branch=main&event=schedule"></a>
+  <a href="https://github.com/kemadev/go-framework/actions/workflows/markdown-ci.yaml"><img alt="Markdown - CI" src="https://github.com/kemadev/go-framework/actions/workflows/markdown-ci.yaml/badge.svg?branch=main&event=schedule"></a>
+  <a href="https://github.com/kemadev/go-framework/actions/workflows/shell-ci.yaml"><img alt="Shell - CI" src="https://github.com/kemadev/go-framework/actions/workflows/shell-ci.yaml/badge.svg?branch=main&event=schedule"></a>
+  <a href="https://github.com/kemadev/go-framework/actions/workflows/workflow-action-ci.yaml"><img alt="Workflows - CI" src="https://github.com/kemadev/go-framework/actions/workflows/workflow-action-ci.yaml/badge.svg?branch=main&event=schedule"></a>
+</div>
+
 # go-framework
 
 <!-- Brief description of the project -->
@@ -29,6 +45,11 @@
 - Microservices are small, loosely coupled, and independently deployable and scalable
 - Each microservice should be agnostic of it downstreams. However, it should expose a clear and well-defined API to its downstreams for them to consume (that is, the microservice itself uses its upstreams' API)
 
+### Documentation
+
+- Go code documentation is accessible thanks to [pkgsite](https://pkg.go.dev/golang.org/x/pkgsite/cmd/pkgsite)! Just run `pkgsite` in the root of the project to serve its documentation
+- Global project documentation is available in the [doc](./doc) directory
+
 ### Development Guidelines and Conventions
 
 - All major directories contain a `PURPOSE.md` file with a brief description of directory's content and instructions on how to use it
@@ -39,6 +60,7 @@
 - Following [Learn Go with tests](https://github.com/quii/learn-go-with-tests) is encouraged
 - Following [Effective Go](https://go.dev/doc/effective_go) and [Google's styleguide](https://google.github.io/styleguide/go/) is encouraged
 - Following [locality of behaviour](https://htmx.org/essays/locality-of-behaviour/) and [principle of least astonishment](https://en.wikipedia.org/wiki/Principle_of_least_astonishment) is encouraged
+- Checking [Go proverbs](https://go-proverbs.github.io/) is encouraged
 - Variables, functions, methods, ... should be named in a short and descriptive way
 
 ### Project development
@@ -49,27 +71,31 @@
 
 #### Prerequisites
 
-- [Docker](https://github.com/docker/cli) and [Docker Compose](https://github.com/docker/compose) to run applications in containers. You should configure your credentials store and credential helpers for Docker to work with your container registry
+- [Docker](https://github.com/docker/cli) & [Docker Compose](https://github.com/docker/compose) to run applications in containers. You should configure your credentials store and credential helpers for Docker to work with your container registry
 - [Go](https://github.com/golang/go) to install applications dependencies as needed
-- [Pulumi](https://github.com/pulumi/pulumi) to manage Cloud resources
-- [kind](https://github.com/kubernetes-sigs/kind) to run Kubernetes clusters locally
-- [Kubectl](https://github.com/kubernetes/kubectl) to manage Kubernetes resources (not strictly required but quite handy)
-- Very few other CLI tools such as [git](https://github.com/git/git), that are most likely already installed on your system
 
 #### Running the project
 
-- Common tasks such as running, testing, creating new IaC components, updating Cloud resources, ... are done by mimicking the CI pipelines, using the same container images and the same commands
+- Common tasks such as running, testing, creating new IaC components, updating Cloud resources, ... are done by using [kemutil](https://github.com/kemadev/ci-cd/tree/main/tool/kemutil). You are encouraged to install and use it!
 
 #### CI / CD
 
 ##### Locally
 
-- CI pipelines can be mimicked locally using `kema-runner` image, mounting project's directory as a volume in `/src`, and running the same commands as in the CI pipeline
+- CI pipelines can be mimicked locally using `ci-cd` image, mounting project's directory as a volume in `/src`, and running the same commands as in the CI pipeline
 - That is, you can run the following command to run the whole CI pipeline locally:
 
   ```bash
-  docker run [--rm] -i -t -v .:/src github.com/kemadev/kema-runner ci [--fix]
+  kemutil ci [--fix] [--hot] ci
   ```
+
+- When using `--hot`, your need to export `GIT_TOKEN` environment variable to propagate your git credentials to the container, so that it can fetch private dependencies. This is typically done by running:
+
+  ```bash
+  export GIT_TOKEN=$(gh auth token)
+  ```
+
+- Other commands are available, feel free to run `kemutil help` to see the list of available commands and their usage
 
 ##### False positives
 
@@ -81,4 +107,5 @@
   - `shellcheck`: Add a `shellcheck disable=<rule>` comment. See [this doc](https://github.com/koalaman/shellcheck/wiki/Ignore)
   - `hadolint`: Add a `hadolint ignore=<rule>` comment. See [this doc](https://github.com/hadolint/hadolint/blob/master/README.md#ignoring-rules)
   - `actionlint`: In case of a `shellcheck` error, refer to the `shellcheck` section. Otherwise, you can pass arguments to the linting action to ignore specific rules. See [this doc](https://github.com/rhysd/actionlint/blob/main/docs/usage.md#ignore-some-errors)
-  - `grype`: Add an ignore in [.grype.yaml](config/grype/.grype.yaml). See [this doc](https://github.com/anchore/grype#specifying-matches-to-ignore). Please note that **any vulnerability should be remediated as soon as possible**, only add true false positives to the ignore list. Prefer deploying with a non-exploitable vulnerability reported rather than ignoring it.
+  - `grype`: Add an ignore in [.grype.yaml](https://github.com/kemadev/go-framework/tree/main/config/grype/.grype.yaml). See [this doc](https://github.com/anchore/grype#specifying-matches-to-ignore).
+    Please note that **any vulnerability should be remediated as soon as possible**, only add real real positives to the ignore list. Prefer deploying with a non-exploitable vulnerability reported rather than ignoring it.

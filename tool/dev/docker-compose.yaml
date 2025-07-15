@@ -1,0 +1,52 @@
+name: kemadev-go-framework
+
+networks:
+  app-main:
+    driver: bridge
+
+secrets:
+  netrc:
+    name: netrc
+    # TIP You can use `export COMPOSE_NETRC="$(echo -e "machine $(git remote get-url origin | grep -oP '.+://\K[^/]+(?=/)')\nlogin git\npassword $(gh auth token)\n")"`
+    environment: COMPOSE_NETRC
+
+services:
+  app-template:
+    profiles:
+      - never
+    # Enable colorized output for air
+    tty: true
+    build:
+      context: ../../
+      dockerfile: build/Dockerfile
+      target: dev
+      secrets:
+        - netrc
+    networks:
+      - app-main
+    secrets:
+      - netrc
+    environment:
+      # Not all projects under kemadev are private, but convenient not to set all exceptions
+      GOPRIVATE: "github.com/kemadev/*"
+      RUNTIME_ENV: dev
+      APP_NAME: go-framework
+      APP_VERSION: dev
+      APP_NAMESPACE: whatever
+      OTEL_ENDPOINT_URL: http://localhost:4317
+      OTEL_EXPORTER_COMPRESSION: gzip
+
+    restart: always
+    develop:
+      watch:
+        - action: rebuild
+          path: ../../
+          target: /src
+    # Close immediately and let compose restart the container without waiting for graceful shutdown
+    stop_grace_period: 0s
+
+  app:
+    extends:
+      service: app-template
+    profiles:
+      - dev

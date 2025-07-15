@@ -1,0 +1,29 @@
+name: Housekeeping - Branches staleness check
+
+on:
+  schedule:
+    # Each day at 3:00 AM
+    - cron: 0 3 * * *
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  branch-stale-check:
+    name: Branches staleness check
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/kemadev/ci-cd:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+      - name: Branches staleness check
+        id: branch-stale-check
+        run: kema-runner branch-stale-check

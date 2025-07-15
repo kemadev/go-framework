@@ -37,7 +37,7 @@ linters:
     # Checks exhaustiveness of enum switch statements.
     - exhaustive
     # Checks if all structure fields are initialized.
-    - exhaustruct
+    # - exhaustruct
     # Detects functions from golang.org/x/exp/ that can be replaced by std functions.
     - exptostd
     # Detects nested contexts in loops and function literals.
@@ -60,6 +60,8 @@ linters:
     - godot
     # Detects usage of FIXME, TODO and other keywords inside comments.
     - godox
+    # Check if file header matches to pattern.
+    - goheader
     # Manages the use of 'replace', 'retract', and 'excludes' directives in go.mod.
     - gomoddirectives
     # Allow and block list linter for direct Go module dependencies.
@@ -167,7 +169,7 @@ linters:
     # Checks that errors returned from external packages are wrapped.
     - wrapcheck
     # Add or remove empty lines.
-    - wsl
+    - wsl_v5
 
   settings:
     cyclop:
@@ -203,6 +205,14 @@ linters:
         # - IDEA
         - WARNING
         # - REF
+    goheader:
+      values:
+        const:
+          COMPANY: kemadev
+          LICENSE: MPL-2.0
+      template: |-
+        Copyright {{ YEAR }} {{ COMPANY }}
+        SPDX-License-Identifier: {{ LICENSE }}
     iface:
       enable:
         - identical
