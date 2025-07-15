@@ -78,7 +78,7 @@ type RoutesToRegister []Route
 // It returns an error if the server fails to start or if the shutdown fails.
 // It should be called from the main function of the application.
 // It is a blocking call and will not return until the server is shut down.
-func Run(routes RoutesToRegister, conf *config.Config) (err error) {
+func Run(routes RoutesToRegister, conf *config.Config) error {
 	// Handle SIGINT gracefully.
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
@@ -242,7 +242,7 @@ func SendResponse(
 	clientInfo.Writer.Header().Set(ContentTypeHeaderKey, contentType)
 	clientInfo.Writer.WriteHeader(statusCode)
 
-	_, err := clientInfo.Writer.Write([]byte(data))
+	_, err := clientInfo.Writer.Write(data)
 	if err != nil {
 		SendErrorResponse(
 			clientInfo,

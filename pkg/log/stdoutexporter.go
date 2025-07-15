@@ -24,8 +24,6 @@ import (
 const (
 	// Gray color as ANSI escape code.
 	gray = "\033[90m"
-	// Blue color as ANSI escape code.
-	blue = "\033[34m"
 	// Cyan color as ANSI escape code.
 	cyan = "\033[36m"
 	// Green color as ANSI escape code.
