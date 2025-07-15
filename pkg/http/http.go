@@ -40,9 +40,9 @@ const (
 	ContentTypePlain = "text/plain"
 )
 
-// HTTPClientInfo contains information about an HTTP client request, as well as the
+// ClientInfo contains information about an HTTP client request, as well as the
 // required instrumentation to log and trace it.
-type HTTPClientInfo struct {
+type ClientInfo struct {
 	// Ctx is the context of the HTTP request.
 	// It is used to propagate the context across the request.
 	// It is also used to cancel the request if needed.
@@ -58,9 +58,9 @@ type HTTPClientInfo struct {
 	Span trace.Span
 }
 
-// HTTPRoute contains the pattern and the handler function for an HTTP route.
+// Route contains the pattern and the handler function for an HTTP route.
 // The attributes are passed to [net/http.ServeMux.Handle], see its package's documentation for more information.
-type HTTPRoute struct {
+type Route struct {
 	// Pattern is the pattern for the HTTP route.
 	// See [net/http.ServeMux.Handle] for more information on how to use it.
 	Pattern string
@@ -69,16 +69,16 @@ type HTTPRoute struct {
 	HandlerFunc func(http.ResponseWriter, *http.Request)
 }
 
-// HTTPRoutesToRegister is a slice of HTTPRoute.
+// RoutesToRegister is a slice of HTTPRoute.
 // It should be used as a convinience type to pass a list of routes to the HTTP server.
-type HTTPRoutesToRegister []HTTPRoute
+type RoutesToRegister []Route
 
 // Run starts the HTTP server and registers the routes.
 // It handles the shutdown (can be caused by SIGINT) gracefully and sets up OpenTelemetry.
 // It returns an error if the server fails to start or if the shutdown fails.
 // It should be called from the main function of the application.
 // It is a blocking call and will not return until the server is shut down.
-func Run(routes HTTPRoutesToRegister, conf *config.Config) (err error) {
+func Run(routes RoutesToRegister, conf *config.Config) (err error) {
 	// Handle SIGINT gracefully.
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
@@ -104,11 +104,11 @@ func Run(routes HTTPRoutesToRegister, conf *config.Config) (err error) {
 	// Start HTTP server.
 	srv := &http.Server{
 		// Use any host, let Kubernetes handle the routing.
-		Addr:         ":" + strconv.Itoa(conf.HttpServePort),
+		Addr:         ":" + strconv.Itoa(conf.HTTPServePort),
 		BaseContext:  func(_ net.Listener) context.Context { return ctx },
-		ReadTimeout:  time.Duration(conf.HttpReadTimeout) * time.Second,
-		WriteTimeout: time.Duration(conf.HttpWriteTimeout) * time.Second,
-		Handler:      newHTTPHandler(routes, conf),
+		ReadTimeout:  time.Duration(conf.HTTPReadTimeout) * time.Second,
+		WriteTimeout: time.Duration(conf.HTTPWriteTimeout) * time.Second,
+		Handler:      newHTTPHandler(routes),
 	}
 	srvErr := make(chan error, 1)
 
@@ -139,7 +139,7 @@ func Run(routes HTTPRoutesToRegister, conf *config.Config) (err error) {
 
 // newHTTPHandler returns a new HTTP handler with the given routes.
 // It uses the [net/http.ServeMux] to register the routes and adds OpenTelemetry instrumentation.
-func newHTTPHandler(routes HTTPRoutesToRegister, conf *config.Config) http.Handler {
+func newHTTPHandler(routes RoutesToRegister) http.Handler {
 	mux := http.NewServeMux()
 
 	// handleFunc is a replacement for [net/http.mux.HandleFunc] which enriches the
@@ -168,7 +168,7 @@ func newHTTPHandler(routes HTTPRoutesToRegister, conf *config.Config) http.Handl
 // It should be used to send JSON responses to the client.
 // No further writing should be done after calling this function.
 func SendJSONResponse(
-	clientInfo HTTPClientInfo,
+	clientInfo ClientInfo,
 	statusCode int,
 	data any,
 ) {
@@ -191,7 +191,7 @@ func SendJSONResponse(
 // allowing to send a different error message to the client than the one logged, thus
 // allowing to hide information from the client while logging it.
 func SendErrorResponse(
-	clientInfo HTTPClientInfo,
+	clientInfo ClientInfo,
 	statusCode int,
 	errToSend error,
 	errToLog error,
@@ -234,7 +234,7 @@ func InstrumentError(
 }
 
 func SendResponse(
-	clientInfo HTTPClientInfo,
+	clientInfo ClientInfo,
 	statusCode int,
 	contentType string,
 	data []byte,

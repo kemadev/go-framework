@@ -12,12 +12,12 @@ import (
 )
 
 const (
-	// Env_dev is the development environment stack name.
-	Env_dev = "dev"
-	// Env_next is the next environment stack name.
-	Env_next = "next"
-	// Env_main is the main environment stack name.
-	Env_main = "main"
+	// EnvDev is the development environment stack name.
+	EnvDev = "dev"
+	// EnvNext is the next environment stack name.
+	EnvNext = "next"
+	// EnvMain is the main environment stack name.
+	EnvMain = "main"
 )
 
 var (
@@ -49,21 +49,21 @@ type Config struct {
 	// It describes the higher level project.
 	// It should be a short name with no spaces or special characters, e.g. `shop`.
 	AppNamespace string
-	// OtelEndpointUrl is the URL of the OpenTelemetry Collector.
+	// OtelEndpointURL is the URL of the OpenTelemetry Collector.
 	// It should use `grpc` scheme whenever possible.
-	OtelEndpointUrl url.URL
+	OtelEndpointURL url.URL
 	// OtelExporterCompression is the compression to use when sending via OpenTelemetry.
 	// It should be set to `gzip` whenever possible.
 	OtelExporterCompression string
-	// HttpServePort is the port on which the HTTP server will listen.
+	// HTTPServePort is the port on which the HTTP server will listen.
 	// It must be a valid port number, e.g. `8080`.
-	HttpServePort int
-	// HttpReadTimeout is the maximum duration before timing out reads of the request.
+	HTTPServePort int
+	// HTTPReadTimeout is the maximum duration before timing out reads of the request.
 	// It is passed to `http.Server.ReadTimeout`, multiplied by time.Second.
-	HttpReadTimeout int
-	// HttpWriteTimeout is the maximum duration before timing out writes of the response.
+	HTTPReadTimeout int
+	// HTTPWriteTimeout is the maximum duration before timing out writes of the response.
 	// It is passed to `http.Server.WriteTimeout`, multiplied by time.Second.
-	HttpWriteTimeout int
+	HTTPWriteTimeout int
 }
 
 // envVarConf is a struct that holds the configuration for an environment variable.
@@ -150,9 +150,9 @@ func NewConfig() (*Config, error) {
 			Key:  EnvVarKeyRuntimeEnv,
 			Dest: &conf.RuntimeEnv,
 			ValidSet: []string{
-				Env_dev,
-				Env_next,
-				Env_main,
+				EnvDev,
+				EnvNext,
+				EnvMain,
 			},
 		},
 		{
@@ -169,7 +169,7 @@ func NewConfig() (*Config, error) {
 		},
 		{
 			Key:  EnvVarKeyOtelEndpointURL,
-			Dest: &conf.OtelEndpointUrl,
+			Dest: &conf.OtelEndpointURL,
 		},
 		{
 			Key:      EnvVarKeyOtelExporterCompression,
@@ -178,15 +178,15 @@ func NewConfig() (*Config, error) {
 		},
 		{
 			Key:  EnvVarKeyHTTPServePort,
-			Dest: &conf.HttpServePort,
+			Dest: &conf.HTTPServePort,
 		},
 		{
 			Key:  EnvVarKeyHTTPReadTimeout,
-			Dest: &conf.HttpReadTimeout,
+			Dest: &conf.HTTPReadTimeout,
 		},
 		{
 			Key:  EnvVarKeyHTTPWriteTimeout,
-			Dest: &conf.HttpWriteTimeout,
+			Dest: &conf.HTTPWriteTimeout,
 		},
 	}
 

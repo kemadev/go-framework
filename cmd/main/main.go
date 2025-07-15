@@ -31,12 +31,12 @@ func main() {
 	}
 
 	// Define routes to handle
-	routes := http.HTTPRoutesToRegister{
-		http.HTTPRoute{
+	routes := http.RoutesToRegister{
+		http.Route{
 			Pattern:     "/rolldice/",
 			HandlerFunc: rolldice,
 		},
-		http.HTTPRoute{
+		http.Route{
 			Pattern:     "/rolldice/{player}",
 			HandlerFunc: rolldice,
 		},

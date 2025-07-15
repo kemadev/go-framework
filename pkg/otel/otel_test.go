@@ -28,8 +28,8 @@ func TestSetupOTelSDK(t *testing.T) {
 			args: args{
 				ctx: t.Context(),
 				conf: config.Config{
-					RuntimeEnv: config.Env_dev,
-					OtelEndpointUrl: url.URL{
+					RuntimeEnv: config.EnvDev,
+					OtelEndpointURL: url.URL{
 						Scheme: "grpc",
 						Host:   "localhost:4317",
 					},
@@ -43,8 +43,8 @@ func TestSetupOTelSDK(t *testing.T) {
 			args: args{
 				ctx: t.Context(),
 				conf: config.Config{
-					RuntimeEnv: config.Env_next,
-					OtelEndpointUrl: url.URL{
+					RuntimeEnv: config.EnvNext,
+					OtelEndpointURL: url.URL{
 						Scheme: "grpc",
 						Host:   "localhost:4317",
 					},

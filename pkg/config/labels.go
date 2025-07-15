@@ -22,10 +22,10 @@ const (
 	EnvVarKeyHTTPReadTimeout = "HTTP_READ_TIMEOUT"
 	// EnvVarKeyHTTPWriteTimeout is the environment variable key used to set write timeout.
 	EnvVarKeyHTTPWriteTimeout = "HTTP_WRITE_TIMEOUT"
-	// EnvVarKeyBusinessUnitId is the environment variable key used to identify business unit id.
-	EnvVarKeyBusinessUnitId = "BUSINESS_UNIT_ID"
-	// EnvVarKeyCustomerId is the environment variable key used to identify customer id.
-	EnvVarKeyCustomerId = "CUSTOMER_ID"
+	// EnvVarKeyBusinessUnitID is the environment variable key used to identify business unit id.
+	EnvVarKeyBusinessUnitID = "BUSINESS_UNIT_ID"
+	// EnvVarKeyCustomerID is the environment variable key used to identify customer id.
+	EnvVarKeyCustomerID = "CUSTOMER_ID"
 	// EnvVarKeyCostCenter is the environment variable key used to identify cost center.
 	EnvVarKeyCostCenter = "COST_CENTER"
 	// EnvVarKeyCostAllocationOwner is the environment variable key used to identify cost allocation owner.
@@ -40,8 +40,8 @@ const (
 	EnvVarKeyComplianceFramework = "COMPLIANCE_FRAMEWORK"
 	// EnvVarKeyExpiration is the environment variable key used to identify application expiration.
 	EnvVarKeyExpiration = "EXPIRATION"
-	// EnvVarKeyProjectUrl is the environment variable key used to identify application project url.
-	EnvVarKeyProjectUrl = "PROJECT_URL"
-	// EnvVarKeyMonitoringUrl is the environment variable key used to identify application monitoring url.
-	EnvVarKeyMonitoringUrl = "MONITORING_URL"
+	// EnvVarKeyProjectURL is the environment variable key used to identify application project url.
+	EnvVarKeyProjectURL = "PROJECT_URL"
+	// EnvVarKeyMonitoringURL is the environment variable key used to identify application monitoring url.
+	EnvVarKeyMonitoringURL = "MONITORING_URL"
 )

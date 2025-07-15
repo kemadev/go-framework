@@ -136,7 +136,7 @@ func newPropagator() propagation.TextMapPropagator {
 
 // newLoggerProvider returns a new OpenTelemetry logger provider, and an error if any occurred during the setup.
 // The logger provider is configured to batch export logs to the OpenTelemetry collector, or synchrounously to stdout using
-// [github.com/kemadev/go-framework/pkg/log] if conf.RuntimeEnv is set to [github.com/kemadev/go-framework/pkg/config.Env_dev].
+// [github.com/kemadev/go-framework/pkg/log] if conf.RuntimeEnv is set to [github.com/kemadev/go-framework/pkg/config.EnvDev].
 func newLoggerProvider(
 	ctx context.Context,
 	res *resource.Resource,
@@ -145,7 +145,7 @@ func newLoggerProvider(
 	var processor log.Processor
 
 	// Export to stdout w/o batching in dev, batch export to collector via OLTP otherwise
-	if conf.RuntimeEnv == config.Env_dev {
+	if conf.RuntimeEnv == config.EnvDev {
 		exp, err := klog.NewExporter()
 		if err != nil {
 			return nil, fmt.Errorf("otel logger init: %w", err)
@@ -159,7 +159,7 @@ func newLoggerProvider(
 		exp, err := otlploggrpc.New(
 			ctx,
 			otlploggrpc.WithCompressor(conf.OtelExporterCompression),
-			otlploggrpc.WithEndpointURL(conf.OtelEndpointUrl.String()),
+			otlploggrpc.WithEndpointURL(conf.OtelEndpointURL.String()),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("otel logger init: %w", err)
@@ -173,7 +173,7 @@ func newLoggerProvider(
 
 	// Log Info by default, Debug for dev
 	logLevel := minsev.SeverityInfo
-	if conf.RuntimeEnv == config.Env_dev {
+	if conf.RuntimeEnv == config.EnvDev {
 		logLevel = minsev.SeverityDebug
 	}
 
@@ -198,7 +198,7 @@ func newTracerProvider(
 	exp, err := otlptracegrpc.New(
 		ctx,
 		otlptracegrpc.WithCompressor(conf.OtelExporterCompression),
-		otlptracegrpc.WithEndpointURL(conf.OtelEndpointUrl.String()),
+		otlptracegrpc.WithEndpointURL(conf.OtelEndpointURL.String()),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("otel tracer init: %w", err)
@@ -224,7 +224,7 @@ func newMeterProvider(
 	exp, err := otlpmetricgrpc.New(
 		ctx,
 		otlpmetricgrpc.WithCompressor(conf.OtelExporterCompression),
-		otlpmetricgrpc.WithEndpointURL(conf.OtelEndpointUrl.String()),
+		otlpmetricgrpc.WithEndpointURL(conf.OtelEndpointURL.String()),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("otel metric init: %w", err)
@@ -234,7 +234,7 @@ func newMeterProvider(
 	var batchInterval time.Duration
 
 	switch conf.RuntimeEnv {
-	case config.Env_dev:
+	case config.EnvDev:
 		batchInterval = 5 * time.Second
 	default:
 		batchInterval = 30 * time.Second
