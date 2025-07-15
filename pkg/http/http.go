@@ -129,8 +129,12 @@ func Run(routes HTTPRoutesToRegister, conf *config.Config) (err error) {
 
 	// When Shutdown is called, ListenAndServe immediately returns ErrServerClosed.
 	err = srv.Shutdown(context.Background())
+	if err != nil {
+		// Error when shutting down HTTP server.
+		return fmt.Errorf("http server shutdown error: %w", err)
+	}
 
-	return err
+	return nil
 }
 
 // newHTTPHandler returns a new HTTP handler with the given routes.

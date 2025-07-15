@@ -83,7 +83,7 @@ func (e *Exporter) Export(ctx context.Context, records []sdklog.Record) error {
 		// Honor context cancellation.
 		err := ctx.Err()
 		if err != nil {
-			return err
+			return fmt.Errorf("context error: %w", err)
 		}
 
 		var attrs []string
@@ -131,7 +131,7 @@ func (e *Exporter) Export(ctx context.Context, records []sdklog.Record) error {
 func NewExporter(opts ...stdoutlog.Option) (*Exporter, error) {
 	exp, err := stdoutlog.New(opts...)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create stdout exporter: %w", err)
 	}
 
 	return &Exporter{Exporter: exp}, nil

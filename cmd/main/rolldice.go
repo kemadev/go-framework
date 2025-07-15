@@ -5,6 +5,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"math/rand"
 	"net/http"
@@ -18,7 +19,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/metric"
-	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -149,7 +150,7 @@ func subTask(ctx context.Context, roll int) (*http.Response, error) {
 	// `otelhttp` server, context will propagate as needed, linking spans automatically. When calling non-instrumented clients,
 	// you need to pass context manually, client needs to retrieve it and use it, e.g. by using `trace.ContextWithRemoteSpanContext()`
 	// (using the retreived context) as context when calling `tracer.Start()`
-	return otelhttp.Post(
+	resp, err := otelhttp.Post(
 		ctx,
 		(&url.URL{
 			Scheme: "http",
@@ -159,4 +160,12 @@ func subTask(ctx context.Context, roll int) (*http.Response, error) {
 		"application/octet-stream",
 		http.NoBody,
 	)
+	if err != nil {
+		// Use helper function to log and trace errors
+		khttp.InstrumentError(ctx, logger, childSpan, err)
+
+		return nil, fmt.Errorf("failed to call subtask: %w", err)
+	}
+
+	return resp, nil
 }
