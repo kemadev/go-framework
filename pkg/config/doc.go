@@ -1,6 +1,6 @@
 /*
-Package config provides the configuration for the application.
-It is populated from environment variables as well as default values,
-and is used to configure the application in a consistent way.
+Copyright 2025 kemadev
+SPDX-License-Identifier: MPL-2.0
 */
+
 package config

@@ -1,3 +1,6 @@
+// Copyright 2025 kemadev
+// SPDX-License-Identifier: MPL-2.0
+
 package main
 
 import (
@@ -79,6 +82,7 @@ func rolldice(w http.ResponseWriter, r *http.Request) {
 	// Feature flags - https://opentelemetry.io/docs/specs/semconv/attributes-registry/feature-flag/
 
 	// Run business logic
+	// nosemgrep: go.lang.security.audit.crypto.math_random.math-random-used // We are ok using pseudo-random number generator here, this is a demo
 	roll := 1 + rand.Intn(6)
 
 	var msg, player string

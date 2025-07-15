@@ -1,7 +1,8 @@
 /*
-go-framework serves go-framework microservice.
-It is deployed in Kubernetes and serves over HTTP.
+Copyright 2025 kemadev
+SPDX-License-Identifier: MPL-2.0
 */
+
 package main
 
 import (

@@ -1,5 +1,6 @@
 /*
-Package log provides logging utilities for the application.
-It is used to log messages and errors in a consistent way.
+Copyright 2025 kemadev
+SPDX-License-Identifier: MPL-2.0
 */
+
 package log

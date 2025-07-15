@@ -1,5 +1,6 @@
 /*
-Package http provides a simple HTTP server and client for the application.
-It is used to serve HTTP requests and responses, in a consistent way.
+Copyright 2025 kemadev
+SPDX-License-Identifier: MPL-2.0
 */
+
 package http
