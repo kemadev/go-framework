@@ -1,4 +1,4 @@
-ARG ALPINE_VERSION=3.21.3
+ARG ALPINE_VERSION=3.22.1@sha256:4bcff63911fcb4448bd4fdacec207030997caf25e9bea4045fa6c8c44de311d1
 
 FROM --platform=${BUILDPLATFORM} docker.io/alpine:${ALPINE_VERSION} AS alpine-base
 
