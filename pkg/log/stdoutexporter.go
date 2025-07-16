@@ -9,6 +9,7 @@ package log
 import (
 	"context"
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -16,7 +17,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutlog"
 	"go.opentelemetry.io/otel/log"
 	sdklog "go.opentelemetry.io/otel/sdk/log"
-	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 )
 
 // Colors definitions using ANSI escape codes
@@ -51,19 +52,31 @@ func formatAttr(key string, value any) string {
 	return fmt.Sprintf("%s%s%s=%s%v%s", gray, key, reset, cyan, value, reset)
 }
 
-func appendSourceAttrs(attrs []string, filepath string, lineno int64, function string) []string {
+func appendSourceAttrs(
+	attrs []string,
+	filepath string,
+	lineno int64,
+	function string,
+) ([]string, error) {
+	wd, err := os.Getwd()
+	if err != nil {
+		return []string{}, fmt.Errorf("failed to get working directory: %w", err)
+	}
+
+	filepath = strings.TrimPrefix(filepath, wd+"/")
+
 	if filepath != "" && function != "" && lineno != 0 {
-		f := formatAttr(string(semconv.CodeFunctionKey), function)
+		f := formatAttr(string(semconv.CodeFunctionNameKey), function)
 		attrs = append(attrs, f)
 		// Add a leading space to enable hyperlink detection in terminals, remove leading mount
 		// path to make it relative to application root.
-		reg, _ := regexp.Compile(`^/app/\w+/(.+)`)
+		reg, _ := regexp.Compile(`^/` + wd + `\w+/(.+)`)
 		path := reg.ReplaceAllString(filepath, "$1")
-		source := formatAttr(string(semconv.CodeFilepathKey), fmt.Sprintf(" %s:%v", path, lineno))
+		source := formatAttr(string(semconv.CodeFilePathKey), fmt.Sprintf(" %s:%v", path, lineno))
 		attrs = append(attrs, source)
 	}
 
-	return attrs
+	return attrs, nil
 }
 
 // Export exports log records to writer.
@@ -99,11 +112,11 @@ func (e *Exporter) Export(ctx context.Context, records []sdklog.Record) error {
 
 		record.WalkAttributes(func(logKV log.KeyValue) bool {
 			switch logKV.Key {
-			case "code.filepath":
+			case string(semconv.CodeFilePathKey):
 				filepath = logKV.Value.AsString()
-			case "code.function":
+			case string(semconv.CodeFunctionNameKey):
 				function = logKV.Value.AsString()
-			case "code.lineno":
+			case string(semconv.CodeLineNumberKey):
 				lineno = logKV.Value.AsInt64()
 			default:
 				attrs = append(attrs, formatAttr(logKV.Key, logKV.Value.String()))
@@ -112,7 +125,10 @@ func (e *Exporter) Export(ctx context.Context, records []sdklog.Record) error {
 			return true
 		})
 
-		attrs = appendSourceAttrs(attrs, filepath, lineno, function)
+		attrs, err = appendSourceAttrs(attrs, filepath, lineno, function)
+		if err != nil {
+			return fmt.Errorf("failed to append source attributes: %w", err)
+		}
 
 		fmt.Printf(
 			"%s%s%s %s%s%s\t%s\t%s\n",

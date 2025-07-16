@@ -113,7 +113,6 @@ func SetupOTelSDK(
 	shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
 	otel.SetMeterProvider(meterProvider)
 
-
 	// Set up trace provider.
 	tracerProvider, err := newTracerProvider(ctx, res, conf)
 	if err != nil {
@@ -199,7 +198,6 @@ func newMeterProvider(
 	conf config.Config,
 ) (*metric.MeterProvider, error) {
 	var exporter metric.Exporter
-	var batchInterval time.Duration
 
 	if conf.RuntimeEnv == config.EnvDev {
 		exp, err := stdoutmetric.New(
@@ -209,7 +207,6 @@ func newMeterProvider(
 			return nil, fmt.Errorf("otel metric init: %w", err)
 		}
 		exporter = exp
-		batchInterval = 0
 	} else {
 		exp, err := otlpmetricgrpc.New(
 			ctx,
@@ -220,12 +217,12 @@ func newMeterProvider(
 			return nil, fmt.Errorf("otel metric init: %w", err)
 		}
 		exporter = exp
-		batchInterval = 15 * time.Second
 	}
 
 	proc := metric.NewPeriodicReader(
 		exporter,
-		metric.WithInterval(batchInterval),
+		// TODO pass as env var
+		metric.WithInterval(15*time.Second),
 	)
 
 	meterProvider := metric.NewMeterProvider(
