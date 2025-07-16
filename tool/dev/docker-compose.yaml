@@ -184,6 +184,6 @@ services:
     ports:
       - 5601:5601
     environment:
-      OPENSEARCH_HOSTS: '["https://kemadev-go-framework-opensearch-node1-1:9200","https://kemadev-go-framework-opensearch-node2-1:9200"]'
+      OPENSEARCH_HOSTS: '["https://kemadev-go-framework-opensearch-1:9200"]'
     networks:
       - opensearch
