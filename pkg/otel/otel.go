@@ -11,7 +11,6 @@ import (
 
 	"github.com/kemadev/go-framework/pkg/config"
 	klog "github.com/kemadev/go-framework/pkg/log"
-	kmetric "github.com/kemadev/go-framework/pkg/metric"
 	"go.opentelemetry.io/contrib/processors/minsev"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -20,6 +19,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 	"go.opentelemetry.io/otel/log/global"
+	nometric "go.opentelemetry.io/otel/metric/noop"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/log"
 	"go.opentelemetry.io/otel/sdk/metric"
@@ -203,8 +203,10 @@ func newMeterProvider(
 
 	if conf.RuntimeEnv == config.EnvDev {
 		if conf.MetricsExportInterval <= 0 {
-			exp := kmetric.NewNoopExporter()
-			exporter = exp
+			prov := nometric.NewMeterProvider()
+			return &metric.MeterProvider{
+				MeterProvider: prov,
+			}, nil
 		} else {
 			exp, err := stdoutmetric.New(
 				stdoutmetric.WithPrettyPrint(),
