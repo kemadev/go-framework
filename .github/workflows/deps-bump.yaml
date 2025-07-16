@@ -16,7 +16,7 @@ jobs:
       contents: read
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/kemadev/ci-cd:latest
+      image: ghcr.io/kemadev/ci-cd:latest@sha256:36595bf7e161473dba3b37b27ac75b611c1d7d7494de72181aac7d5f1f845a7e
       # GitHub Actions workaround, see https://docs.github.com/en/actions/reference/dockerfile-support-for-github-actions#user
       options: --user root:root
       credentials:
@@ -25,7 +25,7 @@ jobs:
     steps:
       - name: Checkout
         id: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Dependencies bump
         id: deps-bump
         env:
