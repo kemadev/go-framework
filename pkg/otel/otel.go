@@ -11,6 +11,7 @@ import (
 
 	"github.com/kemadev/go-framework/pkg/config"
 	klog "github.com/kemadev/go-framework/pkg/log"
+	kmetric "github.com/kemadev/go-framework/pkg/metric"
 	"go.opentelemetry.io/contrib/processors/minsev"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -201,13 +202,18 @@ func newMeterProvider(
 	var exporter metric.Exporter
 
 	if conf.RuntimeEnv == config.EnvDev {
-		exp, err := stdoutmetric.New(
-			stdoutmetric.WithPrettyPrint(),
-		)
-		if err != nil {
-			return nil, fmt.Errorf("otel metric init: %w", err)
+		if conf.MetricsExportInterval <= 0 {
+			exp := kmetric.NewNoopExporter()
+			exporter = exp
+		} else {
+			exp, err := stdoutmetric.New(
+				stdoutmetric.WithPrettyPrint(),
+			)
+			if err != nil {
+				return nil, fmt.Errorf("otel metric init: %w", err)
+			}
+			exporter = exp
 		}
-		exporter = exp
 	} else {
 		exp, err := otlpmetricgrpc.New(
 			ctx,
@@ -225,17 +231,10 @@ func newMeterProvider(
 		metric.WithInterval(time.Duration(conf.MetricsExportInterval)*time.Second),
 	)
 
-	filter := metric.WithExemplarFilter(exemplar.TraceBasedFilter)
-
-	if conf.RuntimeEnv == config.EnvDev {
-		// Do not export exemplars in dev
-		filter = metric.WithExemplarFilter(exemplar.AlwaysOffFilter)
-	}
-
 	meterProvider := metric.NewMeterProvider(
 		metric.WithReader(proc),
 		metric.WithResource(res),
-		filter,
+		metric.WithExemplarFilter(exemplar.TraceBasedFilter),
 	)
 
 	return meterProvider, nil

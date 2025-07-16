@@ -23,6 +23,7 @@ const (
 	// EnvVarKeyHTTPWriteTimeout is the environment variable key used to set write timeout.
 	EnvVarKeyHTTPWriteTimeout = "HTTP_WRITE_TIMEOUT"
 	// EnvVarKeyMetricsExportInterval is the environment variable key used to set metrics export interval.
+	// A negative value in development mode will disable metrics export.
 	EnvVarKeyMetricsExportInterval = "METRICS_EXPORT_INTERVAL"
 	// EnvVarKeyTracesSampleRatio is the environment variable key used to set traces sample ratio.
 	EnvVarKeyTracesSampleRatio = "TRACES_SAMPLE_RATIO"

@@ -66,6 +66,7 @@ type Config struct {
 	HTTPWriteTimeout int
 	// MetricsExportInterval is the interval at which metrics are exported.
 	// It is passed to `sdkmetric.WithInterval`, multiplied by time.Second.
+	// A negative value in development mode will disable metrics export.
 	MetricsExportInterval int
 	// TracesSampleRatio is the ratio of traces to sample.
 	TracesSampleRatio float64
