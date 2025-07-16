@@ -265,8 +265,11 @@ func newTracerProvider(
 
 	tracerProvider := trace.NewTracerProvider(
 		batcher,
-		// TODO - use a more sophisticated sampling strategy
-		trace.WithSampler(trace.TraceIDRatioBased(conf.TracesSampleRatio)),
+		trace.WithSampler(
+			trace.ParentBased(
+				trace.TraceIDRatioBased(conf.TracesSampleRatio),
+			),
+		),
 		trace.WithResource(res),
 	)
 
