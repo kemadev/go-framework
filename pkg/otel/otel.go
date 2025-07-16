@@ -102,17 +102,6 @@ func SetupOTelSDK(
 	shutdownFuncs = append(shutdownFuncs, loggerProvider.Shutdown)
 	global.SetLoggerProvider(loggerProvider)
 
-	// Set up trace provider.
-	tracerProvider, err := newTracerProvider(ctx, res, conf)
-	if err != nil {
-		handleErr(err)
-
-		return nil, fmt.Errorf("otel tracer provider: %w", err)
-	}
-
-	shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
-	otel.SetTracerProvider(tracerProvider)
-
 	// Set up meter provider.
 	meterProvider, err := newMeterProvider(ctx, res, conf)
 	if err != nil {
@@ -123,6 +112,18 @@ func SetupOTelSDK(
 
 	shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
 	otel.SetMeterProvider(meterProvider)
+
+
+	// Set up trace provider.
+	tracerProvider, err := newTracerProvider(ctx, res, conf)
+	if err != nil {
+		handleErr(err)
+
+		return nil, fmt.Errorf("otel tracer provider: %w", err)
+	}
+
+	shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
+	otel.SetTracerProvider(tracerProvider)
 
 	return shutdown, nil
 }
@@ -136,8 +137,8 @@ func newPropagator() propagation.TextMapPropagator {
 }
 
 // newLoggerProvider returns a new OpenTelemetry logger provider, and an error if any occurred during the setup.
-// The logger provider is configured to batch export logs to the OpenTelemetry collector, or synchrounously to stdout using
-// [github.com/kemadev/go-framework/pkg/log] if conf.RuntimeEnv is set to [github.com/kemadev/go-framework/pkg/config.EnvDev].
+// The logger provider is configured to batch export logs to the OpenTelemetry collector, or synchrounously to stdout
+// if conf.RuntimeEnv is set to [github.com/kemadev/go-framework/pkg/config.EnvDev].
 func newLoggerProvider(
 	ctx context.Context,
 	res *resource.Resource,
@@ -189,34 +190,9 @@ func newLoggerProvider(
 	return provider, nil
 }
 
-// newTracerProvider returns a new OpenTelemetry tracer provider, and an error if any occurred during the setup.
-// The tracer provider is configured to batch export traces to the OpenTelemetry collector.
-func newTracerProvider(
-	ctx context.Context,
-	res *resource.Resource,
-	conf config.Config,
-) (*trace.TracerProvider, error) {
-	exp, err := otlptracegrpc.New(
-		ctx,
-		otlptracegrpc.WithCompressor(conf.OtelExporterCompression),
-		otlptracegrpc.WithEndpointURL(conf.OtelEndpointURL.String()),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("otel tracer init: %w", err)
-	}
-
-	tracerProvider := trace.NewTracerProvider(
-		// Always sample is required for tail sampling
-		trace.WithSampler(trace.AlwaysSample()),
-		trace.WithBatcher(exp),
-		trace.WithResource(res),
-	)
-
-	return tracerProvider, nil
-}
-
 // newMeterProvider returns a new OpenTelemetry meter provider, and an error if any occurred during the setup.
-// The meter provider is configured to batch export metrics to the OpenTelemetry collector.
+// The meter provider is configured to batch export metrics to the OpenTelemetry collector, or synchrounously to stdout
+// if conf.RuntimeEnv is set to [github.com/kemadev/go-framework/pkg/config.EnvDev].
 func newMeterProvider(
 	ctx context.Context,
 	res *resource.Resource,
@@ -258,4 +234,41 @@ func newMeterProvider(
 	)
 
 	return meterProvider, nil
+}
+
+// newTracerProvider returns a new OpenTelemetry tracer provider, and an error if any occurred during the setup.
+// The tracer provider is configured to batch export traces to the OpenTelemetry collector
+func newTracerProvider(
+	ctx context.Context,
+	res *resource.Resource,
+	conf config.Config,
+) (*trace.TracerProvider, error) {
+	exp, err := otlptracegrpc.New(
+		ctx,
+		otlptracegrpc.WithCompressor(conf.OtelExporterCompression),
+		otlptracegrpc.WithEndpointURL(conf.OtelEndpointURL.String()),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("otel tracer init: %w", err)
+	}
+
+	var batcher trace.TracerProviderOption
+	var sampler trace.TracerProviderOption
+
+	if conf.RuntimeEnv == config.EnvDev {
+		batcher = trace.WithSyncer(exp)
+		sampler = trace.WithSampler(trace.AlwaysSample())
+	} else {
+		batcher = trace.WithBatcher(exp)
+		// TODO pass as env var
+		sampler = trace.WithSampler(trace.TraceIDRatioBased(5.0))
+	}
+
+	tracerProvider := trace.NewTracerProvider(
+		batcher,
+		sampler,
+		trace.WithResource(res),
+	)
+
+	return tracerProvider, nil
 }
