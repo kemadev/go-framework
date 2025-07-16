@@ -106,6 +106,13 @@ func getFromEnvVar(cfg envVarConf) (any, error) {
 		}
 
 		res = n
+	case *float64:
+		n, err := strconv.ParseFloat(env, 64)
+		if err != nil {
+			return nil, fmt.Errorf("converting %s to float64 failed: %w", env, err)
+		}
+
+		res = n
 	case *url.URL:
 		u, err := url.Parse(env)
 		if err != nil {
@@ -224,6 +231,18 @@ func NewConfig() (*Config, error) {
 			}
 
 			i, ok := res.(int)
+			if !ok {
+				return nil, ErrEnvVarsMappingsInvalid
+			}
+
+			*dest = i
+		case *float64:
+			res, err := getFromEnvVar(env)
+			if err != nil {
+				return nil, err
+			}
+
+			i, ok := res.(float64)
 			if !ok {
 				return nil, ErrEnvVarsMappingsInvalid
 			}
