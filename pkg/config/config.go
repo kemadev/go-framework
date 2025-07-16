@@ -64,6 +64,11 @@ type Config struct {
 	// HTTPWriteTimeout is the maximum duration before timing out writes of the response.
 	// It is passed to `http.Server.WriteTimeout`, multiplied by time.Second.
 	HTTPWriteTimeout int
+	// MetricsExportInterval is the interval at which metrics are exported.
+	// It is passed to `sdkmetric.WithInterval`, multiplied by time.Second.
+	MetricsExportInterval int
+	// TracesSampleRatio is the ratio of traces to sample.
+	TracesSampleRatio float64
 }
 
 // envVarConf is a struct that holds the configuration for an environment variable.
@@ -187,6 +192,14 @@ func NewConfig() (*Config, error) {
 		{
 			Key:  EnvVarKeyHTTPWriteTimeout,
 			Dest: &conf.HTTPWriteTimeout,
+		},
+		{
+			Key:  EnvVarKeyMetricsExportInterval,
+			Dest: &conf.MetricsExportInterval,
+		},
+		{
+			Key:  EnvVarKeyTracesSampleRatio,
+			Dest: &conf.TracesSampleRatio,
 		},
 	}
 

@@ -22,6 +22,10 @@ const (
 	EnvVarKeyHTTPReadTimeout = "HTTP_READ_TIMEOUT"
 	// EnvVarKeyHTTPWriteTimeout is the environment variable key used to set write timeout.
 	EnvVarKeyHTTPWriteTimeout = "HTTP_WRITE_TIMEOUT"
+	// EnvVarKeyMetricsExportInterval is the environment variable key used to set metrics export interval.
+	EnvVarKeyMetricsExportInterval = "METRICS_EXPORT_INTERVAL"
+	// EnvVarKeyTracesSampleRatio is the environment variable key used to set traces sample ratio.
+	EnvVarKeyTracesSampleRatio = "TRACES_SAMPLE_RATIO"
 	// EnvVarKeyBusinessUnitID is the environment variable key used to identify business unit id.
 	EnvVarKeyBusinessUnitID = "BUSINESS_UNIT_ID"
 	// EnvVarKeyCustomerID is the environment variable key used to identify customer id.

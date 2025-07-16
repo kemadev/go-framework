@@ -22,6 +22,7 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/log"
 	"go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/exemplar"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
@@ -221,13 +222,20 @@ func newMeterProvider(
 
 	proc := metric.NewPeriodicReader(
 		exporter,
-		// TODO pass as env var
-		metric.WithInterval(15*time.Second),
+		metric.WithInterval(time.Duration(conf.MetricsExportInterval)*time.Second),
 	)
+
+	filter := metric.WithExemplarFilter(exemplar.TraceBasedFilter)
+
+	if conf.RuntimeEnv == config.EnvDev {
+		// Do not export exemplars in dev
+		filter = metric.WithExemplarFilter(exemplar.AlwaysOffFilter)
+	}
 
 	meterProvider := metric.NewMeterProvider(
 		metric.WithReader(proc),
 		metric.WithResource(res),
+		filter,
 	)
 
 	return meterProvider, nil
@@ -249,21 +257,16 @@ func newTracerProvider(
 		return nil, fmt.Errorf("otel tracer init: %w", err)
 	}
 
-	var batcher trace.TracerProviderOption
-	var sampler trace.TracerProviderOption
+	batcher := trace.WithBatcher(exp)
 
 	if conf.RuntimeEnv == config.EnvDev {
 		batcher = trace.WithSyncer(exp)
-		sampler = trace.WithSampler(trace.AlwaysSample())
-	} else {
-		batcher = trace.WithBatcher(exp)
-		// TODO pass as env var
-		sampler = trace.WithSampler(trace.TraceIDRatioBased(5.0))
 	}
 
 	tracerProvider := trace.NewTracerProvider(
 		batcher,
-		sampler,
+		// TODO - use a more sophisticated sampling strategy
+		trace.WithSampler(trace.TraceIDRatioBased(conf.TracesSampleRatio)),
 		trace.WithResource(res),
 	)
 
