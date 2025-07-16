@@ -17,6 +17,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/log"
@@ -221,32 +222,38 @@ func newMeterProvider(
 	res *resource.Resource,
 	conf config.Config,
 ) (*metric.MeterProvider, error) {
-	exp, err := otlpmetricgrpc.New(
-		ctx,
-		otlpmetricgrpc.WithCompressor(conf.OtelExporterCompression),
-		otlpmetricgrpc.WithEndpointURL(conf.OtelEndpointURL.String()),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("otel metric init: %w", err)
-	}
-
-	// Shorter interval in dev
+	var exporter metric.Exporter
 	var batchInterval time.Duration
 
-	switch conf.RuntimeEnv {
-	case config.EnvDev:
-		batchInterval = 5 * time.Second
-	default:
-		batchInterval = 30 * time.Second
+	if conf.RuntimeEnv == config.EnvDev {
+		exp, err := stdoutmetric.New(
+			stdoutmetric.WithPrettyPrint(),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("otel metric init: %w", err)
+		}
+		exporter = exp
+		batchInterval = 0
+	} else {
+		exp, err := otlpmetricgrpc.New(
+			ctx,
+			otlpmetricgrpc.WithCompressor(conf.OtelExporterCompression),
+			otlpmetricgrpc.WithEndpointURL(conf.OtelEndpointURL.String()),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("otel metric init: %w", err)
+		}
+		exporter = exp
+		batchInterval = 15 * time.Second
 	}
 
-	processor := metric.NewPeriodicReader(
-		exp,
+	proc := metric.NewPeriodicReader(
+		exporter,
 		metric.WithInterval(batchInterval),
 	)
 
 	meterProvider := metric.NewMeterProvider(
-		metric.WithReader(processor),
+		metric.WithReader(proc),
 		metric.WithResource(res),
 	)
 
