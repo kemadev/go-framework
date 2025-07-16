@@ -117,7 +117,7 @@ services:
   valkey:
     image: valkey/valkey:alpine
     profiles:
-      - dev
+      - never
     environment:
       VALKEY_EXTRA_FLAGS: --protected-mode yes --requirepass dev
     volumes:
