@@ -194,7 +194,6 @@ linters:
         - ERROR
         - FIXME
         - TODO
-        - ONGOING
         - OPTIMIZE
         - IMPROVE
         - REFACTOR
