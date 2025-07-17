@@ -3,7 +3,7 @@ module github.com/kemadev/go-framework/deploy/50-app
 go 1.24.5
 
 require (
-	github.com/kemadev/infrastructure-components v0.0.0-20250714194653-702968884650
+	github.com/kemadev/infrastructure-components v0.0.0-20250716141243-0404d11f88de
 	github.com/pulumi/pulumi/sdk/v3 v3.182.0
 )
 
@@ -49,8 +49,8 @@ require (
 	github.com/hashicorp/hcl/v2 v2.24.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
-	github.com/kemadev/ci-cd v0.21.0 // indirect
-	github.com/kemadev/go-framework v0.0.0-20250715073129-3eb4db2e981e // indirect
+	github.com/kemadev/ci-cd v0.22.0 // indirect
+	github.com/kemadev/go-framework v0.0.0-20250716140543-8e17a4a99289 // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
@@ -94,7 +94,7 @@ require (
 	golang.org/x/term v0.33.0 // indirect
 	golang.org/x/text v0.27.0 // indirect
 	golang.org/x/tools v0.35.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250707201910-8d1bb00bc6a7 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250715232539-7130f93afb79 // indirect
 	google.golang.org/grpc v1.73.0 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
