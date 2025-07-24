@@ -12,6 +12,8 @@ const (
 	EnvVarKeyAppVersion = "APP_VERSION"
 	// EnvVarKeyAppNamespace is the environment variable key used to set application namespace.
 	EnvVarKeyAppNamespace = "APP_NAMESPACE"
+	// EnvVarKeyIsBrowserFacing is the environment variable key used to set application browser facing indicator.
+	EnvVarKeyIsBrowserFacing = "IS_BROWSER_FACING"
 	// EnvVarKeyOtelEndpointURL is the environment variable key used to set OpenTelemetry endpoint URL.
 	EnvVarKeyOtelEndpointURL = "OTEL_ENDPOINT_URL"
 	// EnvVarKeyOtelExporterCompression is the environment variable key used to set OpenTelemetry exporter compression method.

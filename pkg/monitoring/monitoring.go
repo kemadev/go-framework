@@ -204,9 +204,5 @@ func GetReadinessStatus(checks CheckResults) Status {
 
 // CheckReadiness performs services checks and returns a map of results
 func CheckReadiness() CheckResults {
-	// TODO integrate with db / object storage clients
-	return CheckResults{
-		"database": StatusOK,
-		"cache":    StatusOK,
-	}
+	return CheckResults{}
 }

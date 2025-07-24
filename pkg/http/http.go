@@ -22,8 +22,6 @@ var (
 )
 
 const (
-	// ContentTypeHeaderKey is the HTTP header key for the content type.
-	ContentTypeHeaderKey = "Content-Type"
 	// ContentTypeJSON is the HTTP content type for JSON.
 	ContentTypeJSON = "application/json"
 	// ContentTypePlain is the HTTP content type for plain text.
@@ -59,10 +57,7 @@ func SendJSONResponse(
 	statusCode int,
 	data any,
 ) {
-	clientInfo.Writer.Header().Set(ContentTypeHeaderKey, ContentTypeJSON)
-	clientInfo.Writer.WriteHeader(statusCode)
-
-	err := json.NewEncoder(clientInfo.Writer).Encode(data)
+	resp, err := json.Marshal(data)
 	if err != nil {
 		SendErrorResponse(
 			clientInfo,
@@ -71,6 +66,7 @@ func SendJSONResponse(
 			err,
 		)
 	}
+	SendResponse(clientInfo, http.StatusOK, ContentTypeJSON, resp)
 }
 
 // ErrToSend is sent to client but not logged,
@@ -91,7 +87,7 @@ func SendErrorResponse(
 	clientInfo.Writer.WriteHeader(statusCode)
 	InstrumentError(clientInfo.Ctx, clientInfo.Logger, clientInfo.Span, errToLog)
 
-	err := json.NewEncoder(clientInfo.Writer).Encode(errMap)
+	resp, err := json.Marshal(errMap)
 	if err != nil {
 		InstrumentError(clientInfo.Ctx, clientInfo.Logger, clientInfo.Span, err)
 		http.Error(
@@ -100,6 +96,8 @@ func SendErrorResponse(
 			http.StatusInternalServerError,
 		)
 	}
+
+	SendResponse(clientInfo, statusCode, ContentTypeJSON, resp)
 }
 
 // InstrumentError is a helper function that logs and traces an error.
@@ -127,7 +125,6 @@ func SendResponse(
 	data []byte,
 ) {
 	clientInfo.Writer.Header().Set(ContentTypeHeaderKey, contentType)
-	clientInfo.Writer.WriteHeader(statusCode)
 
 	_, err := clientInfo.Writer.Write(data)
 	if err != nil {
@@ -138,4 +135,6 @@ func SendResponse(
 			err,
 		)
 	}
+
+	clientInfo.Writer.WriteHeader(statusCode)
 }
