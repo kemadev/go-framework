@@ -36,6 +36,7 @@ services:
       HTTP_SERVE_PORT: 8080
       HTTP_READ_TIMEOUT: 5
       HTTP_WRITE_TIMEOUT: 10
+      HTTP_IDLE_TIMEOUT: 60
       # Set to a positive value to enable metrics export
       METRICS_EXPORT_INTERVAL: -1
       TRACES_SAMPLE_RATIO: 1
