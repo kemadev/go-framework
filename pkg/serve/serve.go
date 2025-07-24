@@ -64,6 +64,8 @@ func Run(
 		BaseContext:  func(_ net.Listener) context.Context { return ctx },
 		ReadTimeout:  time.Duration(conf.HTTPReadTimeout) * time.Second,
 		WriteTimeout: time.Duration(conf.HTTPWriteTimeout) * time.Second,
+		IdleTimeout:  time.Duration(conf.HTTPIdleTimeout) * time.Second,
+		ErrorLog:     slog.Default(),
 		Handler:      newHTTPHandler(server, routes, dependencyRoutes),
 	}
 	srvErr := make(chan error, 1)

@@ -67,6 +67,9 @@ type Config struct {
 	// HTTPWriteTimeout is the maximum duration before timing out writes of the response.
 	// It is passed to `http.Server.WriteTimeout`, multiplied by time.Second.
 	HTTPWriteTimeout int
+	// HTTPIdleTimeout is the keepalive duration.
+	// It is passed to `http.Server.IdleTimeout`, multiplied by time.Second.
+	HTTPIdleTimeout int
 	// MetricsExportInterval is the interval at which metrics are exported.
 	// It is passed to `sdkmetric.WithInterval`, multiplied by time.Second.
 	// A negative value in development mode will disable metrics export.
@@ -207,6 +210,10 @@ func NewConfig() (*Config, error) {
 		{
 			Key:  EnvVarKeyHTTPWriteTimeout,
 			Dest: &conf.HTTPWriteTimeout,
+		},
+		{
+			Key:  EnvVarKeyHTTPIdleTimeout,
+			Dest: &conf.HTTPIdleTimeout,
 		},
 		{
 			Key:  EnvVarKeyMetricsExportInterval,

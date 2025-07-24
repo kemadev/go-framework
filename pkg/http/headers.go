@@ -72,6 +72,3 @@ func SetSecurityHeaders(config config.Config, clientInfo ClientInfo) error {
 
 	return nil
 }
-
-// https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity
-// Cookie policy
