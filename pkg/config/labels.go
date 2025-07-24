@@ -25,7 +25,7 @@ const (
 	// EnvVarKeyHTTPWriteTimeout is the environment variable key used to set write timeout.
 	EnvVarKeyHTTPWriteTimeout = "HTTP_WRITE_TIMEOUT"
 	// EnvVarKeyHTTPIdleTimeout is the environment variable key used to set idle timeout.
-	EnvVarKeyHTTPIdleTimeout = "HTTP_WRITE_TIMEOUT"
+	EnvVarKeyHTTPIdleTimeout = "HTTP_IDLE_TIMEOUT"
 	// EnvVarKeyMetricsExportInterval is the environment variable key used to set metrics export interval.
 	// A negative value in development mode will disable metrics export.
 	EnvVarKeyMetricsExportInterval = "METRICS_EXPORT_INTERVAL"
