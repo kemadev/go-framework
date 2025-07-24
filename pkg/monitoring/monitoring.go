@@ -11,12 +11,65 @@ import (
 	"github.com/kemadev/go-framework/pkg/route"
 )
 
+// Status represents the health status of a service or component
+type Status int
+
+const (
+	StatusOK Status = iota
+	StatusDegraded
+	StatusDown
+	StatusUnknown
+)
+
+// String returns the string representation of the status
+func (s Status) String() string {
+	switch s {
+	case StatusOK:
+		return "ok"
+	case StatusDegraded:
+		return "degraded"
+	case StatusDown:
+		return "down"
+	case StatusUnknown:
+		return "unknown"
+	default:
+		return "unknown"
+	}
+}
+
+// HTTPCode returns the appropriate HTTP status code for the status
+func (s Status) HTTPCode() int {
+	switch s {
+	case StatusOK:
+		return http.StatusOK
+	case StatusDegraded:
+		return http.StatusOK
+	case StatusDown:
+		return http.StatusServiceUnavailable
+	case StatusUnknown:
+		return http.StatusInternalServerError
+	default:
+		return http.StatusInternalServerError
+	}
+}
+
+// IsHealthy returns true if the status indicates the service is healthy
+func (s Status) IsHealthy() bool {
+	return s == StatusOK || s == StatusDegraded
+}
+
+// IsReady returns true if the status indicates the service is ready
+func (s Status) IsReady() bool {
+	return s == StatusOK || s == StatusDegraded
+}
+
 type LivenessResponse struct {
-	Timestamp time.Time         `json:"timestamp"`
-	Started   bool              `json:"started"`
-	Status    string            `json:"status"`
-	Version   string            `json:"version"`
-	Checks    map[string]string `json:"checks"`
+	Timestamp   time.Time         `json:"timestamp"`
+	Started     bool              `json:"started"`
+	Status      string            `json:"status"`
+	Version     string            `json:"version"`
+	Environment string            `json:"environment"`
+	Checks      map[string]string `json:"checks"`
 }
 
 type RuntimeMetrics struct {
@@ -60,15 +113,18 @@ func Liveness(server *route.Server) http.HandlerFunc {
 			Writer: w,
 		}
 
+		status := GetLivenessStatus()
+
 		khttp.SendJSONResponse(
 			kclient,
-			200,
+			status.HTTPCode(),
 			LivenessResponse{
-				Timestamp: time.Now().UTC(),
-				Started:   true,
-				Status:    GetLivenessStatus(),
-				Version:   cfg.AppVersion,
-				Checks:    GetLivenessChecks(),
+				Timestamp:   time.Now().UTC(),
+				Started:     true,
+				Status:      status.String(),
+				Version:     cfg.AppVersion,
+				Environment: cfg.RuntimeEnv,
+				Checks:      GetLivenessChecks(),
 			},
 		)
 	}
@@ -92,12 +148,14 @@ func Readiness(server *route.Server) http.HandlerFunc {
 			usagePercent = (float64(m.Alloc) / float64(m.Sys)) * 100
 		}
 
+		status := GetReadinessStatus(cfg)
+
 		khttp.SendJSONResponse(
 			kclient,
-			200,
+			status.HTTPCode(),
 			ReadinessResponse{
 				Timestamp: time.Now().UTC(),
-				Ready:     GetReadinessStatus(cfg),
+				Ready:     status.IsReady(),
 				Services:  CheckServicesStatus(cfg),
 				RuntimeMetrics: RuntimeMetrics{
 					Memory: MemoryMetrics{
@@ -115,8 +173,8 @@ func Readiness(server *route.Server) http.HandlerFunc {
 	}
 }
 
-func GetLivenessStatus() string {
-	return "alive"
+func GetLivenessStatus() Status {
+	return StatusOK
 }
 
 func GetLivenessChecks() map[string]string {
@@ -125,8 +183,8 @@ func GetLivenessChecks() map[string]string {
 	}
 }
 
-func GetReadinessStatus(cfg *config.Config) bool {
-	return true
+func GetReadinessStatus(cfg *config.Config) Status {
+	return StatusOK
 }
 
 func CheckServicesStatus(cfg *config.Config) map[string]interface{} {
