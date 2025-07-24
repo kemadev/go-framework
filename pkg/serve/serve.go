@@ -20,27 +20,16 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
-type Server struct {
-	config *config.Config
-}
-
-// NewServer creates a new server with dependencies
-func NewServer(cfg *config.Config) *Server {
-	return &Server{
-		config: cfg,
-	}
-}
-
-// RoutesToRegister is a slice of HTTPRoute.
-// It should be used as a convinience type to pass a list of routes to the HTTP server.
-type RoutesToRegister []route.Route
-
 // Run starts the HTTP server and registers the routes.
 // It handles the shutdown (can be caused by SIGINT) gracefully and sets up OpenTelemetry.
 // It returns an error if the server fails to start or if the shutdown fails.
 // It should be called from the main function of the application.
 // It is a blocking call and will not return until the server is shut down.
-func Run(routes RoutesToRegister, conf *config.Config) error {
+func Run(
+	routes route.RoutesToRegister,
+	dependencyRoutes route.RoutesWithDependencies,
+	conf *config.Config,
+) error {
 	// Handle SIGINT gracefully.
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
@@ -64,9 +53,9 @@ func Run(routes RoutesToRegister, conf *config.Config) error {
 	slog.SetDefault(logger)
 
 	// Add monitoring routes
-	routes = append(routes, monitoring.Routes()...)
+	dependencyRoutes = append(dependencyRoutes, monitoring.Routes()...)
 
-	server := NewServer(conf)
+	server := route.NewServer(conf)
 
 	// Start HTTP server.
 	srv := &http.Server{
@@ -75,7 +64,7 @@ func Run(routes RoutesToRegister, conf *config.Config) error {
 		BaseContext:  func(_ net.Listener) context.Context { return ctx },
 		ReadTimeout:  time.Duration(conf.HTTPReadTimeout) * time.Second,
 		WriteTimeout: time.Duration(conf.HTTPWriteTimeout) * time.Second,
-		Handler:      newHTTPHandler(server, routes),
+		Handler:      newHTTPHandler(server, routes, dependencyRoutes),
 	}
 	srvErr := make(chan error, 1)
 
@@ -106,7 +95,11 @@ func Run(routes RoutesToRegister, conf *config.Config) error {
 
 // newHTTPHandler returns a new HTTP handler with the given routes.
 // It uses the [net/http.ServeMux] to register the routes and adds OpenTelemetry instrumentation.
-func newHTTPHandler(server *Server, routes RoutesToRegister) http.Handler {
+func newHTTPHandler(
+	server *route.Server,
+	routes route.RoutesToRegister,
+	dependencyRoutes route.RoutesWithDependencies,
+) http.Handler {
 	mux := http.NewServeMux()
 
 	// handleFunc is a replacement for [net/http.mux.HandleFunc] which enriches the
@@ -117,9 +110,15 @@ func newHTTPHandler(server *Server, routes RoutesToRegister) http.Handler {
 		mux.Handle(pattern, handler)
 	}
 
-	// Register handlers.
+	// Register regular handlers (without dependency injection).
 	for _, route := range routes {
 		handleFunc(route.Pattern, route.HandlerFunc)
+	}
+
+	// Register handlers with dependency injection.
+	for _, route := range dependencyRoutes {
+		handlerWithDeps := route.HandlerFunc(server)
+		handleFunc(route.Pattern, handlerWithDeps)
 	}
 
 	// Add HTTP instrumentation for the whole server.

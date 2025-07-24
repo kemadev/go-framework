@@ -31,8 +31,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Define routes to handle
-	routes := serve.RoutesToRegister{
+	// Create regular routes
+	regularRoutes := route.RoutesToRegister{
 		route.Route{
 			Pattern:     "/rolldice/",
 			HandlerFunc: rolldice,
@@ -43,8 +43,11 @@ func main() {
 		},
 	}
 
+	// Create routes with dependency injection
+	dependencyRoutes := route.RoutesWithDependencies{}
+
 	// Run HTTP server
-	err = serve.Run(routes, conf)
+	err = serve.Run(regularRoutes, dependencyRoutes, conf)
 	if err != nil {
 		fallbackLogger.Error(
 			"run",
