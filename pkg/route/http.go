@@ -1,7 +1,7 @@
 // Copyright 2025 kemadev
 // SPDX-License-Identifier: MPL-2.0
 
-package config
+package route
 
 const (
 	// HTTPLivenessCheckPath is the path for the liveness check over HTTP.

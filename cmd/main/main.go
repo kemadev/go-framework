@@ -10,8 +10,9 @@ import (
 	"os"
 
 	"github.com/kemadev/go-framework/pkg/config"
-	"github.com/kemadev/go-framework/pkg/http"
 	"github.com/kemadev/go-framework/pkg/log"
+	"github.com/kemadev/go-framework/pkg/route"
+	"github.com/kemadev/go-framework/pkg/serve"
 )
 
 func main() {
@@ -31,19 +32,19 @@ func main() {
 	}
 
 	// Define routes to handle
-	routes := http.RoutesToRegister{
-		http.Route{
+	routes := serve.RoutesToRegister{
+		route.Route{
 			Pattern:     "/rolldice/",
 			HandlerFunc: rolldice,
 		},
-		http.Route{
+		route.Route{
 			Pattern:     "/rolldice/{player}",
 			HandlerFunc: rolldice,
 		},
 	}
 
 	// Run HTTP server
-	err = http.Run(routes, conf)
+	err = serve.Run(routes, conf)
 	if err != nil {
 		fallbackLogger.Error(
 			"run",
