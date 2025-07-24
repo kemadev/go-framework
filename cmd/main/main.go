@@ -11,8 +11,6 @@ import (
 
 	"github.com/kemadev/go-framework/pkg/config"
 	"github.com/kemadev/go-framework/pkg/log"
-	"github.com/kemadev/go-framework/pkg/route"
-	"github.com/kemadev/go-framework/pkg/serve"
 )
 
 func main() {
@@ -31,23 +29,20 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Create regular routes
-	regularRoutes := route.RoutesToRegister{
-		route.Route{
+	// Define routes to handle
+	routes := http.RoutesToRegister{
+		http.Route{
 			Pattern:     "/rolldice/",
 			HandlerFunc: rolldice,
 		},
-		route.Route{
+		http.Route{
 			Pattern:     "/rolldice/{player}",
 			HandlerFunc: rolldice,
 		},
 	}
 
-	// Create routes with dependency injection
-	dependencyRoutes := route.RoutesWithDependencies{}
-
 	// Run HTTP server
-	err = serve.Run(regularRoutes, dependencyRoutes, conf)
+	err = http.Run(routes, conf)
 	if err != nil {
 		fallbackLogger.Error(
 			"run",
@@ -58,3 +53,4 @@ func main() {
 		os.Exit(1)
 	}
 }
+
