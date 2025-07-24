@@ -138,41 +138,32 @@ func newPropagator() propagation.TextMapPropagator {
 }
 
 // newLoggerProvider returns a new OpenTelemetry logger provider, and an error if any occurred during the setup.
-// The logger provider is configured to batch export logs to the OpenTelemetry collector, or synchrounously to stdout
-// if conf.RuntimeEnv is set to [github.com/kemadev/go-framework/pkg/config.EnvDev].
 func newLoggerProvider(
 	ctx context.Context,
 	res *resource.Resource,
 	conf config.Config,
 ) (*log.LoggerProvider, error) {
-	var processor log.Processor
-
-	// Export to stdout w/o batching in dev, batch export to collector via OLTP otherwise
-	if conf.RuntimeEnv == config.EnvDev {
-		exp, err := klog.NewExporter()
-		if err != nil {
-			return nil, fmt.Errorf("otel logger init: %w", err)
-		}
-
-		p := log.NewSimpleProcessor(
-			exp,
-		)
-		processor = p
-	} else {
-		exp, err := otlploggrpc.New(
-			ctx,
-			otlploggrpc.WithCompressor(conf.OtelExporterCompression),
-			otlploggrpc.WithEndpointURL(conf.OtelEndpointURL.String()),
-		)
-		if err != nil {
-			return nil, fmt.Errorf("otel logger init: %w", err)
-		}
-
-		p := log.NewBatchProcessor(
-			exp,
-		)
-		processor = p
+	stdoutExporter, err := klog.NewExporter()
+	if err != nil {
+		return nil, fmt.Errorf("otel logger init: %w", err)
 	}
+
+	stdoutSimpleProcessor := log.NewSimpleProcessor(
+		stdoutExporter,
+	)
+
+	grpcExporter, err := otlploggrpc.New(
+		ctx,
+		otlploggrpc.WithCompressor(conf.OtelExporterCompression),
+		otlploggrpc.WithEndpointURL(conf.OtelEndpointURL.String()),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("otel logger init: %w", err)
+	}
+
+	grpcBatchProcessor := log.NewBatchProcessor(
+		grpcExporter,
+	)
 
 	// Log Info by default, Debug for dev
 	logLevel := minsev.SeverityInfo
@@ -181,11 +172,22 @@ func newLoggerProvider(
 	}
 
 	// Wrap the processor so that it filters by severity level
-	processorChain := minsev.NewLogProcessor(processor, logLevel)
+	stdoutProcessor := minsev.NewLogProcessor(stdoutSimpleProcessor, logLevel)
+
+	if conf.RuntimeEnv == config.EnvDev {
+		provider := log.NewLoggerProvider(
+			log.WithResource(res),
+			log.WithProcessor(stdoutProcessor),
+		)
+		return provider, nil
+	}
+
+	grpcProcessor := minsev.NewLogProcessor(grpcBatchProcessor, logLevel)
 
 	provider := log.NewLoggerProvider(
-		log.WithProcessor(processorChain),
 		log.WithResource(res),
+		log.WithProcessor(stdoutProcessor),
+		log.WithProcessor(grpcProcessor),
 	)
 
 	return provider, nil
