@@ -65,7 +65,7 @@ func Run(
 		ReadTimeout:  time.Duration(conf.HTTPReadTimeout) * time.Second,
 		WriteTimeout: time.Duration(conf.HTTPWriteTimeout) * time.Second,
 		IdleTimeout:  time.Duration(conf.HTTPIdleTimeout) * time.Second,
-		ErrorLog:     slog.Default(),
+		ErrorLog:     slog.NewLogLogger(slog.Default().Handler(), slog.LevelError),
 		Handler:      newHTTPHandler(server, routes, dependencyRoutes),
 	}
 	srvErr := make(chan error, 1)
