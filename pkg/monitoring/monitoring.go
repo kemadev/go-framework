@@ -6,7 +6,6 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/kemadev/go-framework/pkg/config"
 	khttp "github.com/kemadev/go-framework/pkg/http"
 	"github.com/kemadev/go-framework/pkg/route"
 )
@@ -88,11 +87,23 @@ type CPUMetrics struct {
 	Goroutines int `json:"goroutines"`
 }
 
+type CheckResults map[string]Status
+
+func (results *CheckResults) Pretty() map[string]string {
+	res := make(map[string]string, len(*results))
+
+	for key, status := range *results {
+		res[key] = status.String()
+	}
+
+	return res
+}
+
 type ReadinessResponse struct {
-	Timestamp      time.Time              `json:"timestamp"`
-	Ready          bool                   `json:"ready"`
-	RuntimeMetrics RuntimeMetrics         `json:"runtimeMetrics"`
-	Services       map[string]interface{} `json:"services"`
+	Timestamp      time.Time         `json:"timestamp"`
+	Ready          bool              `json:"ready"`
+	RuntimeMetrics RuntimeMetrics    `json:"runtimeMetrics"`
+	Checks         map[string]string `json:"checks"`
 }
 
 // Routes returns monitoring routes with dependency injection
@@ -113,7 +124,8 @@ func Liveness(server *route.Server) http.HandlerFunc {
 			Writer: w,
 		}
 
-		status := GetLivenessStatus()
+		checks := CheckLiveness()
+		status := GetLivenessStatus(checks)
 
 		khttp.SendJSONResponse(
 			kclient,
@@ -124,17 +136,15 @@ func Liveness(server *route.Server) http.HandlerFunc {
 				Status:      status.String(),
 				Version:     cfg.AppVersion,
 				Environment: cfg.RuntimeEnv,
-				Checks:      GetLivenessChecks(),
+				Checks:      checks.Pretty(),
 			},
 		)
 	}
 }
 
-// Liveness handles readiness checks
+// Readiness handles readiness checks
 func Readiness(server *route.Server) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		cfg := server.GetConfig()
-
 		kclient := khttp.ClientInfo{
 			Ctx:    context.Background(),
 			Writer: w,
@@ -148,7 +158,8 @@ func Readiness(server *route.Server) http.HandlerFunc {
 			usagePercent = (float64(m.Alloc) / float64(m.Sys)) * 100
 		}
 
-		status := GetReadinessStatus(cfg)
+		checks := CheckReadiness()
+		status := GetReadinessStatus(checks)
 
 		khttp.SendJSONResponse(
 			kclient,
@@ -156,7 +167,7 @@ func Readiness(server *route.Server) http.HandlerFunc {
 			ReadinessResponse{
 				Timestamp: time.Now().UTC(),
 				Ready:     status.IsReady(),
-				Services:  CheckServicesStatus(cfg),
+				Checks:    checks.Pretty(),
 				RuntimeMetrics: RuntimeMetrics{
 					Memory: MemoryMetrics{
 						UsedBytes:    float64(m.Alloc),
@@ -173,23 +184,29 @@ func Readiness(server *route.Server) http.HandlerFunc {
 	}
 }
 
-func GetLivenessStatus() Status {
+// GetLivenessStatus return liveness status
+func GetLivenessStatus(checks CheckResults) Status {
 	return StatusOK
 }
 
-func GetLivenessChecks() map[string]string {
-	return map[string]string{
-		"server": "ok",
+// CheckLiveness performs liveness checks and returns a map of results
+// It always returns [StatusOK] as responding to liveness probe via HTTP means that the app is alive
+func CheckLiveness() CheckResults {
+	return CheckResults{
+		"http": StatusOK,
 	}
 }
 
-func GetReadinessStatus(cfg *config.Config) Status {
+// GetLivenessStatus return readiness status
+func GetReadinessStatus(checks CheckResults) Status {
 	return StatusOK
 }
 
-func CheckServicesStatus(cfg *config.Config) map[string]interface{} {
-	return map[string]interface{}{
-		"database": "connected",
-		"cache":    "connected",
+// CheckReadiness performs services checks and returns a map of results
+func CheckReadiness() CheckResults {
+	// TODO integrate with db / object storage clients
+	return CheckResults{
+		"database": StatusOK,
+		"cache":    StatusOK,
 	}
 }
