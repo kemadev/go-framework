@@ -1,6 +1,8 @@
 package http
 
 import (
+	"strings"
+
 	"github.com/kemadev/go-framework/pkg/config"
 )
 
@@ -193,10 +195,59 @@ type HeadersConfig struct {
 	XContentTypeOptions string
 }
 
-func defaultHeadersConfig() HeadersConfig {
+func defaultHeadersConfig(
+	cspConfig CSPConfig,
+) HeadersConfig {
 	return HeadersConfig{
 		AccessControlAllowCredentials: false,
-		AccessControlAllowHeaders: ,
+		AccessControlAllowHeaders: strings.Join([]string{
+			AuthorizationHeaderKey,
+			AcceptEncodingHeaderKey,
+			AcceptHeaderKey,
+			PreferHeaderKey,
+			IfMatchHeaderKey,
+			IfModifiedSinceHeaderKey,
+			IfNoneMatchHeaderKey,
+			IfUnmodifiedSinceHeaderKey,
+			IfRangeHeaderKey,
+			IfUnmodifiedSinceHeaderKey,
+			ExpectHeaderKey,
+			UserAgentHeaderKey,
+			WantContentDigestHeaderKey,
+			WantReprDigestHeaderKey,
+		}, ", "),
+		// TODO integrate with [net/http.Handler] methods
+		AccessControlAllowMethods: "PUT, DELETE, OPTIONS, PATCH",
+		// TODO integrate with [net/http.Handler] methods
+		Allow: "PUT, DELETE, OPTIONS, PATCH",
+		// TODO set it to self origin dynamically
+		AccessControlAllowOrigin: "",
+		AccessControlExposeHeaders: strings.Join([]string{
+			ETagHeaderKey,
+			ContentEncodingHeaderKey,
+			TEHeaderKey,
+			TransferEncodingHeaderKey,
+			ContentDigestHeaderKey,
+			VaryHeaderKey,
+		}, ", "),
+		AccessControlMaxAge:       "300",
+		ContentSecurityPolicy:     NewCSP(cspConfig),
+		CrossOriginEmbedderPolicy: "require-corp",
+		CrossOriginOpenerPolicy:   "same-origin",
+		CrossOriginResourcePolicy: "same-origin",
+		IntegrityPolicy:           "blocked-destinations=(script)",
+		ReferrerPolicy:            "strict-origin",
+		StrictTransportSecurity:   "max-age=63072000; includeSubDomains; preload",
+		XFrameOptions:             "DENY",
+		// TODO integrate csrf double commit handling
+		XCSRFToken:          "",
+		CacheControl:        "no-cache",
+		AcceptEncoding:      "gzip",
+		Accept:              "application/json",
+		ContentEncoding:     "gzip",
+		AcceptRanges:        "bytes",
+		WWWAuthenticate:     "Bearer",
+		XContentTypeOptions: "nosniff",
 	}
 }
 
@@ -207,7 +258,9 @@ func SetSecurityHeaders(
 ) error {
 	writer := clientInfo.Writer
 
-	writer.Header().Set(ContentSecurityPolicyHeaderKey, NewCSP(cspConfig))
+	defaultHeader := defaultHeadersConfig(
+		cspConfig,
+	)
 
 	return nil
 }
