@@ -1,6 +1,7 @@
 package http
 
 import (
+	"net/http"
 	"strings"
 
 	"github.com/kemadev/go-framework/pkg/config"
@@ -72,7 +73,7 @@ const (
 
 type HeadersConfig struct {
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Allow-Credentials
-	AccessControlAllowCredentials bool
+	AccessControlAllowCredentials string
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Allow-Headers
 	AccessControlAllowHeaders string
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Allow-Methods
@@ -199,7 +200,6 @@ func defaultHeadersConfig(
 	cspConfig CSPConfig,
 ) HeadersConfig {
 	return HeadersConfig{
-		AccessControlAllowCredentials: false,
 		AccessControlAllowHeaders: strings.Join([]string{
 			AuthorizationHeaderKey,
 			AcceptEncodingHeaderKey,
@@ -251,16 +251,198 @@ func defaultHeadersConfig(
 	}
 }
 
+func setHeaders(w http.ResponseWriter, config HeadersConfig) {
+	if AcceptEncodingHeaderKey != "" {
+		w.Header().Set(AcceptEncodingHeaderKey, config.AcceptEncoding)
+	}
+	if AcceptHeaderKey != "" {
+		w.Header().Set(AcceptHeaderKey, config.Accept)
+	}
+	if AcceptLanguageHeaderKey != "" {
+		w.Header().Set(AcceptLanguageHeaderKey, config.AcceptLanguage)
+	}
+	if AcceptRangesHeaderKey != "" {
+		w.Header().Set(AcceptRangesHeaderKey, config.AcceptRanges)
+	}
+	if AccessControlAllowCredentialsHeaderKey != "" {
+		w.Header().Set(AccessControlAllowCredentialsHeaderKey, config.AccessControlAllowCredentials)
+	}
+	if AccessControlAllowHeadersHeaderKey != "" {
+		w.Header().Set(AccessControlAllowHeadersHeaderKey, config.AccessControlAllowHeaders)
+	}
+	if AccessControlAllowMethodsHeaderKey != "" {
+		w.Header().Set(AccessControlAllowMethodsHeaderKey, config.AccessControlAllowMethods)
+	}
+	if AccessControlAllowOriginHeaderKey != "" {
+		w.Header().Set(AccessControlAllowOriginHeaderKey, config.AccessControlAllowOrigin)
+	}
+	if AccessControlExposeHeadersHeaderKey != "" {
+		w.Header().Set(AccessControlExposeHeadersHeaderKey, config.AccessControlExposeHeaders)
+	}
+	if AccessControlMaxAgeHeaderKey != "" {
+		w.Header().Set(AccessControlMaxAgeHeaderKey, config.AccessControlMaxAge)
+	}
+	if AccessControlRequestHeadersHeaderKey != "" {
+		w.Header().Set(AccessControlRequestHeadersHeaderKey, config.AccessControlRequestHeaders)
+	}
+	if AccessControlRequestMethodHeaderKey != "" {
+		w.Header().Set(AccessControlRequestMethodHeaderKey, config.AccessControlRequestMethod)
+	}
+	if AgeHeaderKey != "" {
+		w.Header().Set(AgeHeaderKey, config.Age)
+	}
+	if AllowHeaderKey != "" {
+		w.Header().Set(AllowHeaderKey, config.Allow)
+	}
+	if AuthorizationHeaderKey != "" {
+		w.Header().Set(AuthorizationHeaderKey, config.Authorization)
+	}
+	if CacheControlHeaderKey != "" {
+		w.Header().Set(CacheControlHeaderKey, config.CacheControl)
+	}
+	if ContentDigestHeaderKey != "" {
+		w.Header().Set(ContentDigestHeaderKey, config.ContentDigest)
+	}
+	if ContentEncodingHeaderKey != "" {
+		w.Header().Set(ContentEncodingHeaderKey, config.ContentEncoding)
+	}
+	if ContentLanguageHeaderKey != "" {
+		w.Header().Set(ContentLanguageHeaderKey, config.ContentLanguage)
+	}
+	if ContentLocationHeaderKey != "" {
+		w.Header().Set(ContentLocationHeaderKey, config.ContentLocation)
+	}
+	if ContentSecurityPolicyHeaderKey != "" {
+		w.Header().Set(ContentSecurityPolicyHeaderKey, config.ContentSecurityPolicy)
+	}
+	if ContentTypeHeaderKey != "" {
+		w.Header().Set(ContentTypeHeaderKey, config.ContentType)
+	}
+	if CrossOriginEmbedderPolicyHeaderKey != "" {
+		w.Header().Set(CrossOriginEmbedderPolicyHeaderKey, config.CrossOriginEmbedderPolicy)
+	}
+	if CrossOriginOpenerPolicyHeaderKey != "" {
+		w.Header().Set(CrossOriginOpenerPolicyHeaderKey, config.CrossOriginOpenerPolicy)
+	}
+	if CrossOriginResourcePolicyHeaderKey != "" {
+		w.Header().Set(CrossOriginResourcePolicyHeaderKey, config.CrossOriginResourcePolicy)
+	}
+	if ETagHeaderKey != "" {
+		w.Header().Set(ETagHeaderKey, config.ETag)
+	}
+	if ExpectHeaderKey != "" {
+		w.Header().Set(ExpectHeaderKey, config.Expect)
+	}
+	if ExpiresHeaderKey != "" {
+		w.Header().Set(ExpiresHeaderKey, config.Expires)
+	}
+	if ForwardedHeaderKey != "" {
+		w.Header().Set(ForwardedHeaderKey, config.Forwarded)
+	}
+	if IfMatchHeaderKey != "" {
+		w.Header().Set(IfMatchHeaderKey, config.IfMatch)
+	}
+	if IfModifiedSinceHeaderKey != "" {
+		w.Header().Set(IfModifiedSinceHeaderKey, config.IfModifiedSince)
+	}
+	if IfNoneMatchHeaderKey != "" {
+		w.Header().Set(IfNoneMatchHeaderKey, config.IfNoneMatch)
+	}
+	if IfRangeHeaderKey != "" {
+		w.Header().Set(IfRangeHeaderKey, config.IfRange)
+	}
+	if IfUnmodifiedSinceHeaderKey != "" {
+		w.Header().Set(IfUnmodifiedSinceHeaderKey, config.IfUnmodifiedSince)
+	}
+	if IntegrityPolicyHeaderKey != "" {
+		w.Header().Set(IntegrityPolicyHeaderKey, config.IntegrityPolicy)
+	}
+	if KeepAliveHeaderKey != "" {
+		w.Header().Set(KeepAliveHeaderKey, config.KeepAlive)
+	}
+	if LastModifiedHeaderKey != "" {
+		w.Header().Set(LastModifiedHeaderKey, config.LastModified)
+	}
+	if PreferHeaderKey != "" {
+		w.Header().Set(PreferHeaderKey, config.Prefer)
+	}
+	if ReferrerPolicyHeaderKey != "" {
+		w.Header().Set(ReferrerPolicyHeaderKey, config.ReferrerPolicy)
+	}
+	if SecFetchDestHeaderKey != "" {
+		w.Header().Set(SecFetchDestHeaderKey, config.SecFetchDest)
+	}
+	if SecFetchModeHeaderKey != "" {
+		w.Header().Set(SecFetchModeHeaderKey, config.SecFetchMode)
+	}
+	if SecFetchSiteHeaderKey != "" {
+		w.Header().Set(SecFetchSiteHeaderKey, config.SecFetchSite)
+	}
+	if SecFetchUserHeaderKey != "" {
+		w.Header().Set(SecFetchUserHeaderKey, config.SecFetchUser)
+	}
+	if SecWebSocketAcceptHeaderKey != "" {
+		w.Header().Set(SecWebSocketAcceptHeaderKey, config.SecWebSocketAccept)
+	}
+	if SecWebSocketExtensionsHeaderKey != "" {
+		w.Header().Set(SecWebSocketExtensionsHeaderKey, config.SecWebSocketExtensions)
+	}
+	if SecWebSocketKeyHeaderKey != "" {
+		w.Header().Set(SecWebSocketKeyHeaderKey, config.SecWebSocketKey)
+	}
+	if SecWebSocketProtocolHeaderKey != "" {
+		w.Header().Set(SecWebSocketProtocolHeaderKey, config.SecWebSocketProtocol)
+	}
+	if SecWebSocketVersionHeaderKey != "" {
+		w.Header().Set(SecWebSocketVersionHeaderKey, config.SecWebSocketVersion)
+	}
+	if StrictTransportSecurityHeaderKey != "" {
+		w.Header().Set(StrictTransportSecurityHeaderKey, config.StrictTransportSecurity)
+	}
+	if TEHeaderKey != "" {
+		w.Header().Set(TEHeaderKey, config.TE)
+	}
+	if TransferEncodingHeaderKey != "" {
+		w.Header().Set(TransferEncodingHeaderKey, config.TransferEncoding)
+	}
+	if UpgradeInsecureRequestsHeaderKey != "" {
+		w.Header().Set(UpgradeInsecureRequestsHeaderKey, config.UpgradeInsecureRequests)
+	}
+	if UserAgentHeaderKey != "" {
+		w.Header().Set(UserAgentHeaderKey, config.UserAgent)
+	}
+	if VaryHeaderKey != "" {
+		w.Header().Set(VaryHeaderKey, config.Vary)
+	}
+	if ViaHeaderKey != "" {
+		w.Header().Set(ViaHeaderKey, config.Via)
+	}
+	if WantContentDigestHeaderKey != "" {
+		w.Header().Set(WantContentDigestHeaderKey, config.WantContentDigest)
+	}
+	if WantReprDigestHeaderKey != "" {
+		w.Header().Set(WantReprDigestHeaderKey, config.WantReprDigest)
+	}
+	if WWWAuthenticateHeaderKey != "" {
+		w.Header().Set(WWWAuthenticateHeaderKey, config.WWWAuthenticate)
+	}
+	if XContentTypeOptionsHeaderKey != "" {
+		w.Header().Set(XContentTypeOptionsHeaderKey, config.XContentTypeOptions)
+	}
+	if XCSRFTokenHeaderKey != "" {
+		w.Header().Set(XCSRFTokenHeaderKey, config.XCSRFToken)
+	}
+	if XFrameOptionsHeaderKey != "" {
+		w.Header().Set(XFrameOptionsHeaderKey, config.XFrameOptions)
+	}
+}
+
 func SetSecurityHeaders(
 	appConfig config.Config,
 	clientInfo ClientInfo,
 	cspConfig CSPConfig,
 ) error {
-	writer := clientInfo.Writer
-
-	defaultHeader := defaultHeadersConfig(
-		cspConfig,
-	)
+	setHeaders(clientInfo.Writer, defaultHeadersConfig(cspConfig))
 
 	return nil
 }
