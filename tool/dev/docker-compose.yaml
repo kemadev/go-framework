@@ -27,19 +27,11 @@ services:
     environment:
       # Not all projects under kemadev are private, but convenient not to set all exceptions
       GOPRIVATE: "github.com/kemadev/*"
-      RUNTIME_ENV: dev
-      APP_NAME: go-framework
-      APP_VERSION: dev
-      APP_NAMESPACE: whatever
-      OTEL_ENDPOINT_URL: http://kemadev-go-framework-jaeger-1:4317
-      OTEL_EXPORTER_COMPRESSION: gzip
-      HTTP_SERVE_PORT: 8080
-      HTTP_READ_TIMEOUT: 15
-      HTTP_WRITE_TIMEOUT: 15
-      HTTP_IDLE_TIMEOUT: 60
-      # Set to a positive value to enable metrics export
-      METRICS_EXPORT_INTERVAL: -1
-      TRACES_SAMPLE_RATIO: 1
+      KEMA_RUNTIME_ENVIRONMENT: dev
+      KEMA_RUNTIME_APP_NAME: go-framework
+      KEMA_RUNTIME_APP_VERSION: dev
+      KEMA_RUNTIME_APP_NAMESPACE: whatever
+      KEMA_OBSERVABILITY_ENDPOINT_URL: http://kemadev-go-framework-jaeger-1:4317
     ports:
       - 8080:8080
     restart: always
