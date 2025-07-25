@@ -30,10 +30,12 @@ func New() {
 		return c.SendString("Hello, World 👋!")
 	})
 
+	local := config.IsLocalEnvironment(conf.Runtime.Environment)
+
 	err = app.Listen(conf.Server.ListenAddr, fiber.ListenConfig{
-		EnablePrefork:         config.IsLocalEnvironment(conf.Runtime.Environment),
-		DisableStartupMessage: !config.IsLocalEnvironment(conf.Runtime.Environment),
-		EnablePrintRoutes:     config.IsLocalEnvironment(conf.Runtime.Environment),
+		EnablePrefork:         !local,
+		DisableStartupMessage: !local,
+		EnablePrintRoutes:     local,
 		ShutdownTimeout: func() time.Duration {
 			return max(conf.Server.ReadTimeout, conf.Server.WriteTimeout, conf.Server.IdleTimeout)
 		}(),
