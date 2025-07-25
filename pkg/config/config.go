@@ -49,9 +49,6 @@ type Config struct {
 	// It describes the higher level project.
 	// It should be a short name with no spaces or special characters, e.g. `shop`.
 	AppNamespace string
-	// IsBrowserFacing indicates whether the server is exposed to browsers.
-	// It is used, among other usages, to set security headers
-	IsBrowserFacing bool
 	// OtelEndpointURL is the URL of the OpenTelemetry Collector.
 	// It should use `grpc` scheme whenever possible.
 	OtelEndpointURL url.URL
@@ -185,10 +182,6 @@ func NewConfig() (*Config, error) {
 		{
 			Key:  EnvVarKeyAppNamespace,
 			Dest: &conf.AppNamespace,
-		},
-		{
-			Key:  EnvVarKeyIsBrowserFacing,
-			Dest: &conf.IsBrowserFacing,
 		},
 		{
 			Key:  EnvVarKeyOtelEndpointURL,

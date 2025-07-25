@@ -134,33 +134,24 @@ func sandboxToString(sandbox string) string {
 	return ""
 }
 
-func newCSPConfigWithIntegrity(
-	scriptIntegrities []IntegrityConfig,
-	styleIntegrities []IntegrityConfig,
-) CSPConfig {
+func newCSPConfigBase() CSPConfig {
 	noneSource := Source{None: true}
 	selfSource := Source{Expression: "'self'"}
 
 	return CSPConfig{
 		Fetch: CSPFetchConfig{
-			DefaultSrc: FetchSrc{Sources: []Source{noneSource}},
-			ScriptSrc: FetchSrc{
-				Sources:     []Source{selfSource},
-				Integrities: scriptIntegrities,
-			},
-			StyleSrc: FetchSrc{
-				Sources:     []Source{selfSource},
-				Integrities: styleIntegrities,
-			},
-			ImgSrc:      FetchSrc{Sources: []Source{selfSource}},
-			FontSrc:     FetchSrc{Sources: []Source{selfSource}},
-			ConnectSrc:  FetchSrc{Sources: []Source{selfSource}},
+			DefaultSrc:  FetchSrc{Sources: []Source{noneSource}},
+			ScriptSrc:   FetchSrc{Sources: []Source{noneSource}},
+			StyleSrc:    FetchSrc{Sources: []Source{noneSource}},
+			ImgSrc:      FetchSrc{Sources: []Source{noneSource}},
+			FontSrc:     FetchSrc{Sources: []Source{noneSource}},
+			ConnectSrc:  FetchSrc{Sources: []Source{noneSource}},
 			MediaSrc:    FetchSrc{Sources: []Source{noneSource}},
 			ObjectSrc:   FetchSrc{Sources: []Source{noneSource}},
 			ChildSrc:    FetchSrc{Sources: []Source{noneSource}},
 			FrameSrc:    FetchSrc{Sources: []Source{noneSource}},
 			WorkerSrc:   FetchSrc{Sources: []Source{noneSource}},
-			ManifestSrc: FetchSrc{Sources: []Source{selfSource}},
+			ManifestSrc: FetchSrc{Sources: []Source{noneSource}},
 		},
 		Document: CSPDocumentConfig{
 			BaseURI: selfSource,
@@ -209,15 +200,8 @@ func newCSPFromConfig(config CSPConfig) string {
 	return strings.Join(csp, "; ")
 }
 
-func NewCSP(
-	scriptIntegrities []IntegrityConfig,
-	styleIntegrities []IntegrityConfig,
-	config CSPConfig,
-) string {
-	base := newCSPConfigWithIntegrity(
-		scriptIntegrities,
-		styleIntegrities,
-	)
+func NewCSP(config CSPConfig) string {
+	base := newCSPConfigBase()
 
 	merged := mergeCSPConfigs(base, config)
 

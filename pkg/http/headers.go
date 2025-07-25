@@ -1,7 +1,7 @@
 package http
 
 import (
-	"strings"
+	"github.com/kemadev/go-framework/pkg/config"
 )
 
 const (
@@ -193,128 +193,14 @@ type HeadersConfig struct {
 	XContentTypeOptions string
 }
 
-func NewBrowserFacingHeaders() HeadersConfig {
-	return HeadersConfig{
-		// AccessControlAllowCredentials: "",
-		AccessControlAllowHeaders: strings.Join([]string{
-			AuthorizationHeaderKey,
-			AcceptEncodingHeaderKey,
-			AcceptHeaderKey,
-			PreferHeaderKey,
-			IfMatchHeaderKey,
-			IfModifiedSinceHeaderKey,
-			IfNoneMatchHeaderKey,
-			IfUnmodifiedSinceHeaderKey,
-			IfRangeHeaderKey,
-			IfUnmodifiedSinceHeaderKey,
-			ExpectHeaderKey,
-			UserAgentHeaderKey,
-			WantContentDigestHeaderKey,
-			WantReprDigestHeaderKey,
-		}, ", "),
-		// /* Request header */ AccessControlRequestHeaders: "",
-		// TODO integrate with [net/http.Handler] methods
-		AccessControlAllowMethods: "PUT, DELETE, OPTIONS, PATCH",
-		// TODO set it to self origin dynamically
-		AccessControlAllowOrigin: "",
-		AccessControlExposeHeaders: strings.Join([]string{
-			ETagHeaderKey,
-			ContentEncodingHeaderKey,
-			TEHeaderKey,
-			TransferEncodingHeaderKey,
-			ContentDigestHeaderKey,
-			VaryHeaderKey,
-		}, ", "),
-		AccessControlMaxAge: "300",
-		// /* Request header */ AccessControlRequestMethod: "",
-		ContentSecurityPolicy:     "",
-		CrossOriginEmbedderPolicy: "",
-		CrossOriginOpenerPolicy:   "",
-		CrossOriginResourcePolicy: "",
-		IntegrityPolicy:           "",
-		ReferrerPolicy:            "",
-		SecFetchDest:              "",
-		SecFetchMode:              "",
-		SecFetchSite:              "",
-		SecFetchUser:              "",
-		SecWebSocketAccept:        "",
-		SecWebSocketExtensions:    "",
-		SecWebSocketKey:           "",
-		SecWebSocketProtocol:      "",
-		SecWebSocketVersion:       "",
-		StrictTransportSecurity:   "",
-		XFrameOptions:             "",
-		XCSRFToken:                "",
-		Authorization:             "",
-		CacheControl:              "",
-		Age:                       "",
-		ETag:                      "",
-		Expires:                   "",
-		AcceptEncoding:            "",
-		Accept:                    "",
-		ContentEncoding:           "",
-		AcceptLanguage:            "",
-		AcceptRanges:              "",
-		ContentLanguage:           "",
-		ContentType:               "",
-		LastModified:              "",
-		Prefer:                    "",
-		TE:                        "",
-		TransferEncoding:          "",
-		IfMatch:                   "",
-		IfModifiedSince:           "",
-		IfNoneMatch:               "",
-		IfRange:                   "",
-		IfUnmodifiedSince:         "",
-		Expect:                    "",
-		Allow:                     "",
-		ContentDigest:             "",
-		ContentLocation:           "",
-		Forwarded:                 "",
-		KeepAlive:                 "",
-		UpgradeInsecureRequests:   "",
-		UserAgent:                 "",
-		Vary:                      "",
-		Via:                       "",
-		WantContentDigest:         "",
-		WantReprDigest:            "",
-		WWWAuthenticate:           "",
-		XContentTypeOptions:       "",
-	}
+func SetSecurityHeaders(
+	appConfig config.Config,
+	clientInfo ClientInfo,
+	cspConfig CSPConfig,
+) error {
+	writer := clientInfo.Writer
+
+	writer.Header().Set(ContentSecurityPolicyHeaderKey, NewCSP(cspConfig))
+
+	return nil
 }
-
-func NewComplianceHeaders() HeadersConfig {
-	return HeadersConfig{
-		// Maximum security for sensitive data
-		AccessControlAllowHeaders: "Content-Type, Authorization",
-		AccessControlAllowMethods: "GET, POST, PUT, DELETE, OPTIONS",
-		AccessControlAllowOrigin:  "https://secure.yourdomain.com", // Single trusted origin
-		AccessControlMaxAge:       "0",                             // No preflight caching
-		ContentSecurityPolicy:     "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
-		CrossOriginEmbedderPolicy: "require-corp",
-		CrossOriginOpenerPolicy:   "same-origin",
-		CrossOriginResourcePolicy: "same-origin",
-		ReferrerPolicy:            "no-referrer",
-		StrictTransportSecurity:   "max-age=63072000; includeSubDomains; preload", // 2 years
-		XFrameOptions:             "DENY",
-		XContentTypeOptions:       "nosniff",
-
-		// No caching for sensitive data
-		CacheControl: "no-cache, no-store, must-revalidate, private",
-		Expires:      "0",
-
-		// Content headers
-		ContentType: "application/json; charset=utf-8",
-		Vary:        "Accept-Encoding, Authorization",
-	}
-}
-
-// func SetSecurityHeaders(config config.Config, clientInfo ClientInfo) error {
-// 	writer := clientInfo.Writer
-
-// 	// if config.IsBrowserFacing {
-// 	// 	writer.Header().Set(http.)
-// 	// }
-
-// 	return nil
-// }
