@@ -198,6 +198,7 @@ type HeadersConfig struct {
 
 func defaultHeadersConfig(
 	cspConfig CSPConfig,
+	csrfToken string,
 ) HeadersConfig {
 	return HeadersConfig{
 		AccessControlAllowHeaders: strings.Join([]string{
@@ -239,15 +240,14 @@ func defaultHeadersConfig(
 		ReferrerPolicy:            "strict-origin",
 		StrictTransportSecurity:   "max-age=63072000; includeSubDomains; preload",
 		XFrameOptions:             "DENY",
-		// TODO integrate csrf double commit handling
-		XCSRFToken:          "",
-		CacheControl:        "no-cache",
-		AcceptEncoding:      "gzip",
-		Accept:              "application/json",
-		ContentEncoding:     "gzip",
-		AcceptRanges:        "bytes",
-		WWWAuthenticate:     "Bearer",
-		XContentTypeOptions: "nosniff",
+		XCSRFToken:                csrfToken,
+		CacheControl:              "no-cache",
+		AcceptEncoding:            "gzip",
+		Accept:                    "application/json",
+		ContentEncoding:           "gzip",
+		AcceptRanges:              "bytes",
+		WWWAuthenticate:           "Bearer",
+		XContentTypeOptions:       "nosniff",
 	}
 }
 
@@ -437,12 +437,19 @@ func setHeaders(w http.ResponseWriter, config HeadersConfig) {
 	}
 }
 
+func forgeCSRFToken() string {
+	// TODO implement this
+	return ""
+}
+
 func SetSecurityHeaders(
 	appConfig config.Config,
 	clientInfo ClientInfo,
 	cspConfig CSPConfig,
-) error {
-	setHeaders(clientInfo.Writer, defaultHeadersConfig(cspConfig))
+) string {
+	csrfToken := forgeCSRFToken()
 
-	return nil
+	setHeaders(clientInfo.Writer, defaultHeadersConfig(cspConfig, csrfToken))
+
+	return csrfToken
 }
