@@ -1,7 +1,6 @@
 package server
 
 import (
-	"log"
 	"log/slog"
 	"os"
 	"strings"
@@ -29,9 +28,9 @@ func New() {
 
 	app.Get("/", func(c fiber.Ctx) error {
 		return c.SendString("Hello, World 👋!")
-	}).Route("ff")
+	})
 
-	log.Fatal(app.Listen(conf.Server.ListenAddr), fiber.ListenConfig{
+	err = app.Listen(conf.Server.ListenAddr, fiber.ListenConfig{
 		EnablePrefork:         config.IsLocalEnvironment(conf.Runtime.Environment),
 		DisableStartupMessage: !config.IsLocalEnvironment(conf.Runtime.Environment),
 		EnablePrintRoutes:     config.IsLocalEnvironment(conf.Runtime.Environment),
@@ -45,4 +44,8 @@ func New() {
 			return "tcp4"
 		}(),
 	})
+	if err != nil {
+		slog.Error("server listen failed: %w", slog.String("error.message", err.Error()))
+		os.Exit(1)
+	}
 }
