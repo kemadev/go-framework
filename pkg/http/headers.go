@@ -1,151 +1,320 @@
 package http
 
 import (
-	"github.com/kemadev/go-framework/pkg/config"
+	"strings"
 )
 
 const (
-	// Security
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Allow-Credentials
+	AcceptEncodingHeaderKey                = "Accept-Encoding"
+	AcceptHeaderKey                        = "Accept"
+	AcceptLanguageHeaderKey                = "Accept-Language"
+	AcceptRangesHeaderKey                  = "Accept-Ranges"
 	AccessControlAllowCredentialsHeaderKey = "Access-Control-Allow-Credentials"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Allow-Headers
-	AccessControlAllowHeadersHeaderKey = "Access-Control-Allow-Headers"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Allow-Methods
-	AccessControlAllowMethodsHeaderKey = "Access-Control-Allow-Methods"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Allow-Origin
-	AccessControlAllowOriginHeaderKey = "Access-Control-Allow-Origin"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Expose-Headers
-	AccessControlExposeHeadersHeaderKey = "Access-Control-Expose-Headers"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Max-Age
-	AccessControlMaxAgeHeaderKey = "Access-Control-Max-Age"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Request-Headers
-	AccessControlRequestHeadersHeaderKey = "Access-Control-Request-Headers"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Request-Method
-	AccessControlRequestMethodHeaderKey = "Access-Control-Request-Method"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy
-	ContentSecurityPoliHeaderKey = "Content-Security-Policy"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cross-Origin-Embedder-Policy
-	CrossOriginEmbedderPolicyHeaderKey = "Cross-Origin-Embedder-Policy"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cross-Origin-Opener-Policy
-	CrossOriginOpenerPolicyHeaderKey = "Cross-Origin-Opener-Policy"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cross-Origin-Resource-Policy
-	CrossOriginResourcePolicyHeaderKey = "Cross-Origin-Resource-Policy"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Integrity-Policy
-	IntegrityPolicyHeaderKey = "Integrity-Policy"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Referrer-Policy
-	ReferrerPolicyHeaderKey = "Referrer-Policy"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Dest
-	SecFetchDestHeaderKey = "Sec-Fetch-Dest"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Mode
-	SecFetchModeHeaderKey = "Sec-Fetch-Mode"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Site
-	SecFetchSiteHeaderKey = "Sec-Fetch-Site"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-User
-	SecFetchUserHeaderKey = "Sec-Fetch-User"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-WebSocket-Accept
-	SecWebSocketAcceptHeaderKey = "Sec-WebSocket-Accept"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-WebSocket-Extensions
-	SecWebSocketExtensionsHeaderKey = "Sec-WebSocket-Extensions"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-WebSocket-Key
-	SecWebSocketKeyHeaderKey = "Sec-WebSocket-Key"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-WebSocket-Protocol
-	SecWebSocketProtocolHeaderKey = "Sec-WebSocket-Protocol"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-WebSocket-Version
-	SecWebSocketVersionHeaderKey = "Sec-WebSocket-Version"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Strict-Transport-Security
-	StrictTransportSecurityHeaderKey = "Strict-Transport-Security"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Frame-Options
-	XFrameOptionsHeaderKey = "X-Frame-Options"
-	// Custom header, used as CSRF token (2nd submit)
-	XCSRFTokenHeaderKey = "X-CSRF-Token"
-
-	// Auth
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Authorization
-	AuthorizationHeaderKey = "Authorization"
-
-	// Cache
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control
-	CacheControlHeaderKey = "Cache-Control"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Age
-	AgeHeaderKey = "Age"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/ETag
-	ETagHeaderKey = "ETag"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Expires
-	ExpiresHeaderKey = "Expires"
-
-	// Content negotiation
-	AcceptEncodingHeaderKey = "Accept-Encoding"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Accept
-	AcceptHeaderKey = "Accept"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Accept-Encoding
-	ContentEncodingHeaderKey = "Content-Encoding"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Accept-Language
-	AcceptLanguageHeaderKey = "Accept-Language"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Accept-Ranges
-	AcceptRangesHeaderKey = "Accept-Ranges"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Language
-	ContentLanguageHeaderKey = "Content-Language"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Type
-	ContentTypeHeaderKey = "Content-Type"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Last-Modified
-	LastModifiedHeaderKey = "Last-Modified"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Prefer
-	PreferHeaderKey = "Prefer"
-
-	// Encoding
-	// Encoding for HTTP/2 and HTTP/3, https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/TE
-	TEHeaderKey = "TE"
-	// Encoding for HTTP/1.1, https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Transfer-Encoding
-	TransferEncodingHeaderKey = "Transfer-Encoding"
-
-	// Condition
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/If-Match
-	IfMatchHeaderKey = "If-Match"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/If-Modified-Since
-	IfModifiedSinceHeaderKey = "If-Modified-Since"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/If-None-Match
-	IfNoneMatchHeaderKey = "If-None-Match"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/If-Range
-	IfRangeHeaderKey = "If-Range"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/If-Unmodified-Since
-	IfUnmodifiedSinceHeaderKey = "If-Unmodified-Since"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Expect
-	ExpectHeaderKey = "Expect"
-
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Allow
-	AllowHeaderKey = "Allow"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Digest
-	ContentDigestHeaderKey = "Content-Digest"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Location
-	ContentLocationHeaderKey = "Content-Location"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Forwarded
-	ForwardedHeaderKey = "Forwarded"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Keep-Alive
-	KeepAliveHeaderKey = "Keep-Alive"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Upgrade-Insecure-Requests
-	UpgradeInsecureRequestsHeaderKey = "Upgrade-Insecure-Requests"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/User-Agent
-	UserAgentHeaderKey = "User-Agent"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Vary
-	VaryHeaderKey = "Vary"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Via
-	ViaHeaderKey = "Via"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Want-Content-Digest
-	WantContentDigestHeaderKey = "Want-Content-Digest"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Want-Repr-Digest
-	WantReprDigestHeaderKey = "Want-Repr-Digest"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/WWW-Authenticate
-	WWWAuthenticateHeaderKey = "WWW-Authenticate"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Content-Type-Options
-	XContentTypeOptionsHeacyderKey = "X-Content-Type-Options"
+	AccessControlAllowHeadersHeaderKey     = "Access-Control-Allow-Headers"
+	AccessControlAllowMethodsHeaderKey     = "Access-Control-Allow-Methods"
+	AccessControlAllowOriginHeaderKey      = "Access-Control-Allow-Origin"
+	AccessControlExposeHeadersHeaderKey    = "Access-Control-Expose-Headers"
+	AccessControlMaxAgeHeaderKey           = "Access-Control-Max-Age"
+	AccessControlRequestHeadersHeaderKey   = "Access-Control-Request-Headers"
+	AccessControlRequestMethodHeaderKey    = "Access-Control-Request-Method"
+	AgeHeaderKey                           = "Age"
+	AllowHeaderKey                         = "Allow"
+	AuthorizationHeaderKey                 = "Authorization"
+	CacheControlHeaderKey                  = "Cache-Control"
+	ContentDigestHeaderKey                 = "Content-Digest"
+	ContentEncodingHeaderKey               = "Content-Encoding"
+	ContentLanguageHeaderKey               = "Content-Language"
+	ContentLocationHeaderKey               = "Content-Location"
+	ContentSecurityPolicyHeaderKey         = "Content-Security-Policy"
+	ContentTypeHeaderKey                   = "Content-Type"
+	CrossOriginEmbedderPolicyHeaderKey     = "Cross-Origin-Embedder-Policy"
+	CrossOriginOpenerPolicyHeaderKey       = "Cross-Origin-Opener-Policy"
+	CrossOriginResourcePolicyHeaderKey     = "Cross-Origin-Resource-Policy"
+	ETagHeaderKey                          = "ETag"
+	ExpectHeaderKey                        = "Expect"
+	ExpiresHeaderKey                       = "Expires"
+	ForwardedHeaderKey                     = "Forwarded"
+	IfMatchHeaderKey                       = "If-Match"
+	IfModifiedSinceHeaderKey               = "If-Modified-Since"
+	IfNoneMatchHeaderKey                   = "If-None-Match"
+	IfRangeHeaderKey                       = "If-Range"
+	IfUnmodifiedSinceHeaderKey             = "If-Unmodified-Since"
+	IntegrityPolicyHeaderKey               = "Integrity-Policy"
+	KeepAliveHeaderKey                     = "Keep-Alive"
+	LastModifiedHeaderKey                  = "Last-Modified"
+	PreferHeaderKey                        = "Prefer"
+	ReferrerPolicyHeaderKey                = "Referrer-Policy"
+	SecFetchDestHeaderKey                  = "Sec-Fetch-Dest"
+	SecFetchModeHeaderKey                  = "Sec-Fetch-Mode"
+	SecFetchSiteHeaderKey                  = "Sec-Fetch-Site"
+	SecFetchUserHeaderKey                  = "Sec-Fetch-User"
+	SecWebSocketAcceptHeaderKey            = "Sec-WebSocket-Accept"
+	SecWebSocketExtensionsHeaderKey        = "Sec-WebSocket-Extensions"
+	SecWebSocketKeyHeaderKey               = "Sec-WebSocket-Key"
+	SecWebSocketProtocolHeaderKey          = "Sec-WebSocket-Protocol"
+	SecWebSocketVersionHeaderKey           = "Sec-WebSocket-Version"
+	StrictTransportSecurityHeaderKey       = "Strict-Transport-Security"
+	TEHeaderKey                            = "TE"
+	TransferEncodingHeaderKey              = "Transfer-Encoding"
+	UpgradeInsecureRequestsHeaderKey       = "Upgrade-Insecure-Requests"
+	UserAgentHeaderKey                     = "User-Agent"
+	VaryHeaderKey                          = "Vary"
+	ViaHeaderKey                           = "Via"
+	WantContentDigestHeaderKey             = "Want-Content-Digest"
+	WantReprDigestHeaderKey                = "Want-Repr-Digest"
+	WWWAuthenticateHeaderKey               = "WWW-Authenticate"
+	XContentTypeOptionsHeaderKey           = "X-Content-Type-Options"
+	XCSRFTokenHeaderKey                    = "X-CSRF-Token"
+	XFrameOptionsHeaderKey                 = "X-Frame-Options"
 )
 
-func SetSecurityHeaders(config config.Config, clientInfo ClientInfo) error {
-	writer := clientInfo.Writer
-
-	// if config.IsBrowserFacing {
-	// 	writer.Header().Set(http.)
-	// }
-
-	return nil
+type HeadersConfig struct {
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Allow-Credentials
+	AccessControlAllowCredentials string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Allow-Headers
+	AccessControlAllowHeaders string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Allow-Methods
+	AccessControlAllowMethods string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Allow-Origin
+	AccessControlAllowOrigin string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Expose-Headers
+	AccessControlExposeHeaders string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Max-Age
+	AccessControlMaxAge string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Request-Headers
+	AccessControlRequestHeaders string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Request-Method
+	AccessControlRequestMethod string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy
+	ContentSecurityPolicy string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cross-Origin-Embedder-Policy
+	CrossOriginEmbedderPolicy string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cross-Origin-Opener-Policy
+	CrossOriginOpenerPolicy string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cross-Origin-Resource-Policy
+	CrossOriginResourcePolicy string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Integrity-Policy
+	IntegrityPolicy string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Referrer-Policy
+	ReferrerPolicy string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Dest
+	SecFetchDest string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Mode
+	SecFetchMode string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Site
+	SecFetchSite string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-User
+	SecFetchUser string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-WebSocket-Accept
+	SecWebSocketAccept string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-WebSocket-Extensions
+	SecWebSocketExtensions string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-WebSocket-Key
+	SecWebSocketKey string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-WebSocket-Protocol
+	SecWebSocketProtocol string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-WebSocket-Version
+	SecWebSocketVersion string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Strict-Transport-Security
+	StrictTransportSecurity string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Frame-Options
+	XFrameOptions string
+	// Custom header, used as CSRF token (2nd submit)
+	XCSRFToken string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Authorization
+	Authorization string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control
+	CacheControl string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Age
+	Age string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/ETag
+	ETag string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Expires
+	Expires string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Accept-Encoding
+	AcceptEncoding string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Accept
+	Accept string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Accept-Encoding
+	ContentEncoding string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Accept-Language
+	AcceptLanguage string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Accept-Ranges
+	AcceptRanges string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Language
+	ContentLanguage string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Type
+	ContentType string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Last-Modified
+	LastModified string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Prefer
+	Prefer string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/TE
+	TE string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Transfer-Encoding
+	TransferEncoding string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/If-Match
+	IfMatch string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/If-Modified-Since
+	IfModifiedSince string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/If-None-Match
+	IfNoneMatch string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/If-Range
+	IfRange string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/If-Unmodified-Since
+	IfUnmodifiedSince string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Expect
+	Expect string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Allow
+	Allow string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Digest
+	ContentDigest string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Location
+	ContentLocation string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Forwarded
+	Forwarded string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Keep-Alive
+	KeepAlive string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Upgrade-Insecure-Requests
+	UpgradeInsecureRequests string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/User-Agent
+	UserAgent string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Vary
+	Vary string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Via
+	Via string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Want-Content-Digest
+	WantContentDigest string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Want-Repr-Digest
+	WantReprDigest string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/WWW-Authenticate
+	WWWAuthenticate string
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Content-Type-Options
+	XContentTypeOptions string
 }
+
+func NewBrowserFacingHeaders() HeadersConfig {
+	return HeadersConfig{
+		// AccessControlAllowCredentials: "",
+		AccessControlAllowHeaders: strings.Join([]string{
+			AuthorizationHeaderKey,
+			AcceptEncodingHeaderKey,
+			AcceptHeaderKey,
+			PreferHeaderKey,
+			IfMatchHeaderKey,
+			IfModifiedSinceHeaderKey,
+			IfNoneMatchHeaderKey,
+			IfUnmodifiedSinceHeaderKey,
+			IfRangeHeaderKey,
+			IfUnmodifiedSinceHeaderKey,
+			ExpectHeaderKey,
+			UserAgentHeaderKey,
+			WantContentDigestHeaderKey,
+			WantReprDigestHeaderKey,
+		}, ", "),
+		// /* Request header */ AccessControlRequestHeaders: "",
+		// TODO integrate with [net/http.Handler] methods
+		AccessControlAllowMethods: "PUT, DELETE, OPTIONS, PATCH",
+		// TODO set it to self origin dynamically
+		AccessControlAllowOrigin: "",
+		AccessControlExposeHeaders: strings.Join([]string{
+			ETagHeaderKey,
+			ContentEncodingHeaderKey,
+			TEHeaderKey,
+			TransferEncodingHeaderKey,
+			ContentDigestHeaderKey,
+			VaryHeaderKey,
+		}, ", "),
+		AccessControlMaxAge: "300",
+		// /* Request header */ AccessControlRequestMethod: "",
+		ContentSecurityPolicy:     "",
+		CrossOriginEmbedderPolicy: "",
+		CrossOriginOpenerPolicy:   "",
+		CrossOriginResourcePolicy: "",
+		IntegrityPolicy:           "",
+		ReferrerPolicy:            "",
+		SecFetchDest:              "",
+		SecFetchMode:              "",
+		SecFetchSite:              "",
+		SecFetchUser:              "",
+		SecWebSocketAccept:        "",
+		SecWebSocketExtensions:    "",
+		SecWebSocketKey:           "",
+		SecWebSocketProtocol:      "",
+		SecWebSocketVersion:       "",
+		StrictTransportSecurity:   "",
+		XFrameOptions:             "",
+		XCSRFToken:                "",
+		Authorization:             "",
+		CacheControl:              "",
+		Age:                       "",
+		ETag:                      "",
+		Expires:                   "",
+		AcceptEncoding:            "",
+		Accept:                    "",
+		ContentEncoding:           "",
+		AcceptLanguage:            "",
+		AcceptRanges:              "",
+		ContentLanguage:           "",
+		ContentType:               "",
+		LastModified:              "",
+		Prefer:                    "",
+		TE:                        "",
+		TransferEncoding:          "",
+		IfMatch:                   "",
+		IfModifiedSince:           "",
+		IfNoneMatch:               "",
+		IfRange:                   "",
+		IfUnmodifiedSince:         "",
+		Expect:                    "",
+		Allow:                     "",
+		ContentDigest:             "",
+		ContentLocation:           "",
+		Forwarded:                 "",
+		KeepAlive:                 "",
+		UpgradeInsecureRequests:   "",
+		UserAgent:                 "",
+		Vary:                      "",
+		Via:                       "",
+		WantContentDigest:         "",
+		WantReprDigest:            "",
+		WWWAuthenticate:           "",
+		XContentTypeOptions:       "",
+	}
+}
+
+func NewComplianceHeaders() HeadersConfig {
+	return HeadersConfig{
+		// Maximum security for sensitive data
+		AccessControlAllowHeaders: "Content-Type, Authorization",
+		AccessControlAllowMethods: "GET, POST, PUT, DELETE, OPTIONS",
+		AccessControlAllowOrigin:  "https://secure.yourdomain.com", // Single trusted origin
+		AccessControlMaxAge:       "0",                             // No preflight caching
+		ContentSecurityPolicy:     "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
+		CrossOriginEmbedderPolicy: "require-corp",
+		CrossOriginOpenerPolicy:   "same-origin",
+		CrossOriginResourcePolicy: "same-origin",
+		ReferrerPolicy:            "no-referrer",
+		StrictTransportSecurity:   "max-age=63072000; includeSubDomains; preload", // 2 years
+		XFrameOptions:             "DENY",
+		XContentTypeOptions:       "nosniff",
+
+		// No caching for sensitive data
+		CacheControl: "no-cache, no-store, must-revalidate, private",
+		Expires:      "0",
+
+		// Content headers
+		ContentType: "application/json; charset=utf-8",
+		Vary:        "Accept-Encoding, Authorization",
+	}
+}
+
+// func SetSecurityHeaders(config config.Config, clientInfo ClientInfo) error {
+// 	writer := clientInfo.Writer
+
+// 	// if config.IsBrowserFacing {
+// 	// 	writer.Header().Set(http.)
+// 	// }
+
+// 	return nil
+// }
