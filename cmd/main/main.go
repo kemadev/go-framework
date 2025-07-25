@@ -34,11 +34,11 @@ func main() {
 	// Create regular routes
 	regularRoutes := route.RoutesToRegister{
 		route.Route{
-			Pattern:     "/rolldice/",
+			Pattern:     "GET /rolldice/",
 			HandlerFunc: rolldice,
 		},
 		route.Route{
-			Pattern:     "/rolldice/{player}",
+			Pattern:     "GET /rolldice/{player}",
 			HandlerFunc: rolldice,
 		},
 	}

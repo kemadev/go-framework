@@ -34,8 +34,8 @@ services:
       OTEL_ENDPOINT_URL: http://kemadev-go-framework-jaeger-1:4317
       OTEL_EXPORTER_COMPRESSION: gzip
       HTTP_SERVE_PORT: 8080
-      HTTP_READ_TIMEOUT: 5
-      HTTP_WRITE_TIMEOUT: 10
+      HTTP_READ_TIMEOUT: 15
+      HTTP_WRITE_TIMEOUT: 15
       HTTP_IDLE_TIMEOUT: 60
       # Set to a positive value to enable metrics export
       METRICS_EXPORT_INTERVAL: -1
