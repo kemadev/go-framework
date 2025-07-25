@@ -70,7 +70,7 @@ const (
 
 type HeadersConfig struct {
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Allow-Credentials
-	AccessControlAllowCredentials string
+	AccessControlAllowCredentials bool
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Allow-Headers
 	AccessControlAllowHeaders string
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Allow-Methods
@@ -191,6 +191,13 @@ type HeadersConfig struct {
 	WWWAuthenticate string
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Content-Type-Options
 	XContentTypeOptions string
+}
+
+func defaultHeadersConfig() HeadersConfig {
+	return HeadersConfig{
+		AccessControlAllowCredentials: false,
+		AccessControlAllowHeaders: ,
+	}
 }
 
 func SetSecurityHeaders(
