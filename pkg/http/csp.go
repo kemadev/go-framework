@@ -176,7 +176,7 @@ func newCSPConfigWithIntegrity(
 	}
 }
 
-func newCSP(config CSPConfig) string {
+func newCSPFromConfig(config CSPConfig) string {
 	var csp []string
 
 	csp = append(csp, "default-src "+fetchSrcToString(config.Fetch.DefaultSrc))
@@ -209,7 +209,7 @@ func newCSP(config CSPConfig) string {
 	return strings.Join(csp, "; ")
 }
 
-func New(
+func NewCSP(
 	scriptIntegrities []IntegrityConfig,
 	styleIntegrities []IntegrityConfig,
 	config CSPConfig,
@@ -219,10 +219,9 @@ func New(
 		styleIntegrities,
 	)
 
-	// Merge base config with provided config
 	merged := mergeCSPConfigs(base, config)
 
-	final := newCSP(merged)
+	final := newCSPFromConfig(merged)
 
 	return final
 }
