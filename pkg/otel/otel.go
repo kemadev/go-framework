@@ -165,6 +165,7 @@ func newLoggerProvider(
 	// Wrap the processor so that it filters by severity level
 	stdoutProcessor := minsev.NewLogProcessor(stdoutSimpleProcessor, logLevel)
 
+	// Only output to stdout during local development
 	if conf.IsLocalEnvironment() {
 		provider := log.NewLoggerProvider(
 			log.WithResource(res),
@@ -175,6 +176,7 @@ func newLoggerProvider(
 
 	grpcProcessor := minsev.NewLogProcessor(grpcBatchProcessor, logLevel)
 
+	// Outut as OLTP as well as stdout
 	provider := log.NewLoggerProvider(
 		log.WithResource(res),
 		log.WithProcessor(stdoutProcessor),
@@ -195,6 +197,7 @@ func newMeterProvider(
 	var exporter metric.Exporter
 
 	if conf.IsLocalEnvironment() {
+		// Do not export metrics when export interval is 0 or below
 		if conf.Observability.MetricsExportIntervalSeconds <= 0 {
 			prov := nometric.NewMeterProvider()
 			return &metric.MeterProvider{
@@ -231,7 +234,7 @@ func newMeterProvider(
 	meterProvider := metric.NewMeterProvider(
 		metric.WithReader(proc),
 		metric.WithResource(res),
-		metric.WithExemplarFilter(exemplar.TraceBasedFilter),
+		metric.WithExemplarFilter(exemplar.AlwaysOnFilter),
 	)
 
 	return meterProvider, nil
