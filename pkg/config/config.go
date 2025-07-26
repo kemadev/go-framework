@@ -47,6 +47,8 @@ type Observability struct {
 	ExporterCompression string `split_words:"true"                 default:"gzip"`
 	// Percentage of request to sample for tracing
 	TracingSamplePercent int `split_words:"true"                 default:"100"`
+	// Interval between metrics exports, in seconds
+	MetricsExportIntervalSeconds int `split_words:"true"                 default:"15"`
 }
 
 // Load loads configuration from environment variables
@@ -60,6 +62,6 @@ func Load() (*Global, error) {
 }
 
 // IsLocalEnvironment returns whether the application in running in local-development environment
-func IsLocalEnvironment(env string) bool {
-	return env == "dev"
+func (cfg Global) IsLocalEnvironment() bool {
+	return cfg.Runtime.Environment == "dev"
 }

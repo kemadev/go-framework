@@ -1,13 +1,16 @@
 package server
 
 import (
+	"context"
 	"log/slog"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/gofiber/contrib/otelfiber/v3"
 	"github.com/gofiber/fiber/v3"
 	"github.com/kemadev/go-framework/pkg/config"
+	"github.com/kemadev/go-framework/pkg/otel"
 )
 
 func New() {
@@ -26,16 +29,18 @@ func New() {
 		ProxyHeader:  conf.Server.ProxyHeader,
 	})
 
+	otel.SetupOTelSDK(context.TODO(), *conf)
+
+	app.Use(otelfiber.Middleware())
+
 	app.Get("/", func(c fiber.Ctx) error {
 		return c.SendString("Hello, World 👋!")
 	})
 
-	local := config.IsLocalEnvironment(conf.Runtime.Environment)
-
 	err = app.Listen(conf.Server.ListenAddr, fiber.ListenConfig{
-		EnablePrefork:         !local,
-		DisableStartupMessage: !local,
-		EnablePrintRoutes:     local,
+		EnablePrefork:         !conf.IsLocalEnvironment(),
+		DisableStartupMessage: !conf.IsLocalEnvironment(),
+		EnablePrintRoutes:     conf.IsLocalEnvironment(),
 		ShutdownTimeout: func() time.Duration {
 			return max(conf.Server.ReadTimeout, conf.Server.WriteTimeout, conf.Server.IdleTimeout)
 		}(),
