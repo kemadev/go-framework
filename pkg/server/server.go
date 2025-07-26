@@ -2,18 +2,24 @@ package server
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/gofiber/contrib/otelfiber/v3"
 	"github.com/gofiber/fiber/v3"
 	"github.com/kemadev/go-framework/pkg/config"
+	"github.com/kemadev/go-framework/pkg/log"
 	"github.com/kemadev/go-framework/pkg/otel"
+	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 )
 
 func New() {
+	// Configure server
 	conf, err := config.Load()
 	if err != nil {
 		slog.New(slog.NewJSONHandler(os.Stdout, nil)).
@@ -29,30 +35,83 @@ func New() {
 		ProxyHeader:  conf.Server.ProxyHeader,
 	})
 
-	otel.SetupOTelSDK(context.TODO(), *conf)
+	// Set up OpenTelemetry.
+	otelShutdown, err := otel.SetupOTelSDK(context.TODO(), *conf)
+	if err != nil {
+		log.CreateFallbackLogger(conf.Runtime).
+			Error("error setting up OpenTelemetry", slog.String(string(semconv.ErrorMessageKey), err.Error()))
+		return
+	}
 
 	app.Use(otelfiber.Middleware())
 
-	app.Get("/foo", func(c fiber.Ctx) error {
-		return c.SendString("Hello, World 👋!")
+	srvErr := make(chan error, 1)
+
+	go func() {
+		err := app.Listen(conf.Server.ListenAddr, fiber.ListenConfig{
+			EnablePrefork:         !conf.IsLocalEnvironment(),
+			DisableStartupMessage: !conf.IsLocalEnvironment(),
+			EnablePrintRoutes:     conf.IsLocalEnvironment(),
+			ShutdownTimeout: func() time.Duration {
+				return max(
+					conf.Server.ReadTimeout,
+					conf.Server.WriteTimeout,
+					conf.Server.IdleTimeout,
+				)
+			}(),
+			ListenerNetwork: func() string {
+				if strings.HasPrefix(conf.Server.ListenAddr, "[") {
+					return "tcp6"
+				}
+				return "tcp4"
+			}(),
+		})
+		if err != nil {
+			srvErr <- err
+		}
+	}()
+
+	// Set up graceful shutdown
+	app.Hooks().OnPostShutdown(func(err error) error {
+		logger := log.CreateFallbackLogger(conf.Runtime)
+		if err != nil {
+			logger.Error(
+				"error shutting down the server",
+				slog.String(string(semconv.ErrorMessageKey), err.Error()),
+			)
+		}
+		otelErr := errors.Join(err, otelShutdown(context.Background()))
+		if otelErr != nil {
+			logger.Error(
+				"error shutting down open telemetry",
+				slog.String(string(semconv.ErrorMessageKey), otelErr.Error()),
+			)
+		}
+		return nil
 	})
 
-	err = app.Listen(conf.Server.ListenAddr, fiber.ListenConfig{
-		EnablePrefork:         !conf.IsLocalEnvironment(),
-		DisableStartupMessage: !conf.IsLocalEnvironment(),
-		EnablePrintRoutes:     conf.IsLocalEnvironment(),
-		ShutdownTimeout: func() time.Duration {
-			return max(conf.Server.ReadTimeout, conf.Server.WriteTimeout, conf.Server.IdleTimeout)
-		}(),
-		ListenerNetwork: func() string {
-			if strings.HasPrefix(conf.Server.ListenAddr, "[") {
-				return "tcp6"
-			}
-			return "tcp4"
-		}(),
-	})
-	if err != nil {
-		slog.Error("server listen failed: %w", slog.String("error.message", err.Error()))
+	ctx, stop := signal.NotifyContext(
+		context.Background(),
+		os.Interrupt,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+	)
+	defer stop()
+
+	select {
+	case err := <-srvErr:
+		log.CreateFallbackLogger(conf.Runtime).
+			Error("error starting server", slog.String(string(semconv.ErrorMessageKey), err.Error()))
 		os.Exit(1)
+	case <-ctx.Done():
+		stop()
+		log.CreateFallbackLogger(conf.Runtime).
+			Info("received shutdown signal, shutting down server")
+		if err := app.Shutdown(); err != nil {
+			log.CreateFallbackLogger(conf.Runtime).
+				Error("error shutting down server", slog.String(string(semconv.ErrorMessageKey), err.Error()))
+			os.Exit(1)
+		}
 	}
 }
