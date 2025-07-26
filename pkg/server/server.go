@@ -33,7 +33,7 @@ func New() {
 
 	app.Use(otelfiber.Middleware())
 
-	app.Get("/", func(c fiber.Ctx) error {
+	app.Get("/foo", func(c fiber.Ctx) error {
 		return c.SendString("Hello, World 👋!")
 	})
 
