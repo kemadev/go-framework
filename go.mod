@@ -48,3 +48,5 @@ require (
 	google.golang.org/grpc v1.73.0 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 )
+
+replace github.com/gofiber/contrib/otelfiber/v3 => github.com/kema-dev/fiber-contrib/otelfiber main
