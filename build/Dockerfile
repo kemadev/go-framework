@@ -49,6 +49,7 @@ RUN --mount=type=secret,id=netrc \
 	--mount=type=cache,target=/root/go/pkg \
 	--mount=type=bind,source=go.mod,target=go.mod \
 	--mount=type=bind,source=go.sum,target=go.sum \
+	--mount=type=bind,source=./mnt,target=./mnt \
 	cp /run/secrets/netrc /root/.netrc && \
 	go mod download -x
 
