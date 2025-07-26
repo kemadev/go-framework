@@ -62,6 +62,6 @@ func Load() (*Global, error) {
 }
 
 // IsLocalEnvironment returns whether the application in running in local-development environment
-func (cfg Global) IsLocalEnvironment() bool {
-	return cfg.Runtime.Environment == "dev"
+func (cfg Runtime) IsLocalEnvironment() bool {
+	return cfg.Environment == "dev"
 }

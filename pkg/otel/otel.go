@@ -158,7 +158,7 @@ func newLoggerProvider(
 
 	// Log Info by default, Debug for dev
 	logLevel := minsev.SeverityInfo
-	if conf.IsLocalEnvironment() {
+	if conf.Runtime.IsLocalEnvironment() {
 		logLevel = minsev.SeverityDebug
 	}
 
@@ -166,7 +166,7 @@ func newLoggerProvider(
 	stdoutProcessor := minsev.NewLogProcessor(stdoutSimpleProcessor, logLevel)
 
 	// Only output to stdout during local development
-	if conf.IsLocalEnvironment() {
+	if conf.Runtime.IsLocalEnvironment() {
 		provider := log.NewLoggerProvider(
 			log.WithResource(res),
 			log.WithProcessor(stdoutProcessor),
@@ -196,7 +196,7 @@ func newMeterProvider(
 ) (*metric.MeterProvider, error) {
 	var exporter metric.Exporter
 
-	if conf.IsLocalEnvironment() {
+	if conf.Runtime.IsLocalEnvironment() {
 		// Do not export metrics when export interval is 0 or below
 		if conf.Observability.MetricsExportIntervalSeconds <= 0 {
 			prov := nometric.NewMeterProvider()
@@ -258,7 +258,7 @@ func newTracerProvider(
 
 	batcher := trace.WithBatcher(exp)
 
-	if conf.IsLocalEnvironment() {
+	if conf.Runtime.IsLocalEnvironment() {
 		batcher = trace.WithSyncer(exp)
 	}
 

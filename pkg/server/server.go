@@ -49,9 +49,9 @@ func New() {
 
 	go func() {
 		err := app.Listen(conf.Server.ListenAddr, fiber.ListenConfig{
-			EnablePrefork:         !conf.IsLocalEnvironment(),
-			DisableStartupMessage: !conf.IsLocalEnvironment(),
-			EnablePrintRoutes:     conf.IsLocalEnvironment(),
+			EnablePrefork:         !conf.Runtime.IsLocalEnvironment(),
+			DisableStartupMessage: !conf.Runtime.IsLocalEnvironment(),
+			EnablePrintRoutes:     conf.Runtime.IsLocalEnvironment(),
 			ShutdownTimeout: func() time.Duration {
 				return max(
 					conf.Server.ReadTimeout,
@@ -108,7 +108,8 @@ func New() {
 		stop()
 		log.CreateFallbackLogger(conf.Runtime).
 			Info("received shutdown signal, shutting down server")
-		if err := app.Shutdown(); err != nil {
+		err := app.Shutdown()
+		if err != nil {
 			log.CreateFallbackLogger(conf.Runtime).
 				Error("error shutting down server", slog.String(string(semconv.ErrorMessageKey), err.Error()))
 			os.Exit(1)
