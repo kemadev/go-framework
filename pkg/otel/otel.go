@@ -28,13 +28,6 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 )
 
-var (
-	// ErrOtelExporterCompressionInvalid is a sentinel error that indicates that the OpenTelemetry exporter compression is invalid.
-	ErrOtelCompressionInvalid = fmt.Errorf("otel compression is invalid")
-	// ErrBuildInfoFail is a sentinel error that indicates that the build info extraction failed.
-	ErrBuildInfoFail = fmt.Errorf("build info extraction failed")
-)
-
 // SetupOTelSDK returns a function that can be called to shut down the OpenTelemetry SDK, and an error if any occurred during the setup.
 // The function returned by SetupOTelSDK should be called to shut down the OpenTelemetry SDK.
 // It sets up the OpenTelemetry SDK with the provided configuration.
@@ -68,8 +61,7 @@ func SetupOTelSDK(
 	}
 
 	// Set up propagator.
-	prop := newPropagator()
-	otel.SetTextMapPropagator(prop)
+	otel.SetTextMapPropagator(newPropagator())
 
 	// Set up resource in order to enrich telemetry data.
 	res, err := resource.New(
@@ -82,8 +74,8 @@ func SetupOTelSDK(
 		resource.WithContainer(),
 		resource.WithTelemetrySDK(),
 		resource.WithAttributes(
-			semconv.ServiceName(conf.Runtime.AppNamespace),
-			semconv.ServiceNamespace(conf.Runtime.AppName),
+			semconv.ServiceName(conf.Runtime.AppName),
+			semconv.ServiceNamespace(conf.Runtime.AppNamespace),
 			semconv.ServiceVersion(conf.Runtime.AppVersion),
 			semconv.DeploymentEnvironmentName(conf.Runtime.Environment),
 		),
