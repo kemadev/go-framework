@@ -65,10 +65,6 @@
 
 ### Project development
 
-- Deploy `dev` stacks of [the layers](./deploy), in ascending order of layer number (`XX-` prefix)
-- Make changes and enjoy hot reloading!
-- Once you are happy with your changes, create a PR!
-
 #### Prerequisites
 
 - [Docker](https://github.com/docker/cli) & [Docker Compose](https://github.com/docker/compose) to run applications in containers. You should configure your credentials store and credential helpers for Docker to work with your container registry
@@ -77,6 +73,7 @@
 #### Running the project
 
 - Common tasks such as running, testing, creating new IaC components, updating Cloud resources, ... are done by using [kemutil](https://github.com/kemadev/ci-cd/tree/main/tool/kemutil). You are encouraged to install and use it!
+- You can use `go work` even in development containers, just clone your `work` repositories in [mnt](./mnt), so they get mounted by Docker during build!
 
 #### Debugging
 

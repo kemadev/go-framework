@@ -36,6 +36,8 @@ services:
       KEMA_RUNTIME_APP_VERSION: dev
       KEMA_RUNTIME_APP_NAMESPACE: whatever
       KEMA_OBSERVABILITY_ENDPOINT_URL: http://kemadev-go-framework-jaeger-1:4317
+      # Set this to a positive value to export metrics to stdout
+      KEMA_OBSERVABILITY_METRICS_EXPORT_INTERVAL_SECONDS: -1
     ports:
       - 8080:8080
     restart: always
