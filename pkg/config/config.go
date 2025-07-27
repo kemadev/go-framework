@@ -21,39 +21,39 @@ type Global struct {
 
 type Server struct {
 	// Server bind address
-	ListenAddr string `split_words:"true" default:"[::]"`
+	ListenAddr string `default:"[::]"`
 	// Server bind port
-	ListenPort int `split_words:"true" default:"8080"`
+	ListenPort int `default:"8080"`
 	// HTTP read timeout
-	ReadTimeout time.Duration `split_words:"true" default:"15s"`
+	ReadTimeout time.Duration `default:"15s"`
 	// HTTP write timeout
-	WriteTimeout time.Duration `split_words:"true" default:"15s"`
+	WriteTimeout time.Duration `default:"15s"`
 	// HTTP idle timeout
-	IdleTimeout time.Duration `split_words:"true" default:"60s"`
+	IdleTimeout time.Duration `default:"60s"`
 	// Proxy header for forwarded entity
-	ProxyHeader string `split_words:"true" default:"X-Forwarded-For"`
+	ProxyHeader string `default:"X-Forwarded-For"`
 }
 
 type Runtime struct {
 	// Environment the app is running in
-	Environment string `split_words:"true" required:"true"`
+	Environment string `required:"true"`
 	// Application version
-	AppVersion string `split_words:"true" required:"true"`
+	AppVersion string `required:"true"`
 	// Application name
-	AppName string `split_words:"true" required:"true"`
+	AppName string `required:"true"`
 	// Application namespace
-	AppNamespace string `split_words:"true" required:"true"`
+	AppNamespace string `required:"true"`
 }
 
 type Observability struct {
 	// Address of OpenTelemetry endpoint where to send telemetry
-	EndpointURL string `split_words:"true" required:"true"`
+	EndpointURL string `required:"true"`
 	// Compression to use when sending telemetry
-	ExporterCompression string `split_words:"true"                 default:"gzip"`
+	ExporterCompression string `default:"gzip"`
 	// Percentage of request to sample for tracing
-	TracingSamplePercent int `split_words:"true"                 default:"100"`
+	TracingSamplePercent int `default:"100"`
 	// Interval between metrics exports, in seconds
-	MetricsExportIntervalSeconds int `split_words:"true"                 default:"15"`
+	MetricsExportIntervalSeconds int `default:"15"`
 }
 
 // Load loads configuration from environment variables
