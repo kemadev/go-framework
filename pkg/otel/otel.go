@@ -13,6 +13,7 @@ import (
 	klog "github.com/kemadev/go-framework/pkg/log"
 	"go.opentelemetry.io/contrib/processors/minsev"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
@@ -78,6 +79,10 @@ func SetupOTelSDK(
 			semconv.ServiceNamespace(conf.Runtime.AppNamespace),
 			semconv.ServiceVersion(conf.Runtime.AppVersion),
 			semconv.DeploymentEnvironmentName(conf.Runtime.Environment),
+			attribute.KeyValue{
+				Key:   "process.config",
+				Value: attribute.StringValue(fmt.Sprintf("%+v", conf)),
+			},
 		),
 	)
 	if err != nil {
