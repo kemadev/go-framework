@@ -154,7 +154,7 @@ func subTask(ctx context.Context, roll int) (*http.Response, error) {
 		ctx,
 		(&url.URL{
 			Scheme: "http",
-			Host:   "localhost:8080",
+			Host:   "[::1]:8080",
 			Path:   "/" + strconv.Itoa(roll),
 		}).String(),
 		"application/octet-stream",
