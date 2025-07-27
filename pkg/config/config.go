@@ -10,6 +10,10 @@ import (
 	"unicode"
 )
 
+// Global is the server configuration struct.
+// Values are populated from environment variables nammed after
+// their relative position in the struct with "kema" as prefix, using SCREAMING_SNAKE_CASE.
+// e.g. [Global.Observability.EndpointURL] is pupulated from environment variable `KEMA_OBSERVABILITY_ENDPOINT_URL`
 type Global struct {
 	// Server configuration
 	Server Server
