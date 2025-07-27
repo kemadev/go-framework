@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -45,29 +46,38 @@ func New() {
 
 	app.Use(otelfiber.Middleware(
 		otelfiber.WithCollectClientIP(true),
+		otelfiber.WithPort(conf.Server.ListenPort),
 	))
+
+	app.Get("/", func(c fiber.Ctx) error {
+		// Send a string response to the client
+		return c.SendString("Hello, World 👋!")
+	})
 
 	srvErr := make(chan error, 1)
 
 	go func() {
-		err := app.Listen(conf.Server.ListenAddr, fiber.ListenConfig{
-			EnablePrefork:         !conf.Runtime.IsLocalEnvironment(),
-			DisableStartupMessage: !conf.Runtime.IsLocalEnvironment(),
-			EnablePrintRoutes:     conf.Runtime.IsLocalEnvironment(),
-			ShutdownTimeout: func() time.Duration {
-				return max(
-					conf.Server.ReadTimeout,
-					conf.Server.WriteTimeout,
-					conf.Server.IdleTimeout,
-				)
-			}(),
-			ListenerNetwork: func() string {
-				if strings.HasPrefix(conf.Server.ListenAddr, "[") {
-					return "tcp6"
-				}
-				return "tcp4"
-			}(),
-		})
+		err := app.Listen(
+			conf.Server.ListenAddr+":"+strconv.Itoa(conf.Server.ListenPort),
+			fiber.ListenConfig{
+				EnablePrefork:         !conf.Runtime.IsLocalEnvironment(),
+				DisableStartupMessage: !conf.Runtime.IsLocalEnvironment(),
+				EnablePrintRoutes:     conf.Runtime.IsLocalEnvironment(),
+				ShutdownTimeout: func() time.Duration {
+					return max(
+						conf.Server.ReadTimeout,
+						conf.Server.WriteTimeout,
+						conf.Server.IdleTimeout,
+					)
+				}(),
+				ListenerNetwork: func() string {
+					if strings.HasPrefix(conf.Server.ListenAddr, "[") {
+						return "tcp6"
+					}
+					return "tcp4"
+				}(),
+			},
+		)
 		if err != nil {
 			srvErr <- err
 		}

@@ -18,7 +18,9 @@ type Global struct {
 
 type Server struct {
 	// Server bind address
-	ListenAddr string `split_words:"true" default:"[::]:8080"`
+	ListenAddr string `split_words:"true" default:"[::]"`
+	// Server bind port
+	ListenPort int `split_words:"true" default:"8080"`
 	// HTTP read timeout
 	ReadTimeout time.Duration `split_words:"true" default:"15s"`
 	// HTTP write timeout
