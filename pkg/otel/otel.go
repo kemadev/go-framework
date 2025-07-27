@@ -85,7 +85,7 @@ func SetupOTelSDK(
 				Value: attribute.StringValue(func() string {
 					d, err := json.Marshal(conf)
 					if err != nil {
-						return fmt.Sprintf("%v", conf)
+						return fmt.Sprintf("%+v", conf)
 					}
 					return string(d)
 				}()),
