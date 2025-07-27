@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 )
 
 type Global struct {
@@ -213,10 +214,16 @@ func camelToSnake(s string) string {
 	var result strings.Builder
 
 	for i, r := range s {
-		if i > 0 && r >= 'A' && r <= 'Z' {
-			result.WriteRune('_')
+		if i > 0 && unicode.IsUpper(r) {
+			// Check if previous character was lowercase or if next character is lowercase
+			prevChar := rune(s[i-1])
+			nextIsLower := i+1 < len(s) && unicode.IsLower(rune(s[i+1]))
+
+			if unicode.IsLower(prevChar) || nextIsLower {
+				result.WriteRune('_')
+			}
 		}
-		result.WriteRune(r)
+		result.WriteRune(unicode.ToLower(r))
 	}
 
 	return result.String()
