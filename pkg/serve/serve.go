@@ -28,7 +28,7 @@ import (
 func Run(
 	routes route.RoutesToRegister,
 	dependencyRoutes route.RoutesWithDependencies,
-	conf *config.Config,
+	conf *config.Global,
 ) error {
 	// Handle SIGINT gracefully.
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
@@ -48,7 +48,7 @@ func Run(
 	logger := otelslog.NewLogger(
 		"default",
 		otelslog.WithSource(true),
-		otelslog.WithVersion(conf.AppVersion),
+		otelslog.WithVersion(conf.Runtime.AppVersion),
 	)
 	slog.SetDefault(logger)
 
@@ -60,11 +60,11 @@ func Run(
 	// Start HTTP server.
 	srv := &http.Server{
 		// Use any host, let Kubernetes handle the routing.
-		Addr:         ":" + strconv.Itoa(conf.HTTPServePort),
+		Addr:         ":" + strconv.Itoa(conf.Server.ListenPort),
 		BaseContext:  func(_ net.Listener) context.Context { return ctx },
-		ReadTimeout:  time.Duration(conf.HTTPReadTimeout) * time.Second,
-		WriteTimeout: time.Duration(conf.HTTPWriteTimeout) * time.Second,
-		IdleTimeout:  time.Duration(conf.HTTPIdleTimeout) * time.Second,
+		ReadTimeout:  time.Duration(conf.Server.ReadTimeout) * time.Second,
+		WriteTimeout: time.Duration(conf.Server.WriteTimeout) * time.Second,
+		IdleTimeout:  time.Duration(conf.Server.IdleTimeout) * time.Second,
 		ErrorLog:     slog.NewLogLogger(slog.Default().Handler(), slog.LevelError),
 		Handler:      newHTTPHandler(server, routes, dependencyRoutes),
 	}

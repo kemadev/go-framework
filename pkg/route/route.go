@@ -18,18 +18,18 @@ type Route struct {
 }
 
 type Server struct {
-	config *config.Config
+	config *config.Global
 }
 
 // NewServer creates a new server with dependencies
-func NewServer(cfg *config.Config) *Server {
+func NewServer(cfg *config.Global) *Server {
 	return &Server{
 		config: cfg,
 	}
 }
 
 // GetConfig returns the server's config
-func (s *Server) GetConfig() *config.Config {
+func (s *Server) GetConfig() *config.Global {
 	return s.config
 }
 

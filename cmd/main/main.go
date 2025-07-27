@@ -13,23 +13,24 @@ import (
 	"github.com/kemadev/go-framework/pkg/log"
 	"github.com/kemadev/go-framework/pkg/route"
 	"github.com/kemadev/go-framework/pkg/serve"
+	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 )
 
 func main() {
-	// `http.Run()` only returns on init / shutdown failures, where otel logger isn't available
-	fallbackLogger := log.CreateFallbackLogger()
-
 	// Get app config
-	conf, err := config.NewConfig()
+	conf, err := config.Load()
 	if err != nil {
-		fallbackLogger.Error(
+		log.CreateFallbackLogger(config.Runtime{}).Error(
 			"run",
 			slog.String("Body", "config failure"),
 			// TODO use semconv value once released, see https://opentelemetry.io/docs/specs/semconv/attributes-registry/error/#error-message
-			slog.String("error.message", err.Error()),
+			slog.String(string(semconv.ErrorMessageKey), err.Error()),
 		)
 		os.Exit(1)
 	}
+
+	// `http.Run()` only returns on init / shutdown failures, where otel logger isn't available
+	fallbackLogger := log.CreateFallbackLogger(conf.Runtime)
 
 	// Create regular routes
 	regularRoutes := route.RoutesToRegister{

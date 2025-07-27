@@ -13,7 +13,6 @@ import (
 	klog "github.com/kemadev/go-framework/pkg/log"
 	"go.opentelemetry.io/contrib/processors/minsev"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
@@ -29,13 +28,6 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 )
 
-var (
-	// ErrOtelExporterCompressionInvalid is a sentinel error that indicates that the OpenTelemetry exporter compression is invalid.
-	ErrOtelCompressionInvalid = fmt.Errorf("otel compression is invalid")
-	// ErrBuildInfoFail is a sentinel error that indicates that the build info extraction failed.
-	ErrBuildInfoFail = fmt.Errorf("build info extraction failed")
-)
-
 // SetupOTelSDK returns a function that can be called to shut down the OpenTelemetry SDK, and an error if any occurred during the setup.
 // The function returned by SetupOTelSDK should be called to shut down the OpenTelemetry SDK.
 // It sets up the OpenTelemetry SDK with the provided configuration.
@@ -43,7 +35,7 @@ var (
 // clean up the OpenTelemetry SDK.
 func SetupOTelSDK(
 	ctx context.Context,
-	conf config.Config,
+	conf config.Global,
 ) (func(context.Context) error, error) {
 	var err error
 
@@ -69,8 +61,7 @@ func SetupOTelSDK(
 	}
 
 	// Set up propagator.
-	prop := newPropagator()
-	otel.SetTextMapPropagator(prop)
+	otel.SetTextMapPropagator(newPropagator())
 
 	// Set up resource in order to enrich telemetry data.
 	res, err := resource.New(
@@ -83,10 +74,10 @@ func SetupOTelSDK(
 		resource.WithContainer(),
 		resource.WithTelemetrySDK(),
 		resource.WithAttributes(
-			attribute.String(string(semconv.ServiceNamespaceKey), conf.AppNamespace),
-			attribute.String(string(semconv.ServiceNameKey), conf.AppName),
-			attribute.String(string(semconv.ServiceVersionKey), conf.AppVersion),
-			attribute.String(string(semconv.DeploymentEnvironmentNameKey), conf.RuntimeEnv),
+			semconv.ServiceName(conf.Runtime.AppName),
+			semconv.ServiceNamespace(conf.Runtime.AppNamespace),
+			semconv.ServiceVersion(conf.Runtime.AppVersion),
+			semconv.DeploymentEnvironmentName(conf.Runtime.Environment),
 		),
 	)
 	if err != nil {
@@ -141,7 +132,7 @@ func newPropagator() propagation.TextMapPropagator {
 func newLoggerProvider(
 	ctx context.Context,
 	res *resource.Resource,
-	conf config.Config,
+	conf config.Global,
 ) (*log.LoggerProvider, error) {
 	stdoutExporter, err := klog.NewExporter()
 	if err != nil {
@@ -154,8 +145,8 @@ func newLoggerProvider(
 
 	grpcExporter, err := otlploggrpc.New(
 		ctx,
-		otlploggrpc.WithCompressor(conf.OtelExporterCompression),
-		otlploggrpc.WithEndpointURL(conf.OtelEndpointURL.String()),
+		otlploggrpc.WithCompressor(conf.Observability.ExporterCompression),
+		otlploggrpc.WithEndpointURL(conf.Observability.EndpointURL),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("otel logger init: %w", err)
@@ -167,14 +158,15 @@ func newLoggerProvider(
 
 	// Log Info by default, Debug for dev
 	logLevel := minsev.SeverityInfo
-	if conf.RuntimeEnv == config.EnvDev {
+	if conf.Runtime.IsLocalEnvironment() {
 		logLevel = minsev.SeverityDebug
 	}
 
 	// Wrap the processor so that it filters by severity level
 	stdoutProcessor := minsev.NewLogProcessor(stdoutSimpleProcessor, logLevel)
 
-	if conf.RuntimeEnv == config.EnvDev {
+	// Only output to stdout during local development
+	if conf.Runtime.IsLocalEnvironment() {
 		provider := log.NewLoggerProvider(
 			log.WithResource(res),
 			log.WithProcessor(stdoutProcessor),
@@ -184,6 +176,7 @@ func newLoggerProvider(
 
 	grpcProcessor := minsev.NewLogProcessor(grpcBatchProcessor, logLevel)
 
+	// Outut as OLTP as well as stdout
 	provider := log.NewLoggerProvider(
 		log.WithResource(res),
 		log.WithProcessor(stdoutProcessor),
@@ -195,16 +188,17 @@ func newLoggerProvider(
 
 // newMeterProvider returns a new OpenTelemetry meter provider, and an error if any occurred during the setup.
 // The meter provider is configured to batch export metrics to the OpenTelemetry collector, or synchrounously to stdout
-// if conf.RuntimeEnv is set to [github.com/kemadev/go-framework/pkg/config.EnvDev].
+// if conf.Runtime.Environment is set to [github.com/kemadev/go-framework/pkg/config.EnvDev].
 func newMeterProvider(
 	ctx context.Context,
 	res *resource.Resource,
-	conf config.Config,
+	conf config.Global,
 ) (*metric.MeterProvider, error) {
 	var exporter metric.Exporter
 
-	if conf.RuntimeEnv == config.EnvDev {
-		if conf.MetricsExportInterval <= 0 {
+	if conf.Runtime.IsLocalEnvironment() {
+		// Do not export metrics when export interval is 0 or below
+		if conf.Observability.MetricsExportIntervalSeconds <= 0 {
 			prov := nometric.NewMeterProvider()
 			return &metric.MeterProvider{
 				MeterProvider: prov,
@@ -221,8 +215,8 @@ func newMeterProvider(
 	} else {
 		exp, err := otlpmetricgrpc.New(
 			ctx,
-			otlpmetricgrpc.WithCompressor(conf.OtelExporterCompression),
-			otlpmetricgrpc.WithEndpointURL(conf.OtelEndpointURL.String()),
+			otlpmetricgrpc.WithCompressor(conf.Observability.ExporterCompression),
+			otlpmetricgrpc.WithEndpointURL(conf.Observability.EndpointURL),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("otel metric init: %w", err)
@@ -232,13 +226,15 @@ func newMeterProvider(
 
 	proc := metric.NewPeriodicReader(
 		exporter,
-		metric.WithInterval(time.Duration(conf.MetricsExportInterval)*time.Second),
+		metric.WithInterval(
+			time.Duration(conf.Observability.MetricsExportIntervalSeconds)*time.Second,
+		),
 	)
 
 	meterProvider := metric.NewMeterProvider(
 		metric.WithReader(proc),
 		metric.WithResource(res),
-		metric.WithExemplarFilter(exemplar.AlwaysOffFilter),
+		metric.WithExemplarFilter(exemplar.AlwaysOnFilter),
 	)
 
 	return meterProvider, nil
@@ -249,12 +245,12 @@ func newMeterProvider(
 func newTracerProvider(
 	ctx context.Context,
 	res *resource.Resource,
-	conf config.Config,
+	conf config.Global,
 ) (*trace.TracerProvider, error) {
 	exp, err := otlptracegrpc.New(
 		ctx,
-		otlptracegrpc.WithCompressor(conf.OtelExporterCompression),
-		otlptracegrpc.WithEndpointURL(conf.OtelEndpointURL.String()),
+		otlptracegrpc.WithCompressor(conf.Observability.ExporterCompression),
+		otlptracegrpc.WithEndpointURL(conf.Observability.EndpointURL),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("otel tracer init: %w", err)
@@ -262,7 +258,7 @@ func newTracerProvider(
 
 	batcher := trace.WithBatcher(exp)
 
-	if conf.RuntimeEnv == config.EnvDev {
+	if conf.Runtime.IsLocalEnvironment() {
 		batcher = trace.WithSyncer(exp)
 	}
 
@@ -270,7 +266,7 @@ func newTracerProvider(
 		batcher,
 		trace.WithSampler(
 			trace.ParentBased(
-				trace.TraceIDRatioBased(conf.TracesSampleRatio),
+				trace.TraceIDRatioBased(float64(conf.Observability.TracingSamplePercent/100)),
 			),
 		),
 		trace.WithResource(res),

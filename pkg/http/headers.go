@@ -3,8 +3,6 @@ package http
 import (
 	"net/http"
 	"strings"
-
-	"github.com/kemadev/go-framework/pkg/config"
 )
 
 const (
@@ -443,7 +441,6 @@ func forgeCSRFToken() string {
 }
 
 func SetSecurityHeaders(
-	appConfig config.Config,
 	clientInfo ClientInfo,
 	cspConfig CSPConfig,
 ) string {

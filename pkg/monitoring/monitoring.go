@@ -117,7 +117,7 @@ func Routes() route.RoutesWithDependencies {
 // Liveness handles liveness checks
 func Liveness(server *route.Server) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		cfg := server.GetConfig()
+		conf := server.GetConfig()
 
 		kclient := khttp.ClientInfo{
 			Ctx:    context.Background(),
@@ -134,8 +134,8 @@ func Liveness(server *route.Server) http.HandlerFunc {
 				Timestamp:   time.Now().UTC(),
 				Started:     true,
 				Status:      status.String(),
-				Version:     cfg.AppVersion,
-				Environment: cfg.RuntimeEnv,
+				Version:     conf.Runtime.AppVersion,
+				Environment: conf.Runtime.Environment,
 				Checks:      checks.Pretty(),
 			},
 		)
