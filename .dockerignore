@@ -9,9 +9,12 @@
 !go.mod
 !go.sum
 !internal
+!mnt
 !pkg
 !tool
 !web
 
 *.md
 !*.go
+!go.work
+!go.work.sum
