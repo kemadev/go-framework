@@ -49,7 +49,7 @@ func New() {
 		otelfiber.WithPort(conf.Server.ListenPort),
 	))
 
-	app.Get("/", func(c fiber.Ctx) error {
+	app.Get("/foo/:user", func(c fiber.Ctx) error {
 		// Send a string response to the client
 		return c.SendString("Hello, World 👋!")
 	})
