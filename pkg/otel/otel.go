@@ -5,6 +5,7 @@ package otel
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -80,8 +81,14 @@ func SetupOTelSDK(
 			semconv.ServiceVersion(conf.Runtime.AppVersion),
 			semconv.DeploymentEnvironmentName(conf.Runtime.Environment),
 			attribute.KeyValue{
-				Key:   "process.config",
-				Value: attribute.StringValue(fmt.Sprintf("%+v", conf)),
+				Key: "process.config",
+				Value: attribute.StringValue(func() string {
+					d, err := json.Marshal(conf)
+					if err != nil {
+						return fmt.Sprintf("%v", conf)
+					}
+					return string(d)
+				}()),
 			},
 		),
 	)
