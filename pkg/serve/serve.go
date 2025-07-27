@@ -104,16 +104,27 @@ func newHTTPHandler(
 ) http.Handler {
 	mux := http.NewServeMux()
 
+	// handleFunc is a replacement for [net/http.mux.HandleFunc] which enriches the
+	// handler's HTTP instrumentation with the pattern of the [net/http.route].
+	handleFunc := func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request)) {
+		// Configure the [net/http.route] with automatic instrumentation.
+		handler := otelhttp.NewHandler(http.HandlerFunc(handlerFunc), pattern)
+		mux.Handle(pattern, handler)
+	}
+
 	// Register regular handlers (without dependency injection).
 	for _, route := range routes {
-		mux.HandleFunc(route.Pattern, route.HandlerFunc)
+		handleFunc(route.Pattern, route.HandlerFunc)
 	}
 
 	// Register handlers with dependency injection.
 	for _, route := range dependencyRoutes {
 		handlerWithDeps := route.HandlerFunc(server)
-		mux.HandleFunc(route.Pattern, handlerWithDeps)
+		handleFunc(route.Pattern, handlerWithDeps)
 	}
 
-	return otelhttp.NewHandler(mux, "/")
+	// Return 404 by default, still instrument the route
+	mux.Handle("/", otelhttp.NewHandler(http.NotFoundHandler(), "/"))
+
+	return mux
 }

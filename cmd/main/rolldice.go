@@ -32,9 +32,9 @@ const name = "github.com/kemadev/go-framework/cmd/main"
 // Telemetry components should be package-scoped.
 var (
 	// Tracing instrument.
-	tracer = otel.Tracer(name)
+	tracer = otel.GetTracerProvider().Tracer(name)
 	// Metring instrument.
-	meter = otel.Meter(name)
+	meter = otel.GetMeterProvider().Meter(name)
 	// Logging instrument.
 	logger = otelslog.NewLogger(
 		"default",
