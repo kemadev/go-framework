@@ -63,6 +63,7 @@ func Load() (*Global, error) {
 	if err != nil {
 		return nil, fmt.Errorf("can't process config: %w", err)
 	}
+
 	return &cfg, nil
 }
 
@@ -188,17 +189,18 @@ func setFieldValue(field reflect.Value, value string, envVarName string) error {
 
 // buildEnvVarName builds the environment variable name from prefix and field path
 func buildEnvVarName(prefix, parentPath, fieldName string) string {
-	parts := []string{strings.ToUpper(prefix)}
+	parts := []string{prefix}
 
 	if parentPath != "" {
-		parts = append(parts, strings.ToUpper(parentPath))
+		parts = append(parts, parentPath)
 	}
 
 	// Convert camelCase to snake_case
-	snakeCase := camelToSnake(fieldName)
-	parts = append(parts, strings.ToUpper(snakeCase))
+	snakeCase := CamelToScreamingSnake(fieldName)
+	parts = append(parts, snakeCase)
 
-	return strings.Join(parts, "_")
+	// Output as SCREAMING_SNAKE
+	return strings.ToUpper(strings.Join(parts, "_"))
 }
 
 // buildPath builds the path for nested structs
@@ -206,11 +208,12 @@ func buildPath(parentPath, fieldName string) string {
 	if parentPath == "" {
 		return fieldName
 	}
+
 	return parentPath + "_" + fieldName
 }
 
-// CamelToSnake converts camelCase to snake_case
-func CamelToSnake(s string) string {
+// CamelToScreamingSnake converts camelCase to SCREAMING_SNAKE_CASE
+func CamelToScreamingSnake(s string) string {
 	var result strings.Builder
 
 	for i, r := range s {
@@ -226,5 +229,5 @@ func CamelToSnake(s string) string {
 		result.WriteRune(unicode.ToLower(r))
 	}
 
-	return result.String()
+	return strings.ToUpper(result.String())
 }
