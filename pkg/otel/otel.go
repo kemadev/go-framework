@@ -238,7 +238,7 @@ func newMeterProvider(
 	meterProvider := metric.NewMeterProvider(
 		metric.WithReader(proc),
 		metric.WithResource(res),
-		metric.WithExemplarFilter(exemplar.TraceBasedFilter),
+		metric.WithExemplarFilter(exemplar.AlwaysOffFilter),
 	)
 
 	return meterProvider, nil
