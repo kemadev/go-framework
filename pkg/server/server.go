@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gofiber/contrib/otelfiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/compress"
 	"github.com/gofiber/fiber/v3"
 	"github.com/kemadev/go-framework/pkg/config"
 	"github.com/kemadev/go-framework/pkg/log"
@@ -49,9 +50,11 @@ func New() {
 		otelfiber.WithPort(conf.Server.ListenPort),
 	))
 
+	app.Use(compress.New())
+
 	app.Get("/foo/:user", func(c fiber.Ctx) error {
 		// Send a string response to the client
-		return c.SendString("Hello, World 👋!")
+		return c.SendString("Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!Hello, World 👋!")
 	})
 
 	srvErr := make(chan error, 1)
