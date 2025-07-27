@@ -209,8 +209,8 @@ func buildPath(parentPath, fieldName string) string {
 	return parentPath + "_" + fieldName
 }
 
-// camelToSnake converts camelCase to snake_case
-func camelToSnake(s string) string {
+// CamelToSnake converts camelCase to snake_case
+func CamelToSnake(s string) string {
 	var result strings.Builder
 
 	for i, r := range s {
