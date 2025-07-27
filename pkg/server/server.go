@@ -43,7 +43,9 @@ func New() {
 		return
 	}
 
-	app.Use(otelfiber.Middleware())
+	app.Use(otelfiber.Middleware(
+		otelfiber.WithCollectClientIP(true),
+	))
 
 	srvErr := make(chan error, 1)
 
