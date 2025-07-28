@@ -85,7 +85,7 @@ func (e *Exporter) Export(ctx context.Context, records []sdklog.Record) error {
 		// Honor context cancellation.
 		err := ctx.Err()
 		if err != nil {
-			return fmt.Errorf("context error: %w", err)
+			return fmt.Errorf("error present in context: %w", err)
 		}
 
 		var attrs []string
@@ -127,7 +127,7 @@ func (e *Exporter) Export(ctx context.Context, records []sdklog.Record) error {
 
 		attrs, err = appendSourceAttrs(attrs, filepath, lineno, function)
 		if err != nil {
-			return fmt.Errorf("failed to append source attributes: %w", err)
+			return fmt.Errorf("failure appending source attributes: %w", err)
 		}
 
 		fmt.Printf(
@@ -145,7 +145,7 @@ func (e *Exporter) Export(ctx context.Context, records []sdklog.Record) error {
 func NewExporter(opts ...stdoutlog.Option) (*Exporter, error) {
 	exp, err := stdoutlog.New(opts...)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create stdout exporter: %w", err)
+		return nil, fmt.Errorf("failure creating stdout exporter: %w", err)
 	}
 
 	return &Exporter{Exporter: exp}, nil

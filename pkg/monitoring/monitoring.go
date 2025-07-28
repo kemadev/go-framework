@@ -2,8 +2,6 @@ package monitoring
 
 import (
 	"net/http"
-
-	"github.com/kemadev/go-framework/pkg/route"
 )
 
 // Status represents the health status of a service or component
@@ -75,11 +73,3 @@ func (s Status) IsReady() bool {
 }
 
 type CheckResults map[string]Status
-
-// Routes returns monitoring routes with dependency injection
-func Routes() route.RoutesWithDependencies {
-	return route.RoutesWithDependencies{
-		route.CreateRoute(HTTPLivenessCheckPath, LivenessHandler),
-		route.CreateRoute(HTTPReadinessCheckPath, ReadinessHandler),
-	}
-}

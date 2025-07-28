@@ -106,12 +106,12 @@ func processStruct(prefix string, v reflect.Value, parentPath string) error {
 		case reflect.Struct:
 			err := processStruct(prefix, field, buildPath(parentPath, fieldName))
 			if err != nil {
-				return fmt.Errorf("error processing struct field %s: %w", fieldName, err)
+				return fmt.Errorf("failure processing struct field %s: %w", fieldName, err)
 			}
 		default:
 			err := processField(field, fieldType, envVarName)
 			if err != nil {
-				return fmt.Errorf("error processing field %s: %w", fieldType.Name, err)
+				return fmt.Errorf("failure processing field %s: %w", fieldType.Name, err)
 			}
 		}
 	}

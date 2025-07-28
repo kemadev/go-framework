@@ -7,33 +7,25 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/kemadev/go-framework/pkg/config"
 	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 )
 
-// CreateFallbackLogger returns a fallback logger that is used when the OpenTelemetry logger is not available.
+// createFallbackLogger returns a fallback logger that is used when the OpenTelemetry logger is not available.
 // It uses the slog package to create a JSON logger that writes to stdout.
-func CreateFallbackLogger(conf config.Runtime) *slog.Logger {
-	var handler slog.Handler
-	if conf.IsLocalEnvironment() {
-		handler = slog.NewTextHandler(os.Stdout,
-			&slog.HandlerOptions{
-				Level:     slog.LevelDebug,
-				AddSource: true,
-			},
-		)
-	} else {
-		handler = slog.NewJSONHandler(
+func createFallbackLogger() *slog.Logger {
+	return slog.New(
+		slog.NewJSONHandler(
 			os.Stdout,
 			&slog.HandlerOptions{
 				Level:     slog.LevelInfo,
 				AddSource: true,
 			},
-		)
-	}
-	return slog.New(handler).With(
-		slog.String(string(semconv.ServiceNameKey), conf.AppName),
-		slog.String(string(semconv.ServiceNamespaceKey), conf.AppNamespace),
-		slog.String(string(semconv.ServiceVersionKey), conf.AppVersion),
+		),
 	)
+}
+
+// FallbackError logs an error message using a fallback logger. It should only be used when no instrumented logger
+// is available, that is, when an unrecoverable error occurs.
+func FallbackError(msg string, err error) {
+	createFallbackLogger().Error("an unrecoverable error occured", slog.String("Body", msg), slog.String(string(semconv.ErrorMessageKey), err.Error()))
 }

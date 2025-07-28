@@ -7,7 +7,6 @@ import (
 	"time"
 
 	khttp "github.com/kemadev/go-framework/pkg/http"
-	"github.com/kemadev/go-framework/pkg/route"
 )
 
 type RuntimeMetrics struct {
@@ -34,7 +33,7 @@ type ReadinessResponse struct {
 }
 
 // ReadinessHandler handles readiness checks
-func ReadinessHandler(server *route.Server) http.HandlerFunc {
+func ReadinessHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		kclient := khttp.ClientInfo{
 			Ctx:    context.Background(),

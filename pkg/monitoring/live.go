@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/kemadev/go-framework/pkg/config"
 	khttp "github.com/kemadev/go-framework/pkg/http"
-	"github.com/kemadev/go-framework/pkg/route"
 )
 
 type LivenessResponse struct {
@@ -19,10 +19,8 @@ type LivenessResponse struct {
 }
 
 // LivenessHandler handles liveness checks
-func LivenessHandler(server *route.Server) http.HandlerFunc {
+func LivenessHandler(conf config.Runtime) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		conf := server.GetConfig()
-
 		kclient := khttp.ClientInfo{
 			Ctx:    context.Background(),
 			Writer: w,
@@ -38,8 +36,8 @@ func LivenessHandler(server *route.Server) http.HandlerFunc {
 				Timestamp:   time.Now().UTC(),
 				Started:     true,
 				Status:      status.String(),
-				Version:     conf.Runtime.AppVersion,
-				Environment: conf.Runtime.Environment,
+				Version:     conf.AppVersion,
+				Environment: conf.Environment,
 				Checks:      checks,
 			},
 		)
