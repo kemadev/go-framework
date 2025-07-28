@@ -63,6 +63,7 @@ func main() {
 		shutdownErr := otelShutdown(shutdownCtx)
 		if shutdownErr != nil {
 			log.FallbackError(fmt.Errorf("failure shutting down OpenTelemetry: %w", shutdownErr))
+			// Do not override previous error code
 			if exitCode == 0 {
 				exitCode = 1
 			}
