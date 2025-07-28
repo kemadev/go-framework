@@ -15,7 +15,12 @@ import (
 func main() {
 	r := router.New()
 
-	r.Handle("GET /foo", http.NotFoundHandler())
+	// Default handler when nothing matches
+	r.HandleOTEL("/", http.NotFoundHandler())
+
+	r.HandleOTEL("GET /foo", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Hello, world!"))
+	}))
 
 	server.Run(r)
 }

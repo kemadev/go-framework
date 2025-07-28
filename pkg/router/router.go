@@ -3,6 +3,8 @@ package router
 import (
 	"net/http"
 	"slices"
+
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 type chain []func(http.Handler) http.Handler
@@ -62,6 +64,14 @@ func (r *Router) Handle(pattern string, h http.Handler) {
 		h = mw(h)
 	}
 	r.ServeMux.Handle(pattern, h)
+}
+
+// HandleFunc returns a func satisfying [net/http.Handle], wrapping the handler with OpenTelemetry instrumentation
+func (r *Router) HandleOTEL(pattern string, h http.Handler) {
+	for _, mw := range slices.Backward(r.routeChain) {
+		h = mw(h)
+	}
+	r.ServeMux.Handle(pattern, otelhttp.NewHandler(h, pattern))
 }
 
 // HandleFunc returns a func satisfying [net/http.Handler.ServeHTTP]

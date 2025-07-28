@@ -20,7 +20,7 @@ import (
 )
 
 // Run starts an HTTP server with [mux] as its handler and manages its lifecycle. It takes care of configuration loading and
-// OpenTelemetry instrumentation for the server. However, sub-spans and stuff still needs instrumentation within the handlers.
+// OpenTelemetry SDK initialization for the server. However, HTTP routes instrumentation is not handled.
 func Run(handler http.Handler) {
 	// Intercept signals
 	sigCtx, stopSig := signal.NotifyContext(
