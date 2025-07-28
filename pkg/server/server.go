@@ -17,6 +17,7 @@ import (
 	"github.com/kemadev/go-framework/pkg/log"
 	"github.com/kemadev/go-framework/pkg/otel"
 	"go.opentelemetry.io/contrib/bridges/otelslog"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 // Run starts an HTTP server with [mux] as its handler and manages its lifecycle. It takes care of configuration loading and
@@ -87,7 +88,7 @@ func Run(handler http.Handler) {
 				return slog.LevelError
 			}(),
 		),
-		Handler: handler,
+		Handler: otelhttp.NewHandler(handler, "server"),
 	}
 
 	srvErr := make(chan error, 1)

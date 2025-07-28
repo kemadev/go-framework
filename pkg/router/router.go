@@ -42,6 +42,18 @@ func (r *Router) Use(mw ...func(http.Handler) http.Handler) {
 	}
 }
 
+// UseInstrumented appends [mw] to the routers chain, wrapping the handler with OpenTelemetry instrumentation
+func (r *Router) UseInstrumented(name string, mw func(http.Handler) http.Handler) {
+	instrumentedMw := func(next http.Handler) http.Handler {
+		return otelhttp.NewHandler(mw(next), name)
+	}
+	if r.isSubRouter {
+		r.routeChain = append(r.routeChain, instrumentedMw)
+	} else {
+		r.globalChain = append(r.globalChain, instrumentedMw)
+	}
+}
+
 // Group add all routers down the chain to a group. All members of a group inherits from
 // their parent's routers chain.
 func (r *Router) Group(fn func(r *Router)) {
@@ -60,7 +72,7 @@ func (r *Router) HandleFunc(pattern string, h http.HandlerFunc) {
 
 // HandleFunc returns a func satisfying [net/http.HandleFunc], wrapping the handler with OpenTelemetry instrumentation
 func (r *Router) HandleFuncOTEL(pattern string, h http.HandlerFunc) {
-	r.HandleOTEL(pattern, h)
+	r.HandleInstrumented(pattern, h)
 }
 
 // HandleFunc returns a func satisfying [net/http.Handle]
@@ -72,7 +84,7 @@ func (r *Router) Handle(pattern string, h http.Handler) {
 }
 
 // HandleFunc returns a func satisfying [net/http.Handle], wrapping the handler with OpenTelemetry instrumentation
-func (r *Router) HandleOTEL(pattern string, h http.Handler) {
+func (r *Router) HandleInstrumented(pattern string, h http.Handler) {
 	for _, mw := range slices.Backward(r.routeChain) {
 		h = mw(h)
 	}
