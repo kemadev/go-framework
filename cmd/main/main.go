@@ -8,6 +8,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net"
 	"net/http"
@@ -36,15 +37,11 @@ func main() {
 
 	// Get app config
 	conf, err := config.Load()
-	if err != nil {
-		log.FallbackError("error loading config", err)
-		os.Exit(1)
-	}
 
 	// Set up OpenTelemetry.
 	otelShutdown, err := otel.SetupOTelSDK(ctx, *conf)
 	if err != nil {
-		log.FallbackError("error setting up OpenTelemetry", err)
+		log.FallbackError(fmt.Errorf("failure setting up OpenTelemetry SDK: %w", err))
 		os.Exit(1)
 	}
 	// Handle shutdown properly so nothing leaks.
@@ -57,12 +54,17 @@ func main() {
 		// Use any host, let Kubernetes handle the routing.
 		Addr:         ":" + strconv.Itoa(conf.Server.BindPort),
 		BaseContext:  func(_ net.Listener) context.Context { return ctx },
-		ReadTimeout:  time.Duration(conf.Server.ReadTimeout) * time.Second,
-		WriteTimeout: time.Duration(conf.Server.WriteTimeout) * time.Second,
-		IdleTimeout:  time.Duration(conf.Server.IdleTimeout) * time.Second,
+		ReadTimeout:  conf.Server.ReadTimeout * time.Second,
+		WriteTimeout: conf.Server.WriteTimeout * time.Second,
+		IdleTimeout:  conf.Server.IdleTimeout * time.Second,
 		ErrorLog: slog.NewLogLogger(
-			otelslog.NewLogger("httpserver").Handler(),
-			slog.LevelError,
+			otelslog.NewLogger("net.http").Handler(),
+			func() slog.Level {
+				if conf.Runtime.IsLocalEnvironment() {
+					return slog.LevelDebug
+				}
+				return slog.LevelError
+			}(),
 		),
 		Handler: nil,
 	}
@@ -76,7 +78,7 @@ func main() {
 	// Wait for interruption
 	select {
 	case err = <-srvErr:
-		log.FallbackError("HTTP server error", err)
+		log.FallbackError(fmt.Errorf("failure running HTTP server: %w", err))
 		os.Exit(1)
 	case <-ctx.Done():
 		// Stop receiving signal notifications as soon as possible.
@@ -85,7 +87,7 @@ func main() {
 
 	err = srv.Shutdown(context.Background())
 	if err != nil {
-		log.FallbackError("HTTP server shutdown error", err)
+		log.FallbackError(fmt.Errorf("failure shutting down HTTP server: %w", err))
 		os.Exit(1)
 	}
 }

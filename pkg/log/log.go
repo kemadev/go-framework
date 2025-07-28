@@ -24,8 +24,9 @@ func createFallbackLogger() *slog.Logger {
 	)
 }
 
-// FallbackError logs an error message using a fallback logger. It should only be used when no instrumented logger
-// is available, that is, when an unrecoverable error occurs.
-func FallbackError(msg string, err error) {
-	createFallbackLogger().Error("an unrecoverable error occured", slog.String("Body", msg), slog.String(string(semconv.ErrorMessageKey), err.Error()))
+// FallbackError logs an error message using a fallback logger. This function should only be used when no instrumented logger
+// is available, that is, when an unrecoverable error occurs. It tries to mimic OpenTelemetry structure a bit, however
+// it is nowhere close to follow its conventions. Its sole purpose is to be a last resort logger.
+func FallbackError(err error) {
+	createFallbackLogger().Error("an unrecoverable error occured", slog.String("Body", "an unrecoverable error occured"), slog.String(string(semconv.ErrorMessageKey), err.Error()))
 }
