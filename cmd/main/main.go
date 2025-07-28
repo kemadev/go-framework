@@ -26,14 +26,14 @@ import (
 
 func main() {
 	// Intercept signals
-	ctx, stop := signal.NotifyContext(
+	ctx, stopSig := signal.NotifyContext(
 		context.Background(),
 		os.Interrupt,
 		syscall.SIGHUP,
 		syscall.SIGINT,
 		syscall.SIGTERM,
 	)
-	defer stop()
+	defer stopSig()
 
 	// Get app config
 	conf, err := config.Load()
@@ -82,7 +82,7 @@ func main() {
 		os.Exit(1)
 	case <-ctx.Done():
 		// Stop receiving signal notifications as soon as possible.
-		stop()
+		stopSig()
 	}
 
 	err = srv.Shutdown(context.Background())
