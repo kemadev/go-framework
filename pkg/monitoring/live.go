@@ -1,0 +1,60 @@
+package monitoring
+
+import (
+	"context"
+	"net/http"
+	"time"
+
+	khttp "github.com/kemadev/go-framework/pkg/http"
+	"github.com/kemadev/go-framework/pkg/route"
+)
+
+type LivenessResponse struct {
+	Timestamp   time.Time         `json:"timestamp"`
+	Started     bool              `json:"started"`
+	Status      string            `json:"status"`
+	Version     string            `json:"version"`
+	Environment string            `json:"environment"`
+	Checks      map[string]string `json:"checks"`
+}
+
+// LivenessHandler handles liveness checks
+func LivenessHandler(server *route.Server) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		conf := server.GetConfig()
+
+		kclient := khttp.ClientInfo{
+			Ctx:    context.Background(),
+			Writer: w,
+		}
+
+		checks := CheckLiveness()
+		status := GetLivenessStatus(checks)
+
+		khttp.SendJSONResponse(
+			kclient,
+			status.HTTPCode(),
+			LivenessResponse{
+				Timestamp:   time.Now().UTC(),
+				Started:     true,
+				Status:      status.String(),
+				Version:     conf.Runtime.AppVersion,
+				Environment: conf.Runtime.Environment,
+				Checks:      checks.Pretty(),
+			},
+		)
+	}
+}
+
+// GetLivenessStatus return liveness status
+func GetLivenessStatus(checks CheckResults) Status {
+	return StatusOK
+}
+
+// CheckLiveness performs liveness checks and returns a map of results
+// It always returns [StatusOK] as responding to liveness probe via HTTP means that the app is alive
+func CheckLiveness() CheckResults {
+	return CheckResults{
+		"http": StatusOK,
+	}
+}

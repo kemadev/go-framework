@@ -1,12 +1,8 @@
 package monitoring
 
 import (
-	"context"
 	"net/http"
-	"runtime"
-	"time"
 
-	khttp "github.com/kemadev/go-framework/pkg/http"
 	"github.com/kemadev/go-framework/pkg/route"
 )
 
@@ -14,10 +10,24 @@ import (
 type Status int
 
 const (
+	// StatusOK means that the app is running fine
 	StatusOK Status = iota
+	// StatusDegraded means that the app is running, yet has some minor, non-critical issues
 	StatusDegraded
+	// StatusDown means that the app in unable to process requests
 	StatusDown
+	// StatusUnknown means that it is impossible to determine the status of the application
 	StatusUnknown
+)
+
+const (
+	// HTTPLivenessCheckPath is the path for the liveness check over HTTP.
+	// It is used by Kubernetes to check if the application is alive.
+	HTTPLivenessCheckPath = "/healthz"
+	// HTTPReadinessCheckPath is the path for the readiness check over HTTP.
+	// It is used by Kubernetes to check if the application is ready to serve traffic, as
+	// well as returning some metrics.
+	HTTPReadinessCheckPath = "/readyz"
 )
 
 // String returns the string representation of the status
@@ -52,39 +62,16 @@ func (s Status) HTTPCode() int {
 	}
 }
 
-// IsHealthy returns true if the status indicates the service is healthy
+// IsHealthy returns true if the status indicates the service is healthy.
+// Status degraded is still considered as healthy
 func (s Status) IsHealthy() bool {
 	return s == StatusOK || s == StatusDegraded
 }
 
 // IsReady returns true if the status indicates the service is ready
+// Status degraded is still considered as ready
 func (s Status) IsReady() bool {
 	return s == StatusOK || s == StatusDegraded
-}
-
-type LivenessResponse struct {
-	Timestamp   time.Time         `json:"timestamp"`
-	Started     bool              `json:"started"`
-	Status      string            `json:"status"`
-	Version     string            `json:"version"`
-	Environment string            `json:"environment"`
-	Checks      map[string]string `json:"checks"`
-}
-
-type RuntimeMetrics struct {
-	Memory MemoryMetrics `json:"memory"`
-	CPU    CPUMetrics    `json:"cpu"`
-}
-
-type MemoryMetrics struct {
-	UsedBytes    float64 `json:"used_bytes"`
-	MaxBytes     float64 `json:"max_bytes"`
-	UsagePercent float64 `json:"usage_percent"`
-	GCRuns       uint32  `json:"gc_runs"`
-}
-
-type CPUMetrics struct {
-	Goroutines int `json:"goroutines"`
 }
 
 type CheckResults map[string]Status
@@ -99,110 +86,10 @@ func (results *CheckResults) Pretty() map[string]string {
 	return res
 }
 
-type ReadinessResponse struct {
-	Timestamp      time.Time         `json:"timestamp"`
-	Ready          bool              `json:"ready"`
-	RuntimeMetrics RuntimeMetrics    `json:"runtimeMetrics"`
-	Checks         map[string]string `json:"checks"`
-}
-
 // Routes returns monitoring routes with dependency injection
 func Routes() route.RoutesWithDependencies {
 	return route.RoutesWithDependencies{
-		route.CreateRoute(route.HTTPLivenessCheckPath, Liveness),
-		route.CreateRoute(route.HTTPReadinessCheckPath, Readiness),
+		route.CreateRoute(HTTPLivenessCheckPath, LivenessHandler),
+		route.CreateRoute(HTTPReadinessCheckPath, ReadinessHandler),
 	}
-}
-
-// Liveness handles liveness checks
-func Liveness(server *route.Server) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		conf := server.GetConfig()
-
-		kclient := khttp.ClientInfo{
-			Ctx:    context.Background(),
-			Writer: w,
-		}
-
-		checks := CheckLiveness()
-		status := GetLivenessStatus(checks)
-
-		khttp.SendJSONResponse(
-			kclient,
-			status.HTTPCode(),
-			LivenessResponse{
-				Timestamp:   time.Now().UTC(),
-				Started:     true,
-				Status:      status.String(),
-				Version:     conf.Runtime.AppVersion,
-				Environment: conf.Runtime.Environment,
-				Checks:      checks.Pretty(),
-			},
-		)
-	}
-}
-
-// Readiness handles readiness checks
-func Readiness(server *route.Server) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		kclient := khttp.ClientInfo{
-			Ctx:    context.Background(),
-			Writer: w,
-		}
-
-		var m runtime.MemStats
-		runtime.ReadMemStats(&m)
-
-		usagePercent := float64(0)
-		if m.Sys > 0 {
-			usagePercent = (float64(m.Alloc) / float64(m.Sys)) * 100
-		}
-
-		checks := CheckReadiness()
-		status := GetReadinessStatus(checks)
-
-		khttp.SendJSONResponse(
-			kclient,
-			status.HTTPCode(),
-			ReadinessResponse{
-				Timestamp: time.Now().UTC(),
-				Ready:     status.IsReady(),
-				Checks:    checks.Pretty(),
-				RuntimeMetrics: RuntimeMetrics{
-					Memory: MemoryMetrics{
-						UsedBytes:    float64(m.Alloc),
-						MaxBytes:     float64(m.Sys),
-						UsagePercent: usagePercent,
-						GCRuns:       m.NumGC,
-					},
-					CPU: CPUMetrics{
-						Goroutines: runtime.NumGoroutine(),
-					},
-				},
-			},
-		)
-	}
-}
-
-// GetLivenessStatus return liveness status
-func GetLivenessStatus(checks CheckResults) Status {
-	return StatusOK
-}
-
-// CheckLiveness performs liveness checks and returns a map of results
-// It always returns [StatusOK] as responding to liveness probe via HTTP means that the app is alive
-func CheckLiveness() CheckResults {
-	return CheckResults{
-		"http": StatusOK,
-	}
-}
-
-// GetLivenessStatus return readiness status
-func GetReadinessStatus(checks CheckResults) Status {
-	return StatusOK
-}
-
-// CheckReadiness performs services checks and returns a map of results
-func CheckReadiness() CheckResults {
-	return CheckResults{}
 }
