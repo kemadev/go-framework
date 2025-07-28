@@ -19,8 +19,8 @@ import (
 	"go.opentelemetry.io/contrib/bridges/otelslog"
 )
 
-// Run starts an HTTP server with [mux] as its handler and manages its lifecycle. It takes care of OpenTelemetry instrumentation for the server,
-// however sub-spans and stuff still needs instrumentation within the handlers.
+// Run starts an HTTP server with [mux] as its handler and manages its lifecycle. It takes care of configuration loading and
+// OpenTelemetry instrumentation for the server. However, sub-spans and stuff still needs instrumentation within the handlers.
 func Run(handler http.Handler) {
 	// Intercept signals
 	sigCtx, stopSig := signal.NotifyContext(
