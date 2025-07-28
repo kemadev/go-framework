@@ -210,7 +210,7 @@ func newMeterProvider(
 
 	if conf.Runtime.IsLocalEnvironment() {
 		// Do not export metrics when export interval is 0 or below
-		if conf.Observability.MetricsExportIntervalSeconds <= 0 {
+		if conf.Observability.MetricsExportInterval <= time.Duration(0) {
 			prov := nometric.NewMeterProvider()
 			return &metric.MeterProvider{
 				MeterProvider: prov,
@@ -239,7 +239,7 @@ func newMeterProvider(
 	proc := metric.NewPeriodicReader(
 		exporter,
 		metric.WithInterval(
-			time.Duration(conf.Observability.MetricsExportIntervalSeconds)*time.Second,
+			conf.Observability.MetricsExportInterval,
 		),
 	)
 

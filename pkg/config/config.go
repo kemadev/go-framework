@@ -39,6 +39,8 @@ type Server struct {
 	IdleTimeout time.Duration `required:"true" default:"60s"`
 	// ProxyHeader is the proxy header for forwarded entity
 	ProxyHeader string `required:"true" default:"X-Forwarded-For"`
+	// ShutdownGracePeriod is the grace period to give the server before canceling contexits t upon shutdown
+	ShutdownGracePeriod time.Duration `required:"true" default:"5s"`
 }
 
 // Runtime holds the runtime configuration
@@ -62,7 +64,9 @@ type Observability struct {
 	// Percentage of request to sample for tracing
 	TracingSamplePercent int `required:"true" default:"100"`
 	// Interval between metrics exports, in seconds
-	MetricsExportIntervalSeconds int `required:"true" default:"15"`
+	MetricsExportInterval time.Duration `required:"true" default:"15s"`
+	// ShutdownGracePeriod is the grace period to give the instrumentation before canceling its context upon shutdown
+	ShutdownGracePeriod time.Duration `required:"true" default:"5s"`
 }
 
 // Load loads configuration from environment variables

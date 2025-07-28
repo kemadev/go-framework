@@ -26,7 +26,7 @@ import (
 
 func main() {
 	// Intercept signals
-	ctx, stopSig := signal.NotifyContext(
+	sigCtx, stopSig := signal.NotifyContext(
 		context.Background(),
 		os.Interrupt,
 		syscall.SIGHUP,
@@ -37,23 +37,46 @@ func main() {
 
 	// Get app config
 	conf, err := config.Load()
+	if err != nil {
+		log.FallbackError(fmt.Errorf("failure loading config: %w", err))
+		os.Exit(1)
+	}
 
 	// Set up OpenTelemetry.
-	otelShutdown, err := otel.SetupOTelSDK(ctx, *conf)
+	otelShutdown, err := otel.SetupOTelSDK(sigCtx, *conf)
 	if err != nil {
 		log.FallbackError(fmt.Errorf("failure setting up OpenTelemetry SDK: %w", err))
 		os.Exit(1)
 	}
-	// Handle shutdown properly so nothing leaks.
+
+	// Global program return code
+	var exitCode int
+
+	// Cleanup function
 	defer func() {
-		err = errors.Join(err, otelShutdown(context.Background()))
+		shutdownCtx, cancel := context.WithTimeout(
+			context.Background(),
+			conf.Observability.ShutdownGracePeriod*time.Second,
+		)
+		defer cancel()
+
+		shutdownErr := otelShutdown(shutdownCtx)
+		if shutdownErr != nil {
+			log.FallbackError(fmt.Errorf("failure shutting down OpenTelemetry: %w", shutdownErr))
+			if exitCode == 0 {
+				exitCode = 1
+			}
+		}
+
+		if exitCode != 0 {
+			os.Exit(exitCode)
+		}
 	}()
 
 	// Start HTTP server.
 	srv := &http.Server{
-		// Use any host, let Kubernetes handle the routing.
-		Addr:         ":" + strconv.Itoa(conf.Server.BindPort),
-		BaseContext:  func(_ net.Listener) context.Context { return ctx },
+		Addr:         conf.Server.BindAddr + ":" + strconv.Itoa(conf.Server.BindPort),
+		BaseContext:  func(_ net.Listener) context.Context { return sigCtx },
 		ReadTimeout:  conf.Server.ReadTimeout * time.Second,
 		WriteTimeout: conf.Server.WriteTimeout * time.Second,
 		IdleTimeout:  conf.Server.IdleTimeout * time.Second,
@@ -78,16 +101,32 @@ func main() {
 	// Wait for interruption
 	select {
 	case err = <-srvErr:
-		log.FallbackError(fmt.Errorf("failure running HTTP server: %w", err))
-		os.Exit(1)
-	case <-ctx.Done():
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.FallbackError(fmt.Errorf("failure running HTTP server: %w", err))
+			exitCode = 1
+			return
+		}
+	case <-sigCtx.Done():
 		// Stop receiving signal notifications as soon as possible.
 		stopSig()
 	}
 
-	err = srv.Shutdown(context.Background())
+	// Graceful shutdown
+	shutdownCtx, cancel := context.WithTimeout(
+		context.Background(),
+		// Let connections close, plus a grace period
+		func() time.Duration {
+			return max(
+				conf.Server.ReadTimeout,
+				conf.Server.WriteTimeout,
+			) + conf.Server.ShutdownGracePeriod*time.Second
+		}(),
+	)
+	defer cancel()
+
+	err = srv.Shutdown(shutdownCtx)
 	if err != nil {
 		log.FallbackError(fmt.Errorf("failure shutting down HTTP server: %w", err))
-		os.Exit(1)
+		exitCode = 1
 	}
 }
