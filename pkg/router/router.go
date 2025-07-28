@@ -70,11 +70,6 @@ func (r *Router) HandleFunc(pattern string, h http.HandlerFunc) {
 	r.Handle(pattern, h)
 }
 
-// HandleFunc returns a func satisfying [net/http.HandleFunc], wrapping the handler with OpenTelemetry instrumentation
-func (r *Router) HandleFuncOTEL(pattern string, h http.HandlerFunc) {
-	r.HandleInstrumented(pattern, h)
-}
-
 // HandleFunc returns a func satisfying [net/http.Handle]
 func (r *Router) Handle(pattern string, h http.Handler) {
 	for _, mw := range slices.Backward(r.routeChain) {
