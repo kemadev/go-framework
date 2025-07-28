@@ -23,7 +23,7 @@ func main() {
 		log.CreateFallbackLogger(config.Runtime{}).Error(
 			"run",
 			slog.String("Body", "error loading config"),
-			slog.String(semconv.ErrorMessage(err.Error()),
+			slog.String(string(semconv.ErrorMessageKey), err.Error()),
 		)
 		os.Exit(1)
 	}
@@ -49,7 +49,7 @@ func main() {
 		log.CreateFallbackLogger(conf.Runtime).Error(
 			"run",
 			slog.String("Body", "error running server"),
-			slog.String(semconv.ErrorMessage(err.Error()),
+			slog.String(string(semconv.ErrorMessageKey), err.Error()),
 		)
 		os.Exit(1)
 	}
