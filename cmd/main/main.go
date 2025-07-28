@@ -56,7 +56,7 @@ func main() {
 	defer func() {
 		shutdownCtx, cancel := context.WithTimeout(
 			context.Background(),
-			conf.Observability.ShutdownGracePeriod*time.Second,
+			conf.Observability.ShutdownGracePeriod,
 		)
 		defer cancel()
 
@@ -119,7 +119,7 @@ func main() {
 			return max(
 				conf.Server.ReadTimeout,
 				conf.Server.WriteTimeout,
-			) + conf.Server.ShutdownGracePeriod*time.Second
+			) + conf.Server.ShutdownGracePeriod
 		}(),
 	)
 	defer cancel()
