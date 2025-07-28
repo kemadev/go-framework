@@ -25,17 +25,17 @@ type Global struct {
 
 type Server struct {
 	// Server bind address
-	ListenAddr string `default:"[::]"`
+	ListenAddr string `required:"true" default:"[::]"`
 	// Server bind port
-	ListenPort int `default:"8080"`
+	ListenPort int `required:"true" default:"8080"`
 	// HTTP read timeout
-	ReadTimeout time.Duration `default:"15s"`
+	ReadTimeout time.Duration `required:"true" default:"15s"`
 	// HTTP write timeout
-	WriteTimeout time.Duration `default:"15s"`
+	WriteTimeout time.Duration `required:"true" default:"15s"`
 	// HTTP idle timeout
-	IdleTimeout time.Duration `default:"60s"`
+	IdleTimeout time.Duration `required:"true" default:"60s"`
 	// Proxy header for forwarded entity
-	ProxyHeader string `default:"X-Forwarded-For"`
+	ProxyHeader string `required:"true" default:"X-Forwarded-For"`
 }
 
 type Runtime struct {
@@ -53,11 +53,11 @@ type Observability struct {
 	// Address of OpenTelemetry endpoint where to send telemetry
 	EndpointURL string `required:"true"`
 	// Compression to use when sending telemetry
-	ExporterCompression string `default:"gzip"`
+	ExporterCompression string `required:"true" default:"gzip"`
 	// Percentage of request to sample for tracing
-	TracingSamplePercent int `default:"100"`
+	TracingSamplePercent int `required:"true" default:"100"`
 	// Interval between metrics exports, in seconds
-	MetricsExportIntervalSeconds int `default:"15"`
+	MetricsExportIntervalSeconds int `required:"true" default:"15"`
 }
 
 // Load loads configuration from environment variables
