@@ -22,15 +22,11 @@ func main() {
 	if err != nil {
 		log.CreateFallbackLogger(config.Runtime{}).Error(
 			"run",
-			slog.String("Body", "config failure"),
-			// TODO use semconv value once released, see https://opentelemetry.io/docs/specs/semconv/attributes-registry/error/#error-message
-			slog.String(string(semconv.ErrorMessageKey), err.Error()),
+			slog.String("Body", "error loading config"),
+			slog.String(semconv.ErrorMessage(err.Error()),
 		)
 		os.Exit(1)
 	}
-
-	// `http.Run()` only returns on init / shutdown failures, where otel logger isn't available
-	fallbackLogger := log.CreateFallbackLogger(conf.Runtime)
 
 	// Create regular routes
 	regularRoutes := route.RoutesToRegister{
@@ -50,11 +46,10 @@ func main() {
 	// Run HTTP server
 	err = serve.Run(regularRoutes, dependencyRoutes, conf)
 	if err != nil {
-		fallbackLogger.Error(
+		log.CreateFallbackLogger(conf.Runtime).Error(
 			"run",
-			slog.String("Body", "http failure"),
-			// TODO use semconv value once released, see https://opentelemetry.io/docs/specs/semconv/attributes-registry/error/#error-message
-			slog.String("error.message", err.Error()),
+			slog.String("Body", "error running server"),
+			slog.String(semconv.ErrorMessage(err.Error()),
 		)
 		os.Exit(1)
 	}

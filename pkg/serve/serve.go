@@ -51,14 +51,6 @@ func Run(
 		err = errors.Join(err, otelShutdown(context.Background()))
 	}()
 
-	// Create instrumented slog logger and set it as default
-	logger := otelslog.NewLogger(
-		"default",
-		otelslog.WithSource(true),
-		otelslog.WithVersion(conf.Runtime.AppVersion),
-	)
-	slog.SetDefault(logger)
-
 	// Add monitoring routes
 	dependencyRoutes = append(dependencyRoutes, monitoring.Routes()...)
 
@@ -72,8 +64,11 @@ func Run(
 		ReadTimeout:  time.Duration(conf.Server.ReadTimeout) * time.Second,
 		WriteTimeout: time.Duration(conf.Server.WriteTimeout) * time.Second,
 		IdleTimeout:  time.Duration(conf.Server.IdleTimeout) * time.Second,
-		ErrorLog:     slog.NewLogLogger(slog.Default().Handler(), slog.LevelError),
-		Handler:      newHTTPHandler(server, routes, dependencyRoutes),
+		ErrorLog: slog.NewLogLogger(
+			otelslog.NewLogger("httpserver").Handler(),
+			slog.LevelError,
+		),
+		Handler: newHTTPHandler(server, routes, dependencyRoutes),
 	}
 
 	srvErr := make(chan error, 1)
