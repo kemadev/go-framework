@@ -17,29 +17,31 @@ const ConfigurationEnvVarPrefix = "kema"
 // their relative position in the struct with [ConfigurationEnvVarPrefix] as prefix, using SCREAMING_SNAKE_CASE.
 // e.g. [Global.Observability.EndpointURL] is populated from environment variable `[ConfigurationEnvVarPrefix]_OBSERVABILITY_ENDPOINT_URL`
 type Global struct {
-	// Server configuration
+	// Server holds the HTTP server configuration
 	Server Server
-	// Runtime configuration
+	// Runtime holds the runtime configuration
 	Runtime Runtime
-	// Observability configuration
+	// Observability holds the observability configuration
 	Observability Observability
 }
 
+// Server holds the HTTP server configuration
 type Server struct {
-	// Server bind address
-	ListenAddr string `required:"true" default:"[::]"`
-	// Server bind port
-	ListenPort int `required:"true" default:"8080"`
-	// HTTP read timeout
+	// BindAddr is the server bind addressfor the HTTP server
+	BindAddr string `required:"true" default:"[::]"`
+	// BindPort is the server bind portfor the HTTP server
+	BindPort int `required:"true" default:"8080"`
+	// ReadTimeout is the HTTP read timeout for the HTTP server
 	ReadTimeout time.Duration `required:"true" default:"15s"`
-	// HTTP write timeout
+	// WriteTimeout is the HTTP write timeout for the HTTP server
 	WriteTimeout time.Duration `required:"true" default:"15s"`
-	// HTTP idle timeout
+	// IdleTimeout is the HTTP idle timeout for the HTTP server
 	IdleTimeout time.Duration `required:"true" default:"60s"`
-	// Proxy header for forwarded entity
+	// ProxyHeader is the proxy header for forwarded entity
 	ProxyHeader string `required:"true" default:"X-Forwarded-For"`
 }
 
+// Runtime holds the runtime configuration
 type Runtime struct {
 	// Environment the app is running in
 	Environment string `required:"true"`
@@ -51,6 +53,7 @@ type Runtime struct {
 	AppNamespace string `required:"true"`
 }
 
+// Observability holds the observability configuration
 type Observability struct {
 	// Address of OpenTelemetry endpoint where to send telemetry
 	EndpointURL string `required:"true"`
@@ -96,19 +99,16 @@ func processStruct(prefix string, v reflect.Value, parentPath string) error {
 			continue
 		}
 
-		// Build the environment variable name
 		fieldName := fieldType.Name
 		envVarName := buildEnvVarName(prefix, parentPath, fieldName)
 
 		switch field.Kind() {
 		case reflect.Struct:
-			// Recursively process nested structs
 			err := processStruct(prefix, field, buildPath(parentPath, fieldName))
 			if err != nil {
 				return fmt.Errorf("error processing struct field %s: %w", fieldName, err)
 			}
 		default:
-			// Process primitive fields
 			err := processField(field, fieldType, envVarName)
 			if err != nil {
 				return fmt.Errorf("error processing field %s: %w", fieldType.Name, err)

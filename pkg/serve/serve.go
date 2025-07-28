@@ -59,7 +59,7 @@ func Run(
 	// Start HTTP server.
 	srv := &http.Server{
 		// Use any host, let Kubernetes handle the routing.
-		Addr:         ":" + strconv.Itoa(conf.Server.ListenPort),
+		Addr:         ":" + strconv.Itoa(conf.Server.BindPort),
 		BaseContext:  func(_ net.Listener) context.Context { return ctx },
 		ReadTimeout:  time.Duration(conf.Server.ReadTimeout) * time.Second,
 		WriteTimeout: time.Duration(conf.Server.WriteTimeout) * time.Second,
