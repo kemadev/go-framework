@@ -58,7 +58,7 @@ func main() {
 		WriteTimeout: conf.Server.WriteTimeout * time.Second,
 		IdleTimeout:  conf.Server.IdleTimeout * time.Second,
 		ErrorLog: slog.NewLogLogger(
-			otelslog.NewLogger("net.http").Handler(),
+			otelslog.NewLogger("net/http").Handler(),
 			func() slog.Level {
 				if conf.Runtime.IsLocalEnvironment() {
 					return slog.LevelDebug
