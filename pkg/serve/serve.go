@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"syscall"
 	"time"
 
 	"github.com/kemadev/go-framework/pkg/config"
@@ -30,8 +31,14 @@ func Run(
 	dependencyRoutes route.RoutesWithDependencies,
 	conf *config.Global,
 ) error {
-	// Handle SIGINT gracefully.
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	// Intercept signals
+	ctx, stop := signal.NotifyContext(
+		context.Background(),
+		os.Interrupt,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+	)
 	defer stop()
 
 	// Set up OpenTelemetry.
@@ -68,27 +75,24 @@ func Run(
 		ErrorLog:     slog.NewLogLogger(slog.Default().Handler(), slog.LevelError),
 		Handler:      newHTTPHandler(server, routes, dependencyRoutes),
 	}
+
 	srvErr := make(chan error, 1)
 
 	go func() {
 		srvErr <- srv.ListenAndServe()
 	}()
 
-	// Wait for interruption.
+	// Wait for interruption
 	select {
 	case err = <-srvErr:
-		// Error when starting HTTP server.
 		return fmt.Errorf("http server error: %w", err)
 	case <-ctx.Done():
-		// Wait for first SIGINT
 		// Stop receiving signal notifications as soon as possible.
 		stop()
 	}
 
-	// When Shutdown is called, ListenAndServe immediately returns ErrServerClosed.
 	err = srv.Shutdown(context.Background())
 	if err != nil {
-		// Error when shutting down HTTP server.
 		return fmt.Errorf("http server shutdown error: %w", err)
 	}
 
