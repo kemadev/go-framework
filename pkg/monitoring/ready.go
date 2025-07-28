@@ -30,7 +30,7 @@ type ReadinessResponse struct {
 	Timestamp      time.Time         `json:"timestamp"`
 	Ready          bool              `json:"ready"`
 	RuntimeMetrics RuntimeMetrics    `json:"runtimeMetrics"`
-	Checks         map[string]string `json:"checks"`
+	Checks         map[string]Status `json:"checks"`
 }
 
 // ReadinessHandler handles readiness checks
@@ -58,7 +58,7 @@ func ReadinessHandler(server *route.Server) http.HandlerFunc {
 			ReadinessResponse{
 				Timestamp: time.Now().UTC(),
 				Ready:     status.IsReady(),
-				Checks:    checks.Pretty(),
+				Checks:    checks,
 				RuntimeMetrics: RuntimeMetrics{
 					Memory: MemoryMetrics{
 						UsedBytes:    float64(m.Alloc),

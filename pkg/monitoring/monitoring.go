@@ -76,16 +76,6 @@ func (s Status) IsReady() bool {
 
 type CheckResults map[string]Status
 
-func (results *CheckResults) Pretty() map[string]string {
-	res := make(map[string]string, len(*results))
-
-	for key, status := range *results {
-		res[key] = status.String()
-	}
-
-	return res
-}
-
 // Routes returns monitoring routes with dependency injection
 func Routes() route.RoutesWithDependencies {
 	return route.RoutesWithDependencies{
