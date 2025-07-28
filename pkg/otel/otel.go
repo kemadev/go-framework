@@ -30,9 +30,9 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 )
 
-// SetupOTelSDK returns a function that can be called to shut down the OpenTelemetry SDK, and an error if any occurred during the setup.
+// SetupOTelSDK sets up the OpenTelemetry SDK with the provided configuration.
+// It returns a function that can be called to shut down the OpenTelemetry SDK, and an error if any occurred during the setup.
 // The function returned by SetupOTelSDK should be called to shut down the OpenTelemetry SDK.
-// It sets up the OpenTelemetry SDK with the provided configuration.
 // If it does not return an error, a propoer call to shutdown is needed to
 // clean up the OpenTelemetry SDK.
 func SetupOTelSDK(

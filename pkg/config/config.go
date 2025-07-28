@@ -10,10 +10,12 @@ import (
 	"unicode"
 )
 
+const ConfigurationEnvVarPrefix = "kema"
+
 // Global is the server configuration struct.
 // Values are populated from environment variables nammed after
-// their relative position in the struct with "kema" as prefix, using SCREAMING_SNAKE_CASE.
-// e.g. [Global.Observability.EndpointURL] is pupulated from environment variable `KEMA_OBSERVABILITY_ENDPOINT_URL`
+// their relative position in the struct with [ConfigurationEnvVarPrefix] as prefix, using SCREAMING_SNAKE_CASE.
+// e.g. [Global.Observability.EndpointURL] is populated from environment variable `[ConfigurationEnvVarPrefix]_OBSERVABILITY_ENDPOINT_URL`
 type Global struct {
 	// Server configuration
 	Server Server
@@ -63,7 +65,7 @@ type Observability struct {
 // Load loads configuration from environment variables
 func Load() (*Global, error) {
 	var cfg Global
-	err := load("kema", &cfg)
+	err := load(ConfigurationEnvVarPrefix, &cfg)
 	if err != nil {
 		return nil, fmt.Errorf("can't process config: %w", err)
 	}
@@ -119,29 +121,23 @@ func processStruct(prefix string, v reflect.Value, parentPath string) error {
 
 // processField processes a single struct field
 func processField(field reflect.Value, fieldType reflect.StructField, envVarName string) error {
-	// Get tags
 	defaultValue := fieldType.Tag.Get("default")
 	required := fieldType.Tag.Get("required") == "true"
 
-	// Get environment variable value
 	envValue := os.Getenv(envVarName)
 
-	// Use default if no env value and default is provided
 	if envValue == "" && defaultValue != "" {
 		envValue = defaultValue
 	}
 
-	// Check required fields
 	if required && envValue == "" {
 		return fmt.Errorf("required environment variable %s is not set", envVarName)
 	}
 
-	// Skip if no value and not required
 	if envValue == "" {
 		return nil
 	}
 
-	// Set the field value based on its type
 	return setFieldValue(field, envValue, envVarName)
 }
 
@@ -152,14 +148,12 @@ func setFieldValue(field reflect.Value, value string, envVarName string) error {
 		field.SetString(value)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		if field.Type() == reflect.TypeOf(time.Duration(0)) {
-			// Handle time.Duration
 			duration, err := time.ParseDuration(value)
 			if err != nil {
 				return fmt.Errorf("invalid duration value for %s: %s", envVarName, value)
 			}
 			field.SetInt(int64(duration))
 		} else {
-			// Handle regular integers
 			intVal, err := strconv.ParseInt(value, 10, 64)
 			if err != nil {
 				return fmt.Errorf("invalid integer value for %s: %s", envVarName, value)
@@ -199,12 +193,10 @@ func buildEnvVarName(prefix, parentPath, fieldName string) string {
 		parts = append(parts, parentPath)
 	}
 
-	// Convert camelCase to snake_case
 	snakeCase := CamelToScreamingSnake(fieldName)
 	parts = append(parts, snakeCase)
 
-	// Output as SCREAMING_SNAKE
-	return strings.ToUpper(strings.Join(parts, "_"))
+	return strings.Join(parts, "_")
 }
 
 // buildPath builds the path for nested structs
