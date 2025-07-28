@@ -77,9 +77,9 @@ func main() {
 	srv := &http.Server{
 		Addr:         conf.Server.BindAddr + ":" + strconv.Itoa(conf.Server.BindPort),
 		BaseContext:  func(_ net.Listener) context.Context { return sigCtx },
-		ReadTimeout:  conf.Server.ReadTimeout * time.Second,
-		WriteTimeout: conf.Server.WriteTimeout * time.Second,
-		IdleTimeout:  conf.Server.IdleTimeout * time.Second,
+		ReadTimeout:  conf.Server.ReadTimeout,
+		WriteTimeout: conf.Server.WriteTimeout,
+		IdleTimeout:  conf.Server.IdleTimeout,
 		ErrorLog: slog.NewLogLogger(
 			otelslog.NewLogger("net/http").Handler(),
 			func() slog.Level {
