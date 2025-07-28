@@ -191,14 +191,13 @@ func setFieldValue(field reflect.Value, value string, envVarName string) error {
 
 // buildEnvVarName builds the environment variable name from prefix and field path
 func buildEnvVarName(prefix, parentPath, fieldName string) string {
-	parts := []string{prefix}
+	parts := []string{CamelToScreamingSnake(prefix)}
 
 	if parentPath != "" {
-		parts = append(parts, parentPath)
+		parts = append(parts, CamelToScreamingSnake(parentPath))
 	}
 
-	snakeCase := CamelToScreamingSnake(fieldName)
-	parts = append(parts, snakeCase)
+	parts = append(parts, CamelToScreamingSnake(fieldName))
 
 	return strings.Join(parts, "_")
 }

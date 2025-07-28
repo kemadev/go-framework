@@ -21,6 +21,7 @@ import (
 	"github.com/kemadev/go-framework/pkg/config"
 	"github.com/kemadev/go-framework/pkg/log"
 	"github.com/kemadev/go-framework/pkg/otel"
+	"github.com/kemadev/go-framework/pkg/router"
 	"go.opentelemetry.io/contrib/bridges/otelslog"
 )
 
@@ -74,6 +75,10 @@ func main() {
 		}
 	}()
 
+	r := router.New()
+
+	r.Handle("GET /", http.NotFoundHandler())
+
 	// Start HTTP server.
 	srv := &http.Server{
 		Addr:         conf.Server.BindAddr + ":" + strconv.Itoa(conf.Server.BindPort),
@@ -90,7 +95,7 @@ func main() {
 				return slog.LevelError
 			}(),
 		),
-		Handler: nil,
+		Handler: r,
 	}
 
 	srvErr := make(chan error, 1)
