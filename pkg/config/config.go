@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"reflect"
 	"strconv"
@@ -229,4 +230,12 @@ func CamelToScreamingSnake(s string) string {
 	}
 
 	return strings.ToUpper(result.String())
+}
+
+// SlogLevel return the appropriate [slog.Level] for given [Runtime]
+func (conf *Runtime) SlogLevel() slog.Level {
+	if conf.IsLocalEnvironment() {
+		return slog.LevelDebug
+	}
+	return slog.LevelInfo
 }
