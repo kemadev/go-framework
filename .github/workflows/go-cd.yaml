@@ -3,7 +3,7 @@ name: Go - CD
 on:
   push:
     branches:
-      - main
+      # - main
       - next
   workflow_dispatch: {}
 
