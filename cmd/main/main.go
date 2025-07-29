@@ -46,8 +46,6 @@ func main() {
 				trace.WithAttributes(semconv.UserID(bag.Member(string(semconv.UserIDKey)).Value())),
 			)
 
-			fmt.Println("pattern:", r.Pattern)
-
 			w.Write([]byte(fmt.Sprintf("Hello, %v! TraceID: %s", user, spanCtx.TraceID().String())))
 		}),
 	)
