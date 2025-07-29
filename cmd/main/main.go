@@ -25,7 +25,7 @@ func main() {
 	r.UseInstrumented("timing-middleware", TimingMiddleware)
 
 	r.HandleInstrumented(
-		"GET /foo/{usr}",
+		"GET /foo/{bar}",
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 
