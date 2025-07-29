@@ -56,8 +56,8 @@ func Run(mux *router.Router) {
 	}
 
 	// Set default logger for the application
-	slog.SetDefault(otelslog.NewLogger(DefaultLoggerName, otelslog.WithSource(true)))
 	slog.SetLogLoggerLevel(conf.Runtime.SlogLevel())
+	slog.SetDefault(otelslog.NewLogger(DefaultLoggerName, otelslog.WithSource(true)))
 
 	// Global program return code
 	var exitCode int
