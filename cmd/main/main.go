@@ -26,29 +26,31 @@ func main() {
 
 	r.HandleInstrumented(
 		"GET /foo/{bar}",
-		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := r.Context()
-
-			// Get user from context (set by AuthMiddleware)
-			user := ctx.Value("user")
-
-			// Get span context for logging
-			span := trace.SpanFromContext(ctx)
-			spanCtx := span.SpanContext()
-			fmt.Printf("[HANDLER] TraceID: %s, SpanID: %s, User: %v\n",
-				spanCtx.TraceID().String(),
-				spanCtx.SpanID().String(),
-				user,
-			)
-			bag := baggage.FromContext(ctx)
-			span.AddEvent(
-				"handling this...",
-				trace.WithAttributes(semconv.UserID(bag.Member(string(semconv.UserIDKey)).Value())),
-			)
-
-			w.Write([]byte(fmt.Sprintf("Hello, %v! TraceID: %s", user, spanCtx.TraceID().String())))
-		}),
+		http.HandlerFunc(FooBar),
 	)
 
 	server.Run(r)
+}
+
+func FooBar(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// Get user from context (set by AuthMiddleware)
+	user := ctx.Value("user")
+
+	// Get span context for logging
+	span := trace.SpanFromContext(ctx)
+	spanCtx := span.SpanContext()
+	fmt.Printf("[HANDLER] TraceID: %s, SpanID: %s, User: %v\n",
+		spanCtx.TraceID().String(),
+		spanCtx.SpanID().String(),
+		user,
+	)
+	bag := baggage.FromContext(ctx)
+	span.AddEvent(
+		"handling this...",
+		trace.WithAttributes(semconv.UserID(bag.Member(string(semconv.UserIDKey)).Value())),
+	)
+
+	w.Write([]byte(fmt.Sprintf("Hello, %v! TraceID: %s", user, spanCtx.TraceID().String())))
 }
