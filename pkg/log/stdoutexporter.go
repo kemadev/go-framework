@@ -58,25 +58,38 @@ func appendSourceAttrs(
 	lineno int64,
 	function string,
 ) ([]string, error) {
-	wd, err := os.Getwd()
+	workdir, err := os.Getwd()
 	if err != nil {
 		return []string{}, fmt.Errorf("failed to get working directory: %w", err)
 	}
 
-	filepath = strings.TrimPrefix(filepath, wd+"/")
+	filepath = strings.TrimPrefix(filepath, workdir+"/")
 
 	if filepath != "" && function != "" && lineno != 0 {
 		f := formatAttr(string(semconv.CodeFunctionNameKey), function)
 		attrs = append(attrs, f)
 		// Add a leading space to enable hyperlink detection in terminals, remove leading mount
 		// path to make it relative to application root.
-		reg, _ := regexp.Compile(`^/` + wd + `\w+/(.+)`)
+		reg, err := regexp.Compile(`^/` + workdir + `\w+/(.+)`)
+		if err != nil {
+			return attrs, nil
+		}
+
 		path := reg.ReplaceAllString(filepath, "$1")
 		source := formatAttr(string(semconv.CodeFilePathKey), fmt.Sprintf(" %s:%v", path, lineno))
 		attrs = append(attrs, source)
 	}
 
 	return attrs, nil
+}
+
+func NewExporter(opts ...stdoutlog.Option) (*Exporter, error) {
+	exp, err := stdoutlog.New(opts...)
+	if err != nil {
+		return nil, fmt.Errorf("error creating stdout exporter: %w", err)
+	}
+
+	return &Exporter{Exporter: exp}, nil
 }
 
 // Export exports log records to writer.
@@ -140,13 +153,4 @@ func (e *Exporter) Export(ctx context.Context, records []sdklog.Record) error {
 	}
 
 	return nil
-}
-
-func NewExporter(opts ...stdoutlog.Option) (*Exporter, error) {
-	exp, err := stdoutlog.New(opts...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating stdout exporter: %w", err)
-	}
-
-	return &Exporter{Exporter: exp}, nil
 }

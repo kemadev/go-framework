@@ -67,7 +67,7 @@ func SetupOTelSDK(
 
 	// Set up resource in order to enrich telemetry data.
 	res, err := resource.New(
-		context.Background(),
+		ctx,
 		resource.WithSchemaURL(semconv.SchemaURL),
 		resource.WithFromEnv(),
 		resource.WithHost(),
@@ -218,16 +218,16 @@ func newMeterProvider(
 			return &metric.MeterProvider{
 				MeterProvider: prov,
 			}, nil
-		} else {
-			exp, err := stdoutmetric.New(
-				stdoutmetric.WithPrettyPrint(),
-			)
-			if err != nil {
-				return nil, fmt.Errorf("error initializing OpenTelemetry metric: %w", err)
-			}
-
-			exporter = exp
 		}
+
+		exp, err := stdoutmetric.New(
+			stdoutmetric.WithPrettyPrint(),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error initializing OpenTelemetry metric: %w", err)
+		}
+
+		exporter = exp
 	} else {
 		exp, err := otlpmetricgrpc.New(
 			ctx,

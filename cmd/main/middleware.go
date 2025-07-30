@@ -36,14 +36,14 @@ func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := kctx.FromRequest(r)
 
-		userId := "whoever"
+		userID := "whoever"
 		span := ctx.Span(r)
 		span.SetAttributes(
-			semconv.UserID(userId),
+			semconv.UserID(userID),
 			attribute.Bool("auth.authenticated", true),
 		)
 
-		mem, err := baggage.NewMember(string(semconv.UserIDKey), userId)
+		mem, err := baggage.NewMember(string(semconv.UserIDKey), userID)
 		if err != nil {
 			fmt.Printf("Failed to create baggage member: %v\n", err)
 			next.ServeHTTP(w, r)
@@ -62,12 +62,12 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		ctx.Context = newCtx
 
 		spanCtx := span.SpanContext()
-		fmt.Printf("[AUTH] TraceID: %s, SpanID: %s, User: "+userId+"\n",
+		fmt.Printf("[AUTH] TraceID: %s, SpanID: %s, User: "+userID+"\n",
 			spanCtx.TraceID().String(),
 			spanCtx.SpanID().String(),
 		)
 
-		ctx.LocalSet("user", userId)
+		ctx.LocalSet("user", userID)
 
 		next.ServeHTTP(w, r.WithContext(ctx.Context))
 	})

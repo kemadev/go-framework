@@ -80,13 +80,13 @@ func (r *Router) UseInstrumented(name string, mw func(http.Handler) http.Handler
 
 // Group adds all routers down the chain to a group. All members of a group inherits from
 // their parent's routers chain.
-func (r *Router) Group(fn func(r *Router)) {
+func (r *Router) Group(group func(r *Router)) {
 	subRouter := &Router{
 		routeChain:  slices.Clone(r.routeChain),
 		isSubRouter: true,
 		ServeMux:    r.ServeMux,
 	}
-	fn(subRouter)
+	group(subRouter)
 }
 
 // HandleFunc registers a handler function for a pattern.
@@ -110,13 +110,13 @@ func (r *Router) HandleInstrumented(pattern string, h http.Handler) {
 }
 
 // ServeHTTP implements http.Handler, applying global middleware.
-func (r *Router) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
+func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var h http.Handler = r.ServeMux
 	for _, mw := range slices.Backward(r.globalChain) {
 		h = mw(h)
 	}
 
-	h.ServeHTTP(w, rq)
+	h.ServeHTTP(w, req)
 }
 
 // ServerHandlerInstrumented returns an instrumented handler for use as http.Server.Handler.

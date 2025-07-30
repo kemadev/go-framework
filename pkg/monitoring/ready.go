@@ -14,10 +14,10 @@ type RuntimeMetrics struct {
 }
 
 type MemoryMetrics struct {
-	UsedBytes    float64 `json:"used_bytes"`
-	MaxBytes     float64 `json:"max_bytes"`
-	UsagePercent float64 `json:"usage_percent"`
-	GCRuns       uint32  `json:"gc_runs"`
+	UsedBytes    float64 `json:"usedBytes"`
+	MaxBytes     float64 `json:"maxBytes"`
+	UsagePercent float64 `json:"usagePercent"`
+	GCRuns       uint32  `json:"gcRuns"`
 }
 
 type CPUMetrics struct {

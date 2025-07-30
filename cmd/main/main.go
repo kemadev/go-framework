@@ -18,14 +18,14 @@ import (
 )
 
 func main() {
-	r := router.New()
+	app := router.New()
 
 	// Add middlewares
-	r.UseInstrumented("kctx-middleware", kctx.Middleware)
-	r.UseInstrumented("logging-middleware", LoggingMiddleware)
+	app.UseInstrumented("kctx-middleware", kctx.Middleware)
+	app.UseInstrumented("logging-middleware", LoggingMiddleware)
 
 	// Create groups
-	r.Group(func(r *router.Router) {
+	app.Group(func(r *router.Router) {
 		r.UseInstrumented("auth-middleware", AuthMiddleware)
 
 		r.Group(func(r *router.Router) {
@@ -39,12 +39,12 @@ func main() {
 	})
 
 	// Add handlers
-	r.HandleInstrumented(
+	app.HandleInstrumented(
 		"GET /foo/{bar}",
 		http.HandlerFunc(FooBar),
 	)
 
-	server.Run(r.ServerHandlerInstrumented())
+	server.Run(app.ServerHandlerInstrumented())
 }
 
 func FooBar(w http.ResponseWriter, r *http.Request) {

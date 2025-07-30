@@ -1,12 +1,15 @@
 // Copyright 2025 kemadev
 // SPDX-License-Identifier: MPL-2.0
 
-package router
+package router_test
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/kemadev/go-framework/pkg/router"
 )
 
 func TestChain(t *testing.T) {
@@ -60,59 +63,86 @@ func TestChain(t *testing.T) {
 		})
 	}
 
-	handler := func(w http.ResponseWriter, r *http.Request) {}
+	handler := func(_ http.ResponseWriter, _ *http.Request) {
+		used += "h"
+	}
 
-	mux := http.NewServeMux()
+	app1 := router.New()
 
-	chain1 := chain{mw1, mw2}
+	app1.Use(mw1)
+	app1.Use(mw2)
 
-	mux.Handle("GET /{$}", chain1.thenFunc(handler))
+	app1.HandleFunc("GET /{$}", handler)
 
-	chain2 := append(chain1, mw3, mw4)
-	mux.Handle("GET /foo", chain2.thenFunc(handler))
+	app2 := router.New()
+	app2.Use(mw1)
+	app2.Use(mw2)
+	app2.Use(mw3)
+	app2.Use(mw4)
+	app2.HandleFunc("GET /foo", handler)
 
-	chain3 := append(chain2, mw5)
-	mux.Handle("GET /nested/foo", chain3.thenFunc(handler))
+	app3 := router.New()
+	app3.Use(mw1)
+	app3.Use(mw2)
+	app3.Use(mw3)
+	app3.Use(mw4)
+	app3.Use(mw5)
+	app3.HandleFunc("GET /nested/foo", handler)
 
-	chain4 := append(chain1, mw6)
-	mux.Handle("GET /bar", chain4.thenFunc(handler))
-
-	mux.Handle("GET /baz", chain1.thenFunc(handler))
+	app4 := router.New()
+	app4.Use(mw1)
+	app4.Use(mw2)
+	app4.Group(func(r *router.Router) {
+		app4.Use(mw3)
+		app4.Use(mw4)
+		app4.Use(mw5)
+		app4.HandleFunc("GET /bar", handler)
+	})
+	app4.Group(func(r *router.Router) {
+		app4.Use(mw6)
+		app4.HandleFunc("GET /baz", handler)
+	})
 
 	tests := []struct {
+		Mux            *router.Router
 		RequestMethod  string
 		RequestPath    string
 		ExpectedUsed   string
 		ExpectedStatus int
 	}{
 		{
+			Mux:            app1,
 			RequestMethod:  "GET",
 			RequestPath:    "/",
-			ExpectedUsed:   "12",
+			ExpectedUsed:   "12h",
 			ExpectedStatus: http.StatusOK,
 		},
 		{
+			Mux:            app2,
 			RequestMethod:  "GET",
 			RequestPath:    "/foo",
-			ExpectedUsed:   "1234",
+			ExpectedUsed:   "1234h",
 			ExpectedStatus: http.StatusOK,
 		},
 		{
+			Mux:            app3,
 			RequestMethod:  "GET",
 			RequestPath:    "/nested/foo",
-			ExpectedUsed:   "12345",
+			ExpectedUsed:   "12345h",
 			ExpectedStatus: http.StatusOK,
 		},
 		{
+			Mux:            app4,
 			RequestMethod:  "GET",
 			RequestPath:    "/bar",
-			ExpectedUsed:   "126",
+			ExpectedUsed:   "123456h",
 			ExpectedStatus: http.StatusOK,
 		},
 		{
+			Mux:            app4,
 			RequestMethod:  "GET",
 			RequestPath:    "/baz",
-			ExpectedUsed:   "12",
+			ExpectedUsed:   "126h",
 			ExpectedStatus: http.StatusOK,
 		},
 	}
@@ -120,13 +150,18 @@ func TestChain(t *testing.T) {
 	for _, test := range tests {
 		used = ""
 
-		req, err := http.NewRequest(test.RequestMethod, test.RequestPath, nil)
+		req, err := http.NewRequestWithContext(
+			context.Background(),
+			test.RequestMethod,
+			test.RequestPath,
+			nil,
+		)
 		if err != nil {
-			t.Errorf("NewRequest: %s", err)
+			t.Errorf("NewRequestWithContext: %s", err)
 		}
 
 		rr := httptest.NewRecorder()
-		mux.ServeHTTP(rr, req)
+		test.Mux.ServeHTTP(rr, req)
 
 		resp := rr.Result()
 

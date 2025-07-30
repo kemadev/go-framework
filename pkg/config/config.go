@@ -91,16 +91,16 @@ func NewManager() *Manager {
 // Subsequent calls return the cached configuration.
 func (m *Manager) Load() (*Global, error) {
 	m.once.Do(func() {
-		var cfg Global
+		var conf Global
 
-		err := load(ConfigurationEnvVarPrefix, &cfg)
+		err := load(ConfigurationEnvVarPrefix, &conf)
 		if err != nil {
 			m.err = fmt.Errorf("can't process config: %w", err)
 
 			return
 		}
 
-		m.config = &cfg
+		m.config = &conf
 	})
 
 	if m.err != nil {
@@ -127,8 +127,8 @@ func (m *Manager) Get() (*Global, error) {
 const EnvLocalValue = "dev"
 
 // IsLocalEnvironment returns whether the application in running in local-development environment
-func (cfg Runtime) IsLocalEnvironment() bool {
-	return cfg.Environment == EnvLocalValue
+func (conf Runtime) IsLocalEnvironment() bool {
+	return conf.Environment == EnvLocalValue
 }
 
 // load processes configuration from environment variables with the given prefix
@@ -140,7 +140,7 @@ func load(prefix string, cfg any) error {
 func processStruct(prefix string, v reflect.Value, parentPath string) error {
 	t := v.Type()
 
-	for i := 0; i < v.NumField(); i++ {
+	for i := range v.NumField() {
 		field := v.Field(i)
 		fieldType := t.Field(i)
 
@@ -263,21 +263,21 @@ func buildPath(parentPath, fieldName string) string {
 }
 
 // CamelToScreamingSnake converts camelCase to SCREAMING_SNAKE_CASE
-func CamelToScreamingSnake(s string) string {
+func CamelToScreamingSnake(str string) string {
 	var result strings.Builder
 
-	for i, r := range s {
-		if i > 0 && unicode.IsUpper(r) {
+	for pos, char := range str {
+		if pos > 0 && unicode.IsUpper(char) {
 			// Check if previous character was lowercase or if next character is lowercase
-			prevChar := rune(s[i-1])
-			nextIsLower := i+1 < len(s) && unicode.IsLower(rune(s[i+1]))
+			prevChar := rune(str[pos-1])
+			nextIsLower := pos+1 < len(str) && unicode.IsLower(rune(str[pos+1]))
 
 			if unicode.IsLower(prevChar) || nextIsLower {
 				result.WriteRune('_')
 			}
 		}
 
-		result.WriteRune(unicode.ToLower(r))
+		result.WriteRune(unicode.ToLower(char))
 	}
 
 	return strings.ToUpper(result.String())
