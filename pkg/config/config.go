@@ -81,9 +81,12 @@ func Load() (*Global, error) {
 	return &cfg, nil
 }
 
+// EnvLocalValue is the value of the environment variable backing [Runtime.Environment] which is used to denote a local development environment
+const EnvLocalValue = "dev"
+
 // IsLocalEnvironment returns whether the application in running in local-development environment
 func (cfg Runtime) IsLocalEnvironment() bool {
-	return cfg.Environment == "dev"
+	return cfg.Environment == EnvLocalValue
 }
 
 // load processes configuration from environment variables with the given prefix
