@@ -2,7 +2,7 @@ package kctx
 
 import "context"
 
-// Local retrieve a request-scoped value, set by [LocalSet]
+// Local retrieves a request-scoped value, set by [LocalSet]
 func (ctx *Kctx) Local(name string) any {
 	return ctx.Value(name)
 }
