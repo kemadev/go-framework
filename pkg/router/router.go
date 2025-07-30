@@ -2,7 +2,6 @@ package router
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"slices"
 
@@ -119,14 +118,14 @@ func (r *Router) ServerHandlerInstrumented() http.Handler {
 		holder := &PatternHolder{}
 		ctx := context.WithValue(req.Context(), PatternKey{}, holder)
 
-		name := fmt.Sprintf("%s - %s", req.Method, ServerRootSpanName)
+		name := req.Method + " - " + ServerRootSpanName
 		ctx, span := otel.Tracer(ServerRootSpanName).Start(ctx, name)
 		defer span.End()
 
 		r.ServeHTTP(w, req.WithContext(ctx))
 
 		if holder.Pattern != "" {
-			span.SetName(fmt.Sprintf("%s - %s", holder.Pattern, ServerRootSpanName))
+			span.SetName(holder.Pattern + " - " + ServerRootSpanName)
 		}
 	})
 }
