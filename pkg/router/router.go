@@ -1,6 +1,8 @@
 // Copyright 2025 kemadev
 // SPDX-License-Identifier: MPL-2.0
 
+// [this nice article]: https://www.alexedwards.net/blog/organize-your-go-middleware-without-dependencies
+// [Alex Edwards]: https://www.alexedwards.net/
 package router
 
 import (

@@ -1,6 +1,8 @@
 // Copyright 2025 kemadev
 // SPDX-License-Identifier: MPL-2.0
 
+// Package monitoring defines monitoring endpoints handlers as well as checker functions,
+// used to determine the health status of the application.
 package monitoring
 
 import (
