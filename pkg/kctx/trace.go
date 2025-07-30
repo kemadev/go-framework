@@ -47,7 +47,7 @@ func (ctx *Kctx) BaggageSet(r *http.Request, members ...baggage.Member) (context
 	for _, member := range members {
 		bag, err = bag.SetMember(member)
 		if err != nil {
-			return ctx, fmt.Errorf("error setting baggage member: %w", err)
+			return nil, fmt.Errorf("error setting baggage member: %w", err)
 		}
 	}
 

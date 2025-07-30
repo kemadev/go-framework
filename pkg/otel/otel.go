@@ -63,7 +63,10 @@ func SetupOTelSDK(
 	}
 
 	// Set up propagator.
-	otel.SetTextMapPropagator(newPropagator())
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
+		propagation.TraceContext{},
+		propagation.Baggage{},
+	))
 
 	// Set up resource in order to enrich telemetry data.
 	res, err := resource.New(
@@ -131,14 +134,6 @@ func SetupOTelSDK(
 	otel.SetTracerProvider(tracerProvider)
 
 	return shutdown, nil
-}
-
-// newPropagator returns a new OpenTelemetry propagator.
-func newPropagator() propagation.TextMapPropagator {
-	return propagation.NewCompositeTextMapPropagator(
-		propagation.TraceContext{},
-		propagation.Baggage{},
-	)
 }
 
 // newLoggerProvider returns a new OpenTelemetry logger provider, and an error if any occurred during the setup.
@@ -283,7 +278,11 @@ func newTracerProvider(
 
 	tracerProviderOpt := trace.WithSampler(
 		trace.ParentBased(
-			trace.TraceIDRatioBased(float64(conf.Observability.TracingSamplePercent / 100)),
+			trace.TraceIDRatioBased(func() float64 {
+				percentToFloat := 0.01
+
+				return float64(conf.Observability.TracingSamplePercent) * percentToFloat
+			}()),
 		),
 	)
 

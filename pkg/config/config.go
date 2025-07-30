@@ -17,10 +17,15 @@ import (
 
 const ConfigurationEnvVarPrefix = "kema"
 
+var (
+	ErrVariableRequired  = fmt.Errorf("environment variable required")
+	ErrVariableMalformed = fmt.Errorf("environment malformed")
+)
+
 // Global is the server configuration struct.
 // Values are populated from environment variables nammed after
 // their relative position in the struct with [ConfigurationEnvVarPrefix] as prefix, using SCREAMING_SNAKE_CASE.
-// e.g. [Global.Observability.EndpointURL] is populated from environment variable `[ConfigurationEnvVarPrefix]_OBSERVABILITY_ENDPOINT_URL`
+// e.g. [Global.Observability.EndpointURL] is populated from environment variable `[ConfigurationEnvVarPrefix]_OBSERVABILITY_ENDPOINT_URL`.
 type Global struct {
 	// Server holds the HTTP server configuration
 	Server Server
@@ -30,7 +35,7 @@ type Global struct {
 	Observability Observability
 }
 
-// Server holds the HTTP server configuration
+// Server holds the HTTP server configuration.
 type Server struct {
 	// BindAddr is the server bind addressfor the HTTP server
 	BindAddr string `default:"[::]"            required:"true"`
@@ -48,7 +53,7 @@ type Server struct {
 	ShutdownGracePeriod time.Duration `default:"5s"              required:"true"`
 }
 
-// Runtime holds the runtime configuration
+// Runtime holds the runtime configuration.
 type Runtime struct {
 	// Environment the app is running in
 	Environment string `required:"true"`
@@ -60,7 +65,7 @@ type Runtime struct {
 	AppNamespace string `required:"true"`
 }
 
-// Observability holds the observability configuration
+// Observability holds the observability configuration.
 type Observability struct {
 	// Address of OpenTelemetry endpoint where to send telemetry
 	EndpointURL string `required:"true"`
@@ -74,14 +79,14 @@ type Observability struct {
 	ShutdownGracePeriod time.Duration `required:"true" default:"5s"`
 }
 
-// Manager handles configuration loading and caching
+// Manager handles configuration loading and caching.
 type Manager struct {
 	once   sync.Once
 	config *Global
 	err    error
 }
 
-// NewManager creates a new configuration manager
+// NewManager creates a new configuration manager.
 func NewManager() *Manager {
 	return &Manager{}
 }
@@ -118,25 +123,25 @@ func (m *Manager) Reset() {
 	m.err = nil
 }
 
-// Get returns the loaded configuration or loads it if not already loaded
+// Get returns the loaded configuration or loads it if not already loaded.
 func (m *Manager) Get() (*Global, error) {
 	return m.Load()
 }
 
-// EnvLocalValue is the value of the environment variable backing [Runtime.Environment] which is used to denote a local development environment
+// EnvLocalValue is the value of the environment variable backing [Runtime.Environment] which is used to denote a local development environment.
 const EnvLocalValue = "dev"
 
-// IsLocalEnvironment returns whether the application in running in local-development environment
-func (conf Runtime) IsLocalEnvironment() bool {
+// IsLocalEnvironment returns whether the application in running in local-development environment.
+func (conf *Runtime) IsLocalEnvironment() bool {
 	return conf.Environment == EnvLocalValue
 }
 
-// load processes configuration from environment variables with the given prefix
+// load processes configuration from environment variables with the given prefix.
 func load(prefix string, cfg any) error {
 	return processStruct(prefix, reflect.ValueOf(cfg).Elem(), "")
 }
 
-// processStruct recursively processes struct fields
+// processStruct recursively processes struct fields.
 func processStruct(prefix string, v reflect.Value, parentPath string) error {
 	t := v.Type()
 
@@ -169,7 +174,7 @@ func processStruct(prefix string, v reflect.Value, parentPath string) error {
 	return nil
 }
 
-// processField processes a single struct field
+// processField processes a single struct field.
 func processField(field reflect.Value, fieldType reflect.StructField, envVarName string) error {
 	defaultValue := fieldType.Tag.Get("default")
 	required := fieldType.Tag.Get("required") == "true"
@@ -181,7 +186,7 @@ func processField(field reflect.Value, fieldType reflect.StructField, envVarName
 	}
 
 	if required && envValue == "" {
-		return fmt.Errorf("required environment variable %s is not set", envVarName)
+		return fmt.Errorf("%s: %w", envVarName, ErrVariableRequired)
 	}
 
 	if envValue == "" {
@@ -191,7 +196,7 @@ func processField(field reflect.Value, fieldType reflect.StructField, envVarName
 	return setFieldValue(field, envValue, envVarName)
 }
 
-// setFieldValue sets the field value based on its type
+// setFieldValue sets the field value based on its type.
 func setFieldValue(field reflect.Value, value, envVarName string) error {
 	switch field.Kind() {
 	case reflect.String:
@@ -200,14 +205,14 @@ func setFieldValue(field reflect.Value, value, envVarName string) error {
 		if field.Type() == reflect.TypeOf(time.Duration(0)) {
 			duration, err := time.ParseDuration(value)
 			if err != nil {
-				return fmt.Errorf("invalid duration value for %s: %s", envVarName, value)
+				return fmt.Errorf("%s - %s: %w", envVarName, value, ErrVariableMalformed)
 			}
 
 			field.SetInt(int64(duration))
 		} else {
 			intVal, err := strconv.ParseInt(value, 10, 64)
 			if err != nil {
-				return fmt.Errorf("invalid integer value for %s: %s", envVarName, value)
+				return fmt.Errorf("%s - %s: %w", envVarName, value, ErrVariableMalformed)
 			}
 
 			field.SetInt(intVal)
@@ -215,32 +220,32 @@ func setFieldValue(field reflect.Value, value, envVarName string) error {
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		uintVal, err := strconv.ParseUint(value, 10, 64)
 		if err != nil {
-			return fmt.Errorf("invalid unsigned integer value for %s: %s", envVarName, value)
+			return fmt.Errorf("%s - %s: %w", envVarName, value, ErrVariableMalformed)
 		}
 
 		field.SetUint(uintVal)
 	case reflect.Float32, reflect.Float64:
 		floatVal, err := strconv.ParseFloat(value, 64)
 		if err != nil {
-			return fmt.Errorf("invalid float value for %s: %s", envVarName, value)
+			return fmt.Errorf("%s - %s: %w", envVarName, value, ErrVariableMalformed)
 		}
 
 		field.SetFloat(floatVal)
 	case reflect.Bool:
 		boolVal, err := strconv.ParseBool(value)
 		if err != nil {
-			return fmt.Errorf("invalid boolean value for %s: %s", envVarName, value)
+			return fmt.Errorf("%s - %s: %w", envVarName, value, ErrVariableMalformed)
 		}
 
 		field.SetBool(boolVal)
 	default:
-		return fmt.Errorf("unsupported field type %s for %s", field.Kind(), envVarName)
+		return fmt.Errorf("%s - %s: %w", field.Kind(), envVarName, ErrVariableMalformed)
 	}
 
 	return nil
 }
 
-// buildEnvVarName builds the environment variable name from prefix and field path
+// buildEnvVarName builds the environment variable name from prefix and field path.
 func buildEnvVarName(prefix, parentPath, fieldName string) string {
 	parts := []string{CamelToScreamingSnake(prefix)}
 
@@ -253,7 +258,7 @@ func buildEnvVarName(prefix, parentPath, fieldName string) string {
 	return strings.Join(parts, "_")
 }
 
-// buildPath builds the path for nested structs
+// buildPath builds the path for nested structs.
 func buildPath(parentPath, fieldName string) string {
 	if parentPath == "" {
 		return fieldName
@@ -262,7 +267,7 @@ func buildPath(parentPath, fieldName string) string {
 	return parentPath + "_" + fieldName
 }
 
-// CamelToScreamingSnake converts camelCase to SCREAMING_SNAKE_CASE
+// CamelToScreamingSnake converts camelCase to SCREAMING_SNAKE_CASE.
 func CamelToScreamingSnake(str string) string {
 	var result strings.Builder
 
@@ -283,7 +288,7 @@ func CamelToScreamingSnake(str string) string {
 	return strings.ToUpper(result.String())
 }
 
-// SlogLevel return the appropriate [slog.Level] for given [Runtime]
+// SlogLevel return the appropriate [slog.Level] for given [Runtime].
 func (conf *Runtime) SlogLevel() slog.Level {
 	if conf.IsLocalEnvironment() {
 		return slog.LevelDebug

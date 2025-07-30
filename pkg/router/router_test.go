@@ -13,6 +13,8 @@ import (
 )
 
 func TestChain(t *testing.T) {
+	t.Parallel()
+
 	used := ""
 
 	mw1 := func(next http.Handler) http.Handler {

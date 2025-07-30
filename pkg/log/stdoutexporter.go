@@ -39,6 +39,8 @@ const (
 	reset = "\033[0m"
 )
 
+var ErrCodeFilePathMalformed = fmt.Errorf("unexpected source filepath")
+
 // Exporter is a custom log exporter that formats and outputs log records to stdout.
 // It uses the OpenTelemetry SDK's stdoutlog.Exporter as a base, but formats the output
 // to make it human-readable and color-coded for different severity levels.
@@ -72,7 +74,7 @@ func appendSourceAttrs(
 		// path to make it relative to application root.
 		reg, err := regexp.Compile(`^/` + workdir + `\w+/(.+)`)
 		if err != nil {
-			return attrs, nil
+			return nil, fmt.Errorf("%s: %w", filepath, ErrCodeFilePathMalformed)
 		}
 
 		path := reg.ReplaceAllString(filepath, "$1")

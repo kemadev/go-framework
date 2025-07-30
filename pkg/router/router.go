@@ -1,6 +1,7 @@
 // Copyright 2025 kemadev
 // SPDX-License-Identifier: MPL-2.0
 
+//
 // [this nice article]: https://www.alexedwards.net/blog/organize-your-go-middleware-without-dependencies
 // [Alex Edwards]: https://www.alexedwards.net/
 package router
@@ -15,20 +16,6 @@ import (
 )
 
 const ServerRootSpanName = "server"
-
-type chain []func(http.Handler) http.Handler
-
-func (c chain) thenFunc(h http.HandlerFunc) http.Handler {
-	return c.then(h)
-}
-
-func (c chain) then(h http.Handler) http.Handler {
-	for _, mw := range slices.Backward(c) {
-		h = mw(h)
-	}
-
-	return h
-}
 
 type PatternHolder struct {
 	Pattern string
