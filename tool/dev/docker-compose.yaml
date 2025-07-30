@@ -4,9 +4,6 @@ networks:
   app:
     driver: bridge
     enable_ipv6: true
-    ipam:
-       config:
-         - subnet: 2001:db8::/64
 
 secrets:
   netrc:
@@ -37,7 +34,7 @@ services:
       KEMA_RUNTIME_APP_NAMESPACE: whatever
       KEMA_OBSERVABILITY_ENDPOINT_URL: http://kemadev-go-framework-jaeger-1:4317
       # Set this to a positive value to export metrics to stdout
-      KEMA_OBSERVABILITY_METRICS_EXPORT_INTERVAL_SECONDS: -1
+      KEMA_OBSERVABILITY_METRICS_EXPORT_INTERVAL: -1
     ports:
       - 8080:8080
     restart: always
