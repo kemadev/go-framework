@@ -60,24 +60,24 @@ func TestChain(t *testing.T) {
 		})
 	}
 
-	hf := func(w http.ResponseWriter, r *http.Request) {}
+	handler := func(w http.ResponseWriter, r *http.Request) {}
 
-	m := http.NewServeMux()
+	mux := http.NewServeMux()
 
-	c1 := chain{mw1, mw2}
+	chain1 := chain{mw1, mw2}
 
-	m.Handle("GET /{$}", c1.thenFunc(hf))
+	mux.Handle("GET /{$}", chain1.thenFunc(handler))
 
-	c2 := append(c1, mw3, mw4)
-	m.Handle("GET /foo", c2.thenFunc(hf))
+	chain2 := append(chain1, mw3, mw4)
+	mux.Handle("GET /foo", chain2.thenFunc(handler))
 
-	c3 := append(c2, mw5)
-	m.Handle("GET /nested/foo", c3.thenFunc(hf))
+	chain3 := append(chain2, mw5)
+	mux.Handle("GET /nested/foo", chain3.thenFunc(handler))
 
-	c4 := append(c1, mw6)
-	m.Handle("GET /bar", c4.thenFunc(hf))
+	chain4 := append(chain1, mw6)
+	mux.Handle("GET /bar", chain4.thenFunc(handler))
 
-	m.Handle("GET /baz", c1.thenFunc(hf))
+	mux.Handle("GET /baz", chain1.thenFunc(handler))
 
 	tests := []struct {
 		RequestMethod  string
@@ -120,23 +120,23 @@ func TestChain(t *testing.T) {
 	for _, test := range tests {
 		used = ""
 
-		r, err := http.NewRequest(test.RequestMethod, test.RequestPath, nil)
+		req, err := http.NewRequest(test.RequestMethod, test.RequestPath, nil)
 		if err != nil {
 			t.Errorf("NewRequest: %s", err)
 		}
 
 		rr := httptest.NewRecorder()
-		m.ServeHTTP(rr, r)
+		mux.ServeHTTP(rr, req)
 
-		rs := rr.Result()
+		resp := rr.Result()
 
-		if rs.StatusCode != test.ExpectedStatus {
+		if resp.StatusCode != test.ExpectedStatus {
 			t.Errorf(
 				"%s %s: expected status %d but was %d",
 				test.RequestMethod,
 				test.RequestPath,
 				test.ExpectedStatus,
-				rs.StatusCode,
+				resp.StatusCode,
 			)
 		}
 
