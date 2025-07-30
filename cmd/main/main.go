@@ -40,6 +40,8 @@ func FooBar(w http.ResponseWriter, r *http.Request) {
 	// Get user from context (set by AuthMiddleware)
 	user := ctx.Local("user")
 
+	ctx.Logger("foo").Error("mgc")
+
 	// Get span context for logging
 	span := ctx.Span(r)
 	spanCtx := span.SpanContext()
