@@ -23,9 +23,19 @@ func main() {
 
 	// Add middlewares
 	r.UseInstrumented("logging-middleware", LoggingMiddleware)
-	r.UseInstrumented("auth-middleware", AuthMiddleware)
-	r.UseInstrumented("timing-middleware", TimingMiddleware)
 
+	// Create groups
+	r.Group(func(r *router.Router) {
+		r.UseInstrumented("auth-middleware", AuthMiddleware)
+		r.UseInstrumented("timing-middleware", TimingMiddleware)
+
+		r.HandleInstrumented(
+			"GET /auth/{bar}",
+			http.HandlerFunc(FooBar),
+		)
+	})
+
+	// Add handlers
 	r.HandleInstrumented(
 		"GET /foo/{bar}",
 		http.HandlerFunc(FooBar),
