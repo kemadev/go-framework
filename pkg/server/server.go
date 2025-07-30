@@ -21,7 +21,7 @@ import (
 
 const (
 	// DefaultLoggerName is the name of the default [slog.Logger]
-	DefaultLoggerName = "default"
+	DefaultLoggerName = "github.com/kemadev/go-framework"
 )
 
 // Run starts an HTTP server with [mux] as its handler and manages its lifecycle. It takes care of loading
