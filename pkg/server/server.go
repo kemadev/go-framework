@@ -54,6 +54,7 @@ func Run(handler http.Handler) {
 
 	// Set default logger for the application
 	slog.SetLogLoggerLevel(conf.Runtime.SlogLevel())
+	// Use default logger provider configured by [otel.SetupOTelSDK]
 	slog.SetDefault(otelslog.NewLogger(DefaultLoggerName, otelslog.WithSource(true)))
 
 	// Global program return code
