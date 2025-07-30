@@ -93,7 +93,7 @@ func SetupOTelSDK(
 		),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failure creating OpenTelemetry resource: %w", err)
+		return nil, fmt.Errorf("error creating OpenTelemetry resource: %w", err)
 	}
 
 	// Set up logger provider.
@@ -101,7 +101,7 @@ func SetupOTelSDK(
 	if err != nil {
 		handleErr(err)
 
-		return nil, fmt.Errorf("failure creating OpenTelemetry logger provider: %w", err)
+		return nil, fmt.Errorf("error creating OpenTelemetry logger provider: %w", err)
 	}
 
 	shutdownFuncs = append(shutdownFuncs, loggerProvider.Shutdown)
@@ -112,7 +112,7 @@ func SetupOTelSDK(
 	if err != nil {
 		handleErr(err)
 
-		return nil, fmt.Errorf("failure creating OpenTelemetry meter provider: %w", err)
+		return nil, fmt.Errorf("error creating OpenTelemetry meter provider: %w", err)
 	}
 
 	shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
@@ -123,7 +123,7 @@ func SetupOTelSDK(
 	if err != nil {
 		handleErr(err)
 
-		return nil, fmt.Errorf("failure creating OpenTelemetry tracer provider: %w", err)
+		return nil, fmt.Errorf("error creating OpenTelemetry tracer provider: %w", err)
 	}
 
 	shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
@@ -148,7 +148,7 @@ func newLoggerProvider(
 ) (*log.LoggerProvider, error) {
 	stdoutExporter, err := klog.NewExporter()
 	if err != nil {
-		return nil, fmt.Errorf("failure initializing OpenTelemetry logger: %w", err)
+		return nil, fmt.Errorf("error initializing OpenTelemetry logger: %w", err)
 	}
 
 	stdoutSimpleProcessor := log.NewSimpleProcessor(
@@ -161,7 +161,7 @@ func newLoggerProvider(
 		otlploggrpc.WithEndpointURL(conf.Observability.EndpointURL),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failure initializing OpenTelemetry logger: %w", err)
+		return nil, fmt.Errorf("error initializing OpenTelemetry logger: %w", err)
 	}
 
 	grpcBatchProcessor := log.NewBatchProcessor(
@@ -220,7 +220,7 @@ func newMeterProvider(
 				stdoutmetric.WithPrettyPrint(),
 			)
 			if err != nil {
-				return nil, fmt.Errorf("failure initializing OpenTelemetry metric: %w", err)
+				return nil, fmt.Errorf("error initializing OpenTelemetry metric: %w", err)
 			}
 			exporter = exp
 		}
@@ -231,7 +231,7 @@ func newMeterProvider(
 			otlpmetricgrpc.WithEndpointURL(conf.Observability.EndpointURL),
 		)
 		if err != nil {
-			return nil, fmt.Errorf("failure initializing OpenTelemetry metric: %w", err)
+			return nil, fmt.Errorf("error initializing OpenTelemetry metric: %w", err)
 		}
 		exporter = exp
 	}
@@ -265,7 +265,7 @@ func newTracerProvider(
 		otlptracegrpc.WithEndpointURL(conf.Observability.EndpointURL),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failure initializing OpenTelemetry tracer: %w", err)
+		return nil, fmt.Errorf("error initializing OpenTelemetry tracer: %w", err)
 	}
 
 	batcher := trace.WithBatcher(exp)

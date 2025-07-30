@@ -40,14 +40,14 @@ func Run(configManager *config.Manager, handler http.Handler) {
 	// Get app config
 	conf, err := configManager.Get()
 	if err != nil {
-		log.FallbackError(fmt.Errorf("failure getting config: %w", err))
+		log.FallbackError(fmt.Errorf("error getting config: %w", err))
 		os.Exit(1)
 	}
 
 	// Set up OpenTelemetry.
 	otelShutdown, err := otel.SetupOTelSDK(sigCtx, *conf)
 	if err != nil {
-		log.FallbackError(fmt.Errorf("failure setting up OpenTelemetry SDK: %w", err))
+		log.FallbackError(fmt.Errorf("error setting up OpenTelemetry SDK: %w", err))
 		os.Exit(1)
 	}
 
@@ -68,7 +68,7 @@ func Run(configManager *config.Manager, handler http.Handler) {
 
 		shutdownErr := otelShutdown(shutdownCtx)
 		if shutdownErr != nil {
-			log.FallbackError(fmt.Errorf("failure shutting down OpenTelemetry: %w", shutdownErr))
+			log.FallbackError(fmt.Errorf("error shutting down OpenTelemetry: %w", shutdownErr))
 			// Do not override previous error code
 			if exitCode == 0 {
 				exitCode = 1
@@ -104,7 +104,7 @@ func Run(configManager *config.Manager, handler http.Handler) {
 	select {
 	case err = <-srvErr:
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.FallbackError(fmt.Errorf("failure running HTTP server: %w", err))
+			log.FallbackError(fmt.Errorf("error running HTTP server: %w", err))
 			exitCode = 1
 			return
 		}
@@ -128,7 +128,7 @@ func Run(configManager *config.Manager, handler http.Handler) {
 
 	err = srv.Shutdown(shutdownCtx)
 	if err != nil {
-		log.FallbackError(fmt.Errorf("failure shutting down HTTP server: %w", err))
+		log.FallbackError(fmt.Errorf("error shutting down HTTP server: %w", err))
 		exitCode = 1
 	}
 }
