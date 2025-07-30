@@ -264,6 +264,14 @@ linters:
       http-status-code: true
     usetesting:
       os-temp-dir: true
+    varnamelen:
+      ignore-decls:
+        - t testing.T
+        - e error
+        - i int
+        - T any
+        - r *http.Request
+        - w http.ResponseWriter
     wsl:
       force-err-cuddling: true
 
