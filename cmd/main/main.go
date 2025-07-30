@@ -9,15 +9,17 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/kemadev/go-framework/pkg/kctx"
 	"github.com/kemadev/go-framework/pkg/router"
 	"github.com/kemadev/go-framework/pkg/server"
-	"go.opentelemetry.io/otel/baggage"
 	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 	"go.opentelemetry.io/otel/trace"
 )
 
 func main() {
 	r := router.New()
+
+	r.UseInstrumented("kctx-injection", kctx.Middleware)
 
 	// Add middlewares
 	r.UseInstrumented("logging-middleware", LoggingMiddleware)
@@ -33,20 +35,20 @@ func main() {
 }
 
 func FooBar(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx := kctx.FromRequest(r)
 
 	// Get user from context (set by AuthMiddleware)
-	user := ctx.Value("user")
+	user := ctx.Local("user")
 
 	// Get span context for logging
-	span := trace.SpanFromContext(ctx)
+	span := ctx.Span(r)
 	spanCtx := span.SpanContext()
 	fmt.Printf("[HANDLER] TraceID: %s, SpanID: %s, User: %v\n",
 		spanCtx.TraceID().String(),
 		spanCtx.SpanID().String(),
 		user,
 	)
-	bag := baggage.FromContext(ctx)
+	bag := ctx.Baggage(r)
 	span.AddEvent(
 		"handling this...",
 		trace.WithAttributes(semconv.UserID(bag.Member(string(semconv.UserIDKey)).Value())),
