@@ -20,16 +20,14 @@ func main() {
 	r := router.New()
 
 	// Add middlewares
-	r.UseInstrumented("kctx-injection", kctx.Middleware)
+	r.UseInstrumented("kctx-middleware", kctx.Middleware)
 	r.UseInstrumented("logging-middleware", LoggingMiddleware)
 
 	// Create groups
 	r.Group(func(r *router.Router) {
 		r.UseInstrumented("auth-middleware", AuthMiddleware)
-		r.UseInstrumented("timing-middleware", TimingMiddleware)
 
 		r.Group(func(r *router.Router) {
-			r.UseInstrumented("auth-middleware", AuthMiddleware)
 			r.UseInstrumented("timing-middleware", TimingMiddleware)
 
 			r.HandleInstrumented(
