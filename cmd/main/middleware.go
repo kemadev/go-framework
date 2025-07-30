@@ -1,3 +1,6 @@
+// Copyright 2025 kemadev
+// SPDX-License-Identifier: MPL-2.0
+
 package main
 
 import (
@@ -11,7 +14,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-// LoggingMiddleware logs request details
+// LoggingMiddleware logs request details.
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := kctx.FromRequest(r)
@@ -28,7 +31,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// AuthMiddleware simulates authentication
+// AuthMiddleware simulates authentication.
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := kctx.FromRequest(r)
@@ -44,6 +47,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		if err != nil {
 			fmt.Printf("Failed to create baggage member: %v\n", err)
 			next.ServeHTTP(w, r)
+
 			return
 		}
 
@@ -51,6 +55,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		if err != nil {
 			fmt.Printf("Failed to set baggage: %v\n", err)
 			next.ServeHTTP(w, r)
+
 			return
 		}
 
@@ -68,7 +73,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// TimingMiddleware logs timing
+// TimingMiddleware logs timing.
 func TimingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := kctx.FromRequest(r)

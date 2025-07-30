@@ -1,3 +1,6 @@
+// Copyright 2025 kemadev
+// SPDX-License-Identifier: MPL-2.0
+
 package monitoring
 
 import (
@@ -32,7 +35,7 @@ type ReadinessResponse struct {
 	Checks         map[string]Status `json:"checks"`
 }
 
-// ReadinessHandler handles readiness checks
+// ReadinessHandler handles readiness checks.
 func ReadinessHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		kclient := khttp.ClientInfo{
@@ -74,12 +77,12 @@ func ReadinessHandler() http.HandlerFunc {
 	}
 }
 
-// GetLivenessStatus return readiness status
+// GetLivenessStatus return readiness status.
 func GetReadinessStatus(checks CheckResults) Status {
 	return StatusOK
 }
 
-// CheckReadiness performs services checks and returns a map of results
+// CheckReadiness performs services checks and returns a map of results.
 func CheckReadiness() CheckResults {
 	return CheckResults{}
 }

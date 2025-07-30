@@ -1,3 +1,6 @@
+// Copyright 2025 kemadev
+// SPDX-License-Identifier: MPL-2.0
+
 package log
 
 import (
@@ -20,10 +23,13 @@ var (
 // This function is safe for concurrent use.
 func GetPackageLogger(packageName string) *slog.Logger {
 	loggerMutex.RLock()
+
 	if logger, exists := loggerCache[packageName]; exists {
 		loggerMutex.RUnlock()
+
 		return logger
 	}
+
 	loggerMutex.RUnlock()
 
 	loggerMutex.Lock()
@@ -37,5 +43,6 @@ func GetPackageLogger(packageName string) *slog.Logger {
 
 	logger = otelslog.NewLogger(packageName)
 	loggerCache[packageName] = logger
+
 	return logger
 }

@@ -87,6 +87,7 @@ func SetupOTelSDK(
 					if err != nil {
 						return fmt.Sprintf("%+v", conf)
 					}
+
 					return string(d)
 				}()),
 			},
@@ -183,6 +184,7 @@ func newLoggerProvider(
 			log.WithResource(res),
 			log.WithProcessor(stdoutProcessor),
 		)
+
 		return provider, nil
 	}
 
@@ -212,6 +214,7 @@ func newMeterProvider(
 		// Do not export metrics when export interval is 0 or below
 		if conf.Observability.MetricsExportInterval <= time.Duration(0) {
 			prov := nometric.NewMeterProvider()
+
 			return &metric.MeterProvider{
 				MeterProvider: prov,
 			}, nil
@@ -222,6 +225,7 @@ func newMeterProvider(
 			if err != nil {
 				return nil, fmt.Errorf("error initializing OpenTelemetry metric: %w", err)
 			}
+
 			exporter = exp
 		}
 	} else {
@@ -233,6 +237,7 @@ func newMeterProvider(
 		if err != nil {
 			return nil, fmt.Errorf("error initializing OpenTelemetry metric: %w", err)
 		}
+
 		exporter = exp
 	}
 
@@ -253,7 +258,7 @@ func newMeterProvider(
 }
 
 // newTracerProvider returns a new OpenTelemetry tracer provider, and an error if any occurred during the setup.
-// The tracer provider is configured to batch export traces to the OpenTelemetry collector
+// The tracer provider is configured to batch export traces to the OpenTelemetry collector.
 func newTracerProvider(
 	ctx context.Context,
 	res *resource.Resource,

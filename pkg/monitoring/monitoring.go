@@ -1,20 +1,23 @@
+// Copyright 2025 kemadev
+// SPDX-License-Identifier: MPL-2.0
+
 package monitoring
 
 import (
 	"net/http"
 )
 
-// Status represents the health status of a service or component
+// Status represents the health status of a service or component.
 type Status int
 
 const (
-	// StatusOK means that the app is running fine
+	// StatusOK means that the app is running fine.
 	StatusOK Status = iota
-	// StatusDegraded means that the app is running, yet has some minor, non-critical issues
+	// StatusDegraded means that the app is running, yet has some minor, non-critical issues.
 	StatusDegraded
-	// StatusDown means that the app in unable to process requests
+	// StatusDown means that the app in unable to process requests.
 	StatusDown
-	// StatusUnknown means that it is impossible to determine the status of the application
+	// StatusUnknown means that it is impossible to determine the status of the application.
 	StatusUnknown
 )
 
@@ -28,7 +31,7 @@ const (
 	HTTPReadinessCheckPath = "/readyz"
 )
 
-// String returns the string representation of the status
+// String returns the string representation of the status.
 func (s Status) String() string {
 	switch s {
 	case StatusOK:
@@ -44,7 +47,7 @@ func (s Status) String() string {
 	}
 }
 
-// HTTPCode returns the appropriate HTTP status code for the status
+// HTTPCode returns the appropriate HTTP status code for the status.
 func (s Status) HTTPCode() int {
 	switch s {
 	case StatusOK:
@@ -61,13 +64,13 @@ func (s Status) HTTPCode() int {
 }
 
 // IsHealthy returns true if the status indicates the service is healthy.
-// Status degraded is still considered as healthy
+// Status degraded is still considered as healthy.
 func (s Status) IsHealthy() bool {
 	return s == StatusOK || s == StatusDegraded
 }
 
 // IsReady returns true if the status indicates the service is ready
-// Status degraded is still considered as ready
+// Status degraded is still considered as ready.
 func (s Status) IsReady() bool {
 	return s == StatusOK || s == StatusDegraded
 }

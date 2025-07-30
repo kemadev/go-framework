@@ -1,3 +1,6 @@
+// Copyright 2025 kemadev
+// SPDX-License-Identifier: MPL-2.0
+
 package monitoring
 
 import (
@@ -18,7 +21,7 @@ type LivenessResponse struct {
 	Checks      map[string]Status `json:"checks"`
 }
 
-// LivenessHandler handles liveness checks
+// LivenessHandler handles liveness checks.
 func LivenessHandler(conf config.Runtime) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		kclient := khttp.ClientInfo{
@@ -44,14 +47,14 @@ func LivenessHandler(conf config.Runtime) http.HandlerFunc {
 	}
 }
 
-// GetLivenessStatus return liveness status
+// GetLivenessStatus return liveness status.
 func GetLivenessStatus(checks CheckResults) Status {
 	// TODO Obviously implement this status check
 	return StatusOK
 }
 
 // CheckLiveness performs liveness checks and returns a map of results
-// It always returns [StatusOK] as responding to liveness probe via HTTP means that the app is alive
+// It always returns [StatusOK] as responding to liveness probe via HTTP means that the app is alive.
 func CheckLiveness() CheckResults {
 	// TODO Obviously implement this status check
 	return CheckResults{

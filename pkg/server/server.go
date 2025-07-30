@@ -1,3 +1,6 @@
+// Copyright 2025 kemadev
+// SPDX-License-Identifier: MPL-2.0
+
 package server
 
 import (
@@ -20,7 +23,7 @@ import (
 )
 
 const (
-	// DefaultLoggerName is the name of the default [slog.Logger]
+	// DefaultLoggerName is the name of the default [slog.Logger].
 	DefaultLoggerName = "github.com/kemadev/go-framework"
 )
 
@@ -39,6 +42,7 @@ func Run(handler http.Handler) {
 
 	// Get app config
 	configManager := config.NewManager()
+
 	conf, err := configManager.Get()
 	if err != nil {
 		log.FallbackError(fmt.Errorf("error getting config: %w", err))
@@ -107,7 +111,9 @@ func Run(handler http.Handler) {
 	case err = <-srvErr:
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.FallbackError(fmt.Errorf("error running HTTP server: %w", err))
+
 			exitCode = 1
+
 			return
 		}
 	case <-sigCtx.Done():
@@ -131,6 +137,7 @@ func Run(handler http.Handler) {
 	err = srv.Shutdown(shutdownCtx)
 	if err != nil {
 		log.FallbackError(fmt.Errorf("error shutting down HTTP server: %w", err))
+
 		exitCode = 1
 	}
 }

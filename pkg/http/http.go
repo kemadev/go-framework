@@ -66,6 +66,7 @@ func SendJSONResponse(
 			err,
 		)
 	}
+
 	SendResponse(clientInfo, http.StatusOK, ContentTypeJSON, resp)
 }
 

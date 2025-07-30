@@ -1,3 +1,6 @@
+// Copyright 2025 kemadev
+// SPDX-License-Identifier: MPL-2.0
+
 package router
 
 import (
@@ -12,6 +15,7 @@ func TestChain(t *testing.T) {
 	mw1 := func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			used += "1"
+
 			next.ServeHTTP(w, r)
 		})
 	}
@@ -19,6 +23,7 @@ func TestChain(t *testing.T) {
 	mw2 := func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			used += "2"
+
 			next.ServeHTTP(w, r)
 		})
 	}
@@ -26,6 +31,7 @@ func TestChain(t *testing.T) {
 	mw3 := func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			used += "3"
+
 			next.ServeHTTP(w, r)
 		})
 	}
@@ -33,6 +39,7 @@ func TestChain(t *testing.T) {
 	mw4 := func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			used += "4"
+
 			next.ServeHTTP(w, r)
 		})
 	}
@@ -40,6 +47,7 @@ func TestChain(t *testing.T) {
 	mw5 := func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			used += "5"
+
 			next.ServeHTTP(w, r)
 		})
 	}
@@ -47,6 +55,7 @@ func TestChain(t *testing.T) {
 	mw6 := func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			used += "6"
+
 			next.ServeHTTP(w, r)
 		})
 	}

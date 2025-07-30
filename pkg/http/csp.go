@@ -1,3 +1,6 @@
+// Copyright 2025 kemadev
+// SPDX-License-Identifier: MPL-2.0
+
 package http
 
 import (
@@ -93,15 +96,19 @@ func sourceToString(src Source) string {
 	if src.None {
 		return "'none'"
 	}
+
 	if src.Expression != "" {
 		return src.Expression
 	}
+
 	if src.Host.String() != "" {
 		return src.Host.String()
 	}
+
 	if src.Scheme != "" {
 		return src.Scheme + ":"
 	}
+
 	return "'none'"
 }
 
@@ -131,6 +138,7 @@ func sandboxToString(sandbox string) string {
 	if sandbox != "" {
 		return sandbox
 	}
+
 	return ""
 }
 
@@ -210,7 +218,7 @@ func NewCSP(config CSPConfig) string {
 	return final
 }
 
-func mergeCSPConfigs(base CSPConfig, override CSPConfig) CSPConfig {
+func mergeCSPConfigs(base, override CSPConfig) CSPConfig {
 	merged := CSPConfig{
 		Fetch: CSPFetchConfig{
 			DefaultSrc:  mergeFetchSrc(base.Fetch.DefaultSrc, override.Fetch.DefaultSrc),
@@ -248,7 +256,7 @@ func mergeCSPConfigs(base CSPConfig, override CSPConfig) CSPConfig {
 	return merged
 }
 
-func mergeFetchSrc(base FetchSrc, override FetchSrc) FetchSrc {
+func mergeFetchSrc(base, override FetchSrc) FetchSrc {
 	if hasFetchSrcContent(override) {
 		return FetchSrc{
 			Sources:     mergeSourceSlices(base.Sources, override.Sources),
@@ -256,31 +264,35 @@ func mergeFetchSrc(base FetchSrc, override FetchSrc) FetchSrc {
 			Integrities: mergeIntegritySlices(base.Integrities, override.Integrities),
 		}
 	}
+
 	return base
 }
 
-func mergeSource(base Source, override Source) Source {
+func mergeSource(base, override Source) Source {
 	if hasSourceContent(override) {
 		return override
 	}
+
 	return base
 }
 
-func mergeString(base string, override string) string {
+func mergeString(base, override string) string {
 	if override != "" {
 		return override
 	}
+
 	return base
 }
 
-func mergeBool(base bool, override bool) bool {
+func mergeBool(base, override bool) bool {
 	if override {
 		return override
 	}
+
 	return base
 }
 
-func mergeSourceSlices(base []Source, override []Source) []Source {
+func mergeSourceSlices(base, override []Source) []Source {
 	if len(override) > 0 {
 		merged := make([]Source, len(base))
 		copy(merged, base)
@@ -290,12 +302,14 @@ func mergeSourceSlices(base []Source, override []Source) []Source {
 				merged = append(merged, overrideSrc)
 			}
 		}
+
 		return merged
 	}
+
 	return base
 }
 
-func mergeStringSlices(base []string, override []string) []string {
+func mergeStringSlices(base, override []string) []string {
 	if len(override) > 0 {
 		merged := make([]string, len(base))
 		copy(merged, base)
@@ -305,12 +319,14 @@ func mergeStringSlices(base []string, override []string) []string {
 				merged = append(merged, overrideStr)
 			}
 		}
+
 		return merged
 	}
+
 	return base
 }
 
-func mergeIntegritySlices(base []IntegrityConfig, override []IntegrityConfig) []IntegrityConfig {
+func mergeIntegritySlices(base, override []IntegrityConfig) []IntegrityConfig {
 	if len(override) > 0 {
 		merged := make([]IntegrityConfig, len(base))
 		copy(merged, base)
@@ -320,8 +336,10 @@ func mergeIntegritySlices(base []IntegrityConfig, override []IntegrityConfig) []
 				merged = append(merged, overrideIntegrity)
 			}
 		}
+
 		return merged
 	}
+
 	return base
 }
 
@@ -343,6 +361,7 @@ func containsSource(sources []Source, target Source) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -352,6 +371,7 @@ func containsString(strings []string, target string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -361,5 +381,6 @@ func containsIntegrity(integrities []IntegrityConfig, target IntegrityConfig) bo
 			return true
 		}
 	}
+
 	return false
 }

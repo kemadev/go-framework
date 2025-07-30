@@ -1,3 +1,6 @@
+// Copyright 2025 kemadev
+// SPDX-License-Identifier: MPL-2.0
+
 package config
 
 import (
@@ -30,19 +33,19 @@ type Global struct {
 // Server holds the HTTP server configuration
 type Server struct {
 	// BindAddr is the server bind addressfor the HTTP server
-	BindAddr string `required:"true" default:"[::]"`
+	BindAddr string `default:"[::]"            required:"true"`
 	// BindPort is the server bind portfor the HTTP server
-	BindPort int `required:"true" default:"8080"`
+	BindPort int `default:"8080"            required:"true"`
 	// ReadTimeout is the HTTP read timeout for the HTTP server
-	ReadTimeout time.Duration `required:"true" default:"15s"`
+	ReadTimeout time.Duration `default:"15s"             required:"true"`
 	// WriteTimeout is the HTTP write timeout for the HTTP server
-	WriteTimeout time.Duration `required:"true" default:"15s"`
+	WriteTimeout time.Duration `default:"15s"             required:"true"`
 	// IdleTimeout is the HTTP idle timeout for the HTTP server
-	IdleTimeout time.Duration `required:"true" default:"60s"`
+	IdleTimeout time.Duration `default:"60s"             required:"true"`
 	// ProxyHeader is the proxy header for forwarded entity
-	ProxyHeader string `required:"true" default:"X-Forwarded-For"`
+	ProxyHeader string `default:"X-Forwarded-For" required:"true"`
 	// ShutdownGracePeriod is the grace period to give the server before canceling contexits t upon shutdown
-	ShutdownGracePeriod time.Duration `required:"true" default:"5s"`
+	ShutdownGracePeriod time.Duration `default:"5s"              required:"true"`
 }
 
 // Runtime holds the runtime configuration
@@ -89,11 +92,14 @@ func NewManager() *Manager {
 func (m *Manager) Load() (*Global, error) {
 	m.once.Do(func() {
 		var cfg Global
+
 		err := load(ConfigurationEnvVarPrefix, &cfg)
 		if err != nil {
 			m.err = fmt.Errorf("can't process config: %w", err)
+
 			return
 		}
+
 		m.config = &cfg
 	})
 
@@ -126,7 +132,7 @@ func (cfg Runtime) IsLocalEnvironment() bool {
 }
 
 // load processes configuration from environment variables with the given prefix
-func load(prefix string, cfg interface{}) error {
+func load(prefix string, cfg any) error {
 	return processStruct(prefix, reflect.ValueOf(cfg).Elem(), "")
 }
 
@@ -186,7 +192,7 @@ func processField(field reflect.Value, fieldType reflect.StructField, envVarName
 }
 
 // setFieldValue sets the field value based on its type
-func setFieldValue(field reflect.Value, value string, envVarName string) error {
+func setFieldValue(field reflect.Value, value, envVarName string) error {
 	switch field.Kind() {
 	case reflect.String:
 		field.SetString(value)
@@ -196,12 +202,14 @@ func setFieldValue(field reflect.Value, value string, envVarName string) error {
 			if err != nil {
 				return fmt.Errorf("invalid duration value for %s: %s", envVarName, value)
 			}
+
 			field.SetInt(int64(duration))
 		} else {
 			intVal, err := strconv.ParseInt(value, 10, 64)
 			if err != nil {
 				return fmt.Errorf("invalid integer value for %s: %s", envVarName, value)
 			}
+
 			field.SetInt(intVal)
 		}
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
@@ -209,18 +217,21 @@ func setFieldValue(field reflect.Value, value string, envVarName string) error {
 		if err != nil {
 			return fmt.Errorf("invalid unsigned integer value for %s: %s", envVarName, value)
 		}
+
 		field.SetUint(uintVal)
 	case reflect.Float32, reflect.Float64:
 		floatVal, err := strconv.ParseFloat(value, 64)
 		if err != nil {
 			return fmt.Errorf("invalid float value for %s: %s", envVarName, value)
 		}
+
 		field.SetFloat(floatVal)
 	case reflect.Bool:
 		boolVal, err := strconv.ParseBool(value)
 		if err != nil {
 			return fmt.Errorf("invalid boolean value for %s: %s", envVarName, value)
 		}
+
 		field.SetBool(boolVal)
 	default:
 		return fmt.Errorf("unsupported field type %s for %s", field.Kind(), envVarName)
@@ -265,6 +276,7 @@ func CamelToScreamingSnake(s string) string {
 				result.WriteRune('_')
 			}
 		}
+
 		result.WriteRune(unicode.ToLower(r))
 	}
 
@@ -276,5 +288,6 @@ func (conf *Runtime) SlogLevel() slog.Level {
 	if conf.IsLocalEnvironment() {
 		return slog.LevelDebug
 	}
+
 	return slog.LevelInfo
 }

@@ -1,3 +1,6 @@
+// Copyright 2025 kemadev
+// SPDX-License-Identifier: MPL-2.0
+
 package kctx
 
 import (
@@ -14,21 +17,23 @@ type Kctx struct {
 	context.Context
 }
 
-// FromRequest extracts Kctx from [net/http.Request]
+// FromRequest extracts Kctx from [net/http.Request].
 func FromRequest(r *http.Request) *Kctx {
 	newCtx, found := fromContext(r.Context())
 	if !found {
 		slog.Warn("kctx not found in context")
 	}
+
 	return newCtx
 }
 
-// FromContext extracts Kctx from [context.Context]
+// FromContext extracts Kctx from [context.Context].
 func FromContext(ctx context.Context) *Kctx {
 	newCtx, found := fromContext(ctx)
 	if !found {
 		slog.Warn("kctx not found in context")
 	}
+
 	return newCtx
 }
 
@@ -40,7 +45,7 @@ func fromContext(ctx context.Context) (*Kctx, bool) {
 	return &Kctx{Context: ctx}, false
 }
 
-// Middleware manages Kctx lifecycle in a [sync.Pool]
+// Middleware manages Kctx lifecycle in a [sync.Pool].
 func Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := context.WithValue(r.Context(), kctxKey, &Kctx{

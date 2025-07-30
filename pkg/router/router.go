@@ -1,3 +1,6 @@
+// Copyright 2025 kemadev
+// SPDX-License-Identifier: MPL-2.0
+
 package router
 
 import (
@@ -21,6 +24,7 @@ func (c chain) then(h http.Handler) http.Handler {
 	for _, mw := range slices.Backward(c) {
 		h = mw(h)
 	}
+
 	return h
 }
 
@@ -35,11 +39,12 @@ func injectPattern(pattern string, next http.Handler) http.Handler {
 		if ok {
 			holder.Pattern = pattern
 		}
+
 		next.ServeHTTP(w, r)
 	})
 }
 
-// Router is an HTTP router
+// Router is an HTTP router.
 type Router struct {
 	globalChain []func(http.Handler) http.Handler
 	routeChain  []func(http.Handler) http.Handler
@@ -47,12 +52,12 @@ type Router struct {
 	*http.ServeMux
 }
 
-// New returns a new HTTP router
+// New returns a new HTTP router.
 func New() *Router {
 	return &Router{ServeMux: http.NewServeMux()}
 }
 
-// Use appends [mw] to the routers chain
+// Use appends [mw] to the routers chain.
 func (r *Router) Use(mw ...func(http.Handler) http.Handler) {
 	if r.isSubRouter {
 		r.routeChain = append(r.routeChain, mw...)
@@ -61,7 +66,7 @@ func (r *Router) Use(mw ...func(http.Handler) http.Handler) {
 	}
 }
 
-// UseInstrumented appends [mw] to the routers chain, wrapping the handler with OpenTelemetry instrumentation
+// UseInstrumented appends [mw] to the routers chain, wrapping the handler with OpenTelemetry instrumentation.
 func (r *Router) UseInstrumented(name string, mw func(http.Handler) http.Handler) {
 	instrumentedMw := func(next http.Handler) http.Handler {
 		return otelhttp.NewHandler(mw(next), name)
@@ -84,41 +89,44 @@ func (r *Router) Group(fn func(r *Router)) {
 	fn(subRouter)
 }
 
-// HandleFunc registers a handler function for a pattern
+// HandleFunc registers a handler function for a pattern.
 func (r *Router) HandleFunc(pattern string, h http.HandlerFunc) {
 	r.Handle(pattern, h)
 }
 
-// Handle registers a handler for a pattern, automatically injecting the pattern into the context
+// Handle registers a handler for a pattern, automatically injecting the pattern into the context.
 func (r *Router) Handle(pattern string, h http.Handler) {
 	for _, mw := range slices.Backward(r.routeChain) {
 		h = mw(h)
 	}
+
 	r.ServeMux.Handle(pattern, h)
 }
 
-// HandleInstrumented registers a handler with otelhttp instrumentation and pattern injection
+// HandleInstrumented registers a handler with otelhttp instrumentation and pattern injection.
 func (r *Router) HandleInstrumented(pattern string, h http.Handler) {
 	h = injectPattern(pattern, h)
 	r.Handle(pattern, otelhttp.NewHandler(h, pattern))
 }
 
-// ServeHTTP implements http.Handler, applying global middleware
+// ServeHTTP implements http.Handler, applying global middleware.
 func (r *Router) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	var h http.Handler = r.ServeMux
 	for _, mw := range slices.Backward(r.globalChain) {
 		h = mw(h)
 	}
+
 	h.ServeHTTP(w, rq)
 }
 
-// ServerHandlerInstrumented returns an instrumented handler for use as http.Server.Handler
+// ServerHandlerInstrumented returns an instrumented handler for use as http.Server.Handler.
 func (r *Router) ServerHandlerInstrumented() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		holder := &PatternHolder{}
 		ctx := context.WithValue(req.Context(), PatternKey{}, holder)
 
 		name := req.Method + " - " + ServerRootSpanName
+
 		ctx, span := otel.Tracer(ServerRootSpanName).Start(ctx, name)
 		defer span.End()
 

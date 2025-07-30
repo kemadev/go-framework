@@ -61,6 +61,7 @@ func FooBar(w http.ResponseWriter, r *http.Request) {
 		spanCtx.SpanID().String(),
 		user,
 	)
+
 	bag := ctx.Baggage(r)
 	span.AddEvent(
 		"handling this...",
@@ -69,5 +70,5 @@ func FooBar(w http.ResponseWriter, r *http.Request) {
 
 	span.SetAttributes(attribute.String("bar", r.PathValue("bar")))
 
-	w.Write([]byte(fmt.Sprintf("Hello, %v! TraceID: %s", user, spanCtx.TraceID().String())))
+	fmt.Fprintf(w, "Hello, %v! TraceID: %s", user, spanCtx.TraceID().String())
 }
