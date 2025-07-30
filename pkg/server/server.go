@@ -24,9 +24,9 @@ const (
 	DefaultLoggerName = "default"
 )
 
-// Run starts an HTTP server with [mux] as its handler and manages its lifecycle. It takes care of
-// OpenTelemetry SDK initialization for the server. However, HTTP routes instrumentation is not handled.
-func Run(configManager *config.Manager, handler http.Handler) {
+// Run starts an HTTP server with [mux] as its handler and manages its lifecycle. It takes care of loading
+// configuration and OpenTelemetry SDK initialization for the server. However, HTTP routes instrumentation is not handled.
+func Run(handler http.Handler) {
 	// Intercept signals
 	sigCtx, stopSig := signal.NotifyContext(
 		context.Background(),
@@ -38,6 +38,7 @@ func Run(configManager *config.Manager, handler http.Handler) {
 	defer stopSig()
 
 	// Get app config
+	configManager := config.NewManager()
 	conf, err := configManager.Get()
 	if err != nil {
 		log.FallbackError(fmt.Errorf("error getting config: %w", err))

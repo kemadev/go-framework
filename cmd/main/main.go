@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/kemadev/go-framework/pkg/config"
 	"github.com/kemadev/go-framework/pkg/kctx"
 	"github.com/kemadev/go-framework/pkg/router"
 	"github.com/kemadev/go-framework/pkg/server"
@@ -18,8 +17,6 @@ import (
 )
 
 func main() {
-	configManager := config.NewManager()
-
 	r := router.New()
 
 	r.UseInstrumented("kctx-injection", kctx.Middleware)
@@ -34,7 +31,7 @@ func main() {
 		http.HandlerFunc(FooBar),
 	)
 
-	server.Run(configManager, r.ServerHandlerInstrumented())
+	server.Run(r.ServerHandlerInstrumented())
 }
 
 func FooBar(w http.ResponseWriter, r *http.Request) {
