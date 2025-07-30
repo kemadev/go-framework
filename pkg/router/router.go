@@ -6,6 +6,7 @@ import (
 	"slices"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel"
 )
 
 const ServerRootSpanName = "server"
@@ -57,7 +58,7 @@ func (r *Router) UseInstrumented(name string, mw func(http.Handler) http.Handler
 	}
 }
 
-// Group add all routers down the chain to a group. All members of a group inherits from
+// Group adds all routers down the chain to a group. All members of a group inherits from
 // their parent's routers chain.
 func (r *Router) Group(fn func(r *Router)) {
 	subRouter := &Router{
@@ -83,10 +84,7 @@ func (r *Router) Handle(pattern string, h http.Handler) {
 
 // HandleFunc returns a func satisfying [net/http.Handle], wrapping the handler with OpenTelemetry instrumentation
 func (r *Router) HandleInstrumented(pattern string, h http.Handler) {
-	for _, mw := range slices.Backward(r.routeChain) {
-		h = mw(h)
-	}
-	r.ServeMux.Handle(pattern, otelhttp.NewHandler(h, pattern))
+	r.Handle(pattern, otelhttp.NewHandler(h, pattern))
 }
 
 // ServeHTTP returns a func satisfying [net/http.Handler.ServeHTTP]
@@ -101,13 +99,11 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 
 // ServerHandler returns an instrumenter handler, for use as [net/http.Server.Handler]
 func (r *Router) ServerHandlerInstrumented() http.Handler {
-	return otelhttp.NewHandler(
-		r,
-		"/",
-		otelhttp.WithSpanNameFormatter(
-			func(operation string, r *http.Request) string {
-				return fmt.Sprintf("%s %s", r.Method, ServerRootSpanName)
-			},
-		),
-	)
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		name := fmt.Sprintf("%s - %s", req.Method, ServerRootSpanName)
+		ctx, span := otel.Tracer(ServerRootSpanName).
+			Start(req.Context(), name)
+		defer span.End()
+		r.ServeHTTP(w, req.WithContext(ctx))
+	})
 }
