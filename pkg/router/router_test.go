@@ -93,14 +93,14 @@ func TestChain(t *testing.T) {
 	app4.Use(mw1)
 	app4.Use(mw2)
 	app4.Group(func(r *router.Router) {
-		app4.Use(mw3)
-		app4.Use(mw4)
-		app4.Use(mw5)
-		app4.HandleFunc("GET /bar", handler)
+		r.Use(mw3)
+		r.Use(mw4)
+		r.Use(mw5)
+		r.HandleFunc("GET /bar", handler)
 	})
 	app4.Group(func(r *router.Router) {
-		app4.Use(mw6)
-		app4.HandleFunc("GET /baz", handler)
+		r.Use(mw6)
+		r.HandleFunc("GET /baz", handler)
 	})
 
 	tests := []struct {
@@ -135,7 +135,7 @@ func TestChain(t *testing.T) {
 			Mux:            app4,
 			RequestMethod:  "GET",
 			RequestPath:    "/bar",
-			ExpectedUsed:   "123456h",
+			ExpectedUsed:   "12345h",
 			ExpectedStatus: http.StatusOK,
 		},
 		{
