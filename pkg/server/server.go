@@ -16,21 +16,17 @@ import (
 	"github.com/kemadev/go-framework/pkg/config"
 	"github.com/kemadev/go-framework/pkg/log"
 	"github.com/kemadev/go-framework/pkg/otel"
-	"github.com/kemadev/go-framework/pkg/router"
 	"go.opentelemetry.io/contrib/bridges/otelslog"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 const (
-	// RootSpanName is the name of the root span, that is, the span wrapping the whole HTTP server
-	RootSpanName = "server"
 	// DefaultLoggerName is the name of the default [slog.Logger]
 	DefaultLoggerName = "default"
 )
 
 // Run starts an HTTP server with [mux] as its handler and manages its lifecycle. It takes care of configuration loading and
 // OpenTelemetry SDK initialization for the server. However, HTTP routes instrumentation is not handled.
-func Run(mux *router.Router) {
+func Run(handler http.Handler) {
 	// Intercept signals
 	sigCtx, stopSig := signal.NotifyContext(
 		context.Background(),
@@ -95,19 +91,7 @@ func Run(mux *router.Router) {
 			otelslog.NewLogger("net/http").Handler(),
 			conf.Runtime.SlogLevel(),
 		),
-		Handler: otelhttp.NewHandler(
-			mux,
-			RootSpanName,
-			otelhttp.WithSpanNameFormatter(
-				// Use proper route name
-				func(operation string, r *http.Request) string {
-					if r.Pattern != "" {
-						return fmt.Sprintf("%s - %s", r.Pattern, operation)
-					}
-					return fmt.Sprintf("%s %s", r.Method, r.URL.Path)
-				},
-			),
-		),
+		Handler: handler,
 	}
 
 	srvErr := make(chan error, 1)

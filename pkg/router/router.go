@@ -1,6 +1,7 @@
 package router
 
 import (
+	"fmt"
 	"net/http"
 	"slices"
 
@@ -86,7 +87,7 @@ func (r *Router) HandleInstrumented(pattern string, h http.Handler) {
 	r.ServeMux.Handle(pattern, otelhttp.NewHandler(h, pattern))
 }
 
-// HandleFunc returns a func satisfying [net/http.Handler.ServeHTTP]
+// ServeHTTP returns a func satisfying [net/http.Handler.ServeHTTP]
 func (r *Router) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	var h http.Handler = r.ServeMux
 
@@ -94,4 +95,21 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 		h = mw(h)
 	}
 	h.ServeHTTP(w, rq)
+}
+
+// ServerHandler returns an instrumenter handler, for use as [net/http.Server.Handler]
+func (r *Router) ServerHandlerInstrumented() http.Handler {
+	return otelhttp.NewHandler(
+		r,
+		"/",
+		otelhttp.WithSpanNameFormatter(
+			// Use proper route name
+			func(operation string, r *http.Request) string {
+				if r.Pattern != "" {
+					return fmt.Sprintf("%s - %s", r.Pattern, operation)
+				}
+				return fmt.Sprintf("%s %s", r.Method, r.URL.Path)
+			},
+		),
+	)
 }

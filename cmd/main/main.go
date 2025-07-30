@@ -29,7 +29,7 @@ func main() {
 		http.HandlerFunc(FooBar),
 	)
 
-	server.Run(r)
+	server.Run(r.ServerHandlerInstrumented())
 }
 
 func FooBar(w http.ResponseWriter, r *http.Request) {
