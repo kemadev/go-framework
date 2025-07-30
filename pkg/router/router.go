@@ -8,6 +8,8 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
+const ServerRootSpanName = "server"
+
 type chain []func(http.Handler) http.Handler
 
 func (c chain) thenFunc(h http.HandlerFunc) http.Handler {
@@ -103,12 +105,8 @@ func (r *Router) ServerHandlerInstrumented() http.Handler {
 		r,
 		"/",
 		otelhttp.WithSpanNameFormatter(
-			// Use proper route name
 			func(operation string, r *http.Request) string {
-				if r.Pattern != "" {
-					return fmt.Sprintf("%s - %s", r.Pattern, operation)
-				}
-				return fmt.Sprintf("%s %s", r.Method, r.URL.Path)
+				return fmt.Sprintf("%s %s", r.Method, ServerRootSpanName)
 			},
 		),
 	)
