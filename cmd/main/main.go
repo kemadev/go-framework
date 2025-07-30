@@ -12,6 +12,7 @@ import (
 	"github.com/kemadev/go-framework/pkg/kctx"
 	"github.com/kemadev/go-framework/pkg/router"
 	"github.com/kemadev/go-framework/pkg/server"
+	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -65,6 +66,8 @@ func FooBar(w http.ResponseWriter, r *http.Request) {
 		"handling this...",
 		trace.WithAttributes(semconv.UserID(bag.Member(string(semconv.UserIDKey)).Value())),
 	)
+
+	span.SetAttributes(attribute.String("bar", r.PathValue("bar")))
 
 	w.Write([]byte(fmt.Sprintf("Hello, %v! TraceID: %s", user, spanCtx.TraceID().String())))
 }
