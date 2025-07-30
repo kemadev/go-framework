@@ -1,6 +1,7 @@
 package kctx
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -34,15 +35,18 @@ func (ctx *Kctx) Baggage(r *http.Request) baggage.Baggage {
 
 // BaggageSetMembers sets baggage members for a span. If you already have a reference to the baggage, prefer
 // using [go.opentelemetry.io/otel/baggage].Baggage.SetMember()
-func (ctx *Kctx) BaggageSet(r *http.Request, members ...baggage.Member) error {
+// Please not that returned context needs to be propagated in order for the baggage to be propagated, too
+func (ctx *Kctx) BaggageSet(r *http.Request, members ...baggage.Member) (context.Context, error) {
 	bag := baggage.FromContext(r.Context())
+
+	var err error
+
 	for _, member := range members {
-		var err error
 		bag, err = bag.SetMember(member)
 		if err != nil {
-			return fmt.Errorf("error setting baggage member: %w", err)
+			return ctx, fmt.Errorf("error setting baggage member: %w", err)
 		}
 	}
 
-	return nil
+	return baggage.ContextWithBaggage(r.Context(), bag), nil
 }

@@ -47,22 +47,24 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		err = ctx.BaggageSet(r, mem)
+		newCtx, err := ctx.BaggageSet(r, mem)
 		if err != nil {
 			fmt.Printf("Failed to set baggage: %v\n", err)
 			next.ServeHTTP(w, r)
 			return
 		}
 
+		ctx.Context = newCtx
+
 		spanCtx := span.SpanContext()
-		fmt.Printf("[AUTH] TraceID: %s, SpanID: %s, User: kema-dev\n",
+		fmt.Printf("[AUTH] TraceID: %s, SpanID: %s, User: "+userId+"\n",
 			spanCtx.TraceID().String(),
 			spanCtx.SpanID().String(),
 		)
 
-		ctx.LocalSet("user", "kema-dev")
+		ctx.LocalSet("user", userId)
 
-		next.ServeHTTP(w, r)
+		next.ServeHTTP(w, r.WithContext(ctx.Context))
 	})
 }
 
