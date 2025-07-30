@@ -4,12 +4,10 @@
 package monitoring
 
 import (
-	"context"
 	"net/http"
 	"time"
 
 	"github.com/kemadev/go-framework/pkg/config"
-	khttp "github.com/kemadev/go-framework/pkg/http"
 )
 
 type LivenessResponse struct {
@@ -24,26 +22,7 @@ type LivenessResponse struct {
 // LivenessHandler handles liveness checks.
 func LivenessHandler(conf config.Runtime) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		kclient := khttp.ClientInfo{
-			Ctx:    context.Background(),
-			Writer: w,
-		}
-
-		checks := CheckLiveness()
-		status := GetLivenessStatus(checks)
-
-		khttp.SendJSONResponse(
-			kclient,
-			status.HTTPCode(),
-			LivenessResponse{
-				Timestamp:   time.Now().UTC(),
-				Started:     true,
-				Status:      status.String(),
-				Version:     conf.AppVersion,
-				Environment: conf.Environment,
-				Checks:      checks,
-			},
-		)
+		w.WriteHeader(http.StatusOK)
 	}
 }
 

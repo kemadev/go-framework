@@ -4,12 +4,8 @@
 package monitoring
 
 import (
-	"context"
 	"net/http"
-	"runtime"
 	"time"
-
-	khttp "github.com/kemadev/go-framework/pkg/http"
 )
 
 type RuntimeMetrics struct {
@@ -38,42 +34,7 @@ type ReadinessResponse struct {
 // ReadinessHandler handles readiness checks.
 func ReadinessHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		kclient := khttp.ClientInfo{
-			Ctx:    context.Background(),
-			Writer: w,
-		}
-
-		var m runtime.MemStats
-		runtime.ReadMemStats(&m)
-
-		usagePercent := float64(0)
-		if m.Sys > 0 {
-			usagePercent = (float64(m.Alloc) / float64(m.Sys)) * 100
-		}
-
-		checks := CheckReadiness()
-		status := GetReadinessStatus(checks)
-
-		khttp.SendJSONResponse(
-			kclient,
-			status.HTTPCode(),
-			ReadinessResponse{
-				Timestamp: time.Now().UTC(),
-				Ready:     status.IsReady(),
-				Checks:    checks,
-				RuntimeMetrics: RuntimeMetrics{
-					Memory: MemoryMetrics{
-						UsedBytes:    float64(m.Alloc),
-						MaxBytes:     float64(m.Sys),
-						UsagePercent: usagePercent,
-						GCRuns:       m.NumGC,
-					},
-					CPU: CPUMetrics{
-						Goroutines: runtime.NumGoroutine(),
-					},
-				},
-			},
-		)
+		w.WriteHeader(http.StatusOK)
 	}
 }
 
