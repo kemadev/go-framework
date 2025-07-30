@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 	"unicode"
 )
@@ -70,15 +71,50 @@ type Observability struct {
 	ShutdownGracePeriod time.Duration `required:"true" default:"5s"`
 }
 
+// Manager handles configuration loading and caching
+type Manager struct {
+	once   sync.Once
+	config *Global
+	err    error
+}
+
+// NewManager creates a new configuration manager
+func NewManager() *Manager {
+	return &Manager{}
+}
+
 // Load loads configuration from environment variables
-func Load() (*Global, error) {
-	var cfg Global
-	err := load(ConfigurationEnvVarPrefix, &cfg)
-	if err != nil {
-		return nil, fmt.Errorf("can't process config: %w", err)
+// On first call, it loads the configuration from environment variables.
+// Subsequent calls return the cached configuration.
+func (m *Manager) Load() (*Global, error) {
+	m.once.Do(func() {
+		var cfg Global
+		err := load(ConfigurationEnvVarPrefix, &cfg)
+		if err != nil {
+			m.err = fmt.Errorf("can't process config: %w", err)
+			return
+		}
+		m.config = &cfg
+	})
+
+	if m.err != nil {
+		return nil, m.err
 	}
 
-	return &cfg, nil
+	return m.config, nil
+}
+
+// Reset clears the cached configuration and allows Load() to reload it.
+// This is primarily useful for testing scenarios.
+func (m *Manager) Reset() {
+	m.once = sync.Once{}
+	m.config = nil
+	m.err = nil
+}
+
+// Get returns the loaded configuration or loads it if not already loaded
+func (m *Manager) Get() (*Global, error) {
+	return m.Load()
 }
 
 // EnvLocalValue is the value of the environment variable backing [Runtime.Environment] which is used to denote a local development environment
