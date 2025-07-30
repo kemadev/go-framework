@@ -1,6 +1,7 @@
 package router
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"slices"
@@ -97,13 +98,28 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, rq *http.Request) {
 	h.ServeHTTP(w, rq)
 }
 
+type PatternHolder struct {
+	Pattern string
+}
+type PatternKey struct{}
+
 // ServerHandler returns an instrumenter handler, for use as [net/http.Server.Handler]
 func (r *Router) ServerHandlerInstrumented() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		holder := &PatternHolder{}
+
+		ctx := context.WithValue(req.Context(), PatternKey{}, holder)
+
 		name := fmt.Sprintf("%s - %s", req.Method, ServerRootSpanName)
-		ctx, span := otel.Tracer(ServerRootSpanName).
-			Start(req.Context(), name)
+
+		ctx, span := otel.Tracer(ServerRootSpanName).Start(ctx, name)
 		defer span.End()
+
 		r.ServeHTTP(w, req.WithContext(ctx))
+
+		if holder.Pattern != "" {
+			span.SetName(fmt.Sprintf("%s - %s", req.Method, holder.Pattern))
+			fmt.Println("pattern", holder.Pattern)
+		}
 	})
 }
