@@ -99,7 +99,7 @@ func TestChain(t *testing.T) {
 		r.Use(mw4)
 		r.Use(mw5)
 		r.HandleFunc("GET /bar", handler)
-		app4.Group(func(sr *router.Router) {
+		r.Group(func(sr *router.Router) {
 			sr.Use(mw6)
 			sr.HandleFunc("GET /qux", handler)
 		})
