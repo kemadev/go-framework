@@ -21,7 +21,7 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Get(otel.WrapHandler("/articles/{rid:^[0-9]{5,6}}", basicHandler))
 
-	server.Run(otel.WrapMux(r))
+	server.Run(otel.WrapMux(r, packageName))
 }
 
 func basicHandler(w http.ResponseWriter, r *http.Request) {
