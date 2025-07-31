@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/kemadev/go-framework/pkg/header"
 	"github.com/kemadev/go-framework/pkg/kctx"
 	"github.com/kemadev/go-framework/pkg/monitoring"
 	"github.com/kemadev/go-framework/pkg/router"
@@ -89,7 +90,7 @@ func FooBar(w http.ResponseWriter, r *http.Request) {
 
 	span.SetAttributes(attribute.String("bar", r.PathValue("bar")))
 
-	fmt.Println(c.Accepts("gzip"))
+	fmt.Println(c.IsMIME(header.ValueAcceptJSON))
 
 	fmt.Fprintf(w, "Hello, %v! TraceID: %s", user, spanCtx.TraceID().String())
 }

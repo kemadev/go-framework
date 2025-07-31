@@ -1,6 +1,7 @@
 package kctx
 
 import (
+	"mime"
 	"time"
 
 	"github.com/kemadev/go-framework/pkg/header"
@@ -14,4 +15,21 @@ func (c *Kctx) Date() time.Time {
 		return time.Time{}
 	}
 	return date
+}
+
+// IsMIME returns whether the request satisfies given MIME
+func (c *Kctx) IsMIME(mim string) bool {
+	typ, _, _ := mime.ParseMediaType(c.r.Header.Get(header.ContentType))
+	if typ == "" {
+		// Invalid mime
+		return false
+	}
+
+	mim, _, _ = mime.ParseMediaType(mim)
+	if mim == "" {
+		// Invalid mime
+		return false
+	}
+
+	return typ == mim
 }
