@@ -7,7 +7,14 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
+	"sync"
 )
+
+var kctxPool = sync.Pool{
+	New: func() interface{} {
+		return &Kctx{}
+	},
+}
 
 type contextKey struct{}
 
@@ -15,6 +22,11 @@ var kctxKey = contextKey{}
 
 type Kctx struct {
 	context.Context
+}
+
+func (ctx *Kctx) release() {
+	ctx.Context = nil
+	kctxPool.Put(ctx)
 }
 
 // FromRequest extracts Kctx from [net/http.Request].
@@ -48,10 +60,13 @@ func fromContext(c context.Context) (*Kctx, bool) {
 // Middleware manages Kctx lifecycle in a [sync.Pool].
 func Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		c := context.WithValue(r.Context(), kctxKey, &Kctx{
-			Context: r.Context(),
-		})
-		r = r.WithContext(c)
+		c := kctxPool.Get().(*Kctx)
+		defer c.release()
+
+		c.Context = r.Context()
+
+		ctx := context.WithValue(r.Context(), kctxKey, c)
+		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)
 	})
