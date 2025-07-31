@@ -1,4 +1,4 @@
-package headkey
+package header
 
 const (
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Accept
@@ -147,4 +147,18 @@ const (
 	XCSRFToken = "X-CSRF-Token"
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Frame-Options
 	XFrameOptions = "X-Frame-Options"
+)
+
+const (
+	ValueEncodingGzip     = "gzip"
+	ValueEncodingCompress = "compress"
+	ValueEncodingDeflate  = "deflate"
+	ValueEncodingBr       = "br"
+	ValueEncodingZstd     = "zstd"
+	ValueEncodingIdentity = "identity"
+)
+
+const (
+	ValueAcceptAll  = "*/*"
+	ValueAcceptJSON = "application/json"
 )

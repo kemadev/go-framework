@@ -1,17 +1,16 @@
-package headutil
+package kctx
 
 import (
 	"mime"
-	"net/http"
 	"time"
 
-	"github.com/kemadev/go-framework/pkg/convenience/headkey"
+	"github.com/kemadev/go-framework/pkg/header"
 )
 
 // Date returns the Date of the request, based on "Date" header, as a [time.Date]. If an error occurs,
 // it returns [time.Time]{}.
-func Date(r *http.Request) time.Time {
-	date, err := time.Parse(time.RFC1123, r.Header.Get(headkey.Date))
+func (c *Kctx) Date() time.Time {
+	date, err := time.Parse(time.RFC1123, c.r.Header.Get(header.Date))
 	if err != nil {
 		return time.Time{}
 	}
@@ -19,8 +18,8 @@ func Date(r *http.Request) time.Time {
 }
 
 // IsMIME returns whether the request satisfies given MIME
-func IsMIME(r *http.Request, mim string) bool {
-	typ, _, _ := mime.ParseMediaType(r.Header.Get(headkey.ContentType))
+func (c *Kctx) IsMIME(mim string) bool {
+	typ, _, _ := mime.ParseMediaType(c.r.Header.Get(header.ContentType))
 	if typ == "" {
 		// Invalid mime
 		return false

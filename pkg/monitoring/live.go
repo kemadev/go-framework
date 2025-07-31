@@ -9,8 +9,7 @@ import (
 	"time"
 
 	"github.com/kemadev/go-framework/pkg/config"
-	"github.com/kemadev/go-framework/pkg/convenience/headkey"
-	"github.com/kemadev/go-framework/pkg/convenience/headval"
+	"github.com/kemadev/go-framework/pkg/header"
 )
 
 type LivenessResponse struct {
@@ -51,7 +50,7 @@ func LivenessHandler(
 			status.Checks["jsonMarshal"] = StatusDown
 		}
 
-		w.Header().Set(headkey.ContentType, headval.AcceptJSON)
+		w.Header().Set(header.ContentType, header.ValueAcceptJSON)
 		w.WriteHeader(status.Status.HTTPCode())
 		w.Write(body)
 	}

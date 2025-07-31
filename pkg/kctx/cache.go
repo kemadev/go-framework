@@ -1,12 +1,11 @@
-package headutil
+package kctx
 
 import (
-	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/kemadev/go-framework/pkg/convenience/headkey"
+	"github.com/kemadev/go-framework/pkg/header"
 )
 
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control#cache_directives
@@ -29,12 +28,12 @@ type CacheHeader struct {
 	StaleIfError         bool
 }
 
-// CacheBehavior represents a behavior on how to handle caching
-type CacheBehavior int
+// CacheDecision represents a decision on how to handle caching
+type CacheDecision int
 
 const (
 	// Allow caching
-	CacheAllow CacheBehavior = iota
+	CacheAllow CacheDecision = iota
 	// Revalidate cache
 	CacheRevalidate
 	// Refresh cache entry
@@ -97,14 +96,14 @@ func (head *CacheHeader) addDuration(b *strings.Builder, directive string, durat
 	b.WriteString(strconv.Itoa(int(duration.Seconds())))
 }
 
-// SetCachePolicy sets cache control header with given cache header
-func SetCachePolicy(w http.ResponseWriter, head CacheHeader) {
-	w.Header().Set(headkey.CacheControl, head.Build())
+// CachePolicySet sets cache control header with given cache header
+func (c *Kctx) CachePolicySet(head CacheHeader) {
+	c.w.Header().Set(header.CacheControl, head.Build())
 }
 
-// CacheDecision return a caching decision from based on the request headers
-func CacheDecision(r *http.Request) CacheBehavior {
-	cacheControl := r.Header.Get(headkey.CacheControl)
+// CacheDecisionFromRequest return a caching decision from based on the request headers
+func (c *Kctx) CacheDecisionFromRequest() CacheDecision {
+	cacheControl := c.r.Header.Get(header.CacheControl)
 	if cacheControl != "" {
 		if strings.Contains(cacheControl, "no-cache") {
 			return CacheBypass
@@ -114,11 +113,11 @@ func CacheDecision(r *http.Request) CacheBehavior {
 		}
 	}
 
-	if r.Header.Get(headkey.IfNoneMatch) != "" ||
-		r.Header.Get(headkey.IfModifiedSince) != "" ||
-		r.Header.Get(headkey.IfUnmodifiedSince) != "" ||
-		r.Header.Get(headkey.IfMatch) != "" ||
-		r.Header.Get(headkey.IfRange) != "" {
+	if c.r.Header.Get(header.IfNoneMatch) != "" ||
+		c.r.Header.Get(header.IfModifiedSince) != "" ||
+		c.r.Header.Get(header.IfUnmodifiedSince) != "" ||
+		c.r.Header.Get(header.IfMatch) != "" ||
+		c.r.Header.Get(header.IfRange) != "" {
 		return CacheRevalidate
 	}
 
