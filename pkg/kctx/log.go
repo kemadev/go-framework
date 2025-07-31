@@ -10,6 +10,6 @@ import (
 )
 
 // Logger retrieves the logger nammed after name.
-func (ctx *Kctx) Logger(name string) *slog.Logger {
+func (c *Kctx) Logger(name string) *slog.Logger {
 	return log.GetPackageLogger(name)
 }

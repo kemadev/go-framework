@@ -22,11 +22,15 @@ var kctxKey = contextKey{}
 
 type Kctx struct {
 	context.Context
+	w *http.ResponseWriter
+	r *http.Request
 }
 
-func (ctx *Kctx) release() {
-	ctx.Context = nil
-	kctxPool.Put(ctx)
+func (c *Kctx) release() {
+	c.Context = nil
+	c.w = nil
+	c.r = nil
+	kctxPool.Put(c)
 }
 
 // FromRequest extracts Kctx from [net/http.Request].
@@ -64,6 +68,8 @@ func Middleware(next http.Handler) http.Handler {
 		defer c.release()
 
 		c.Context = r.Context()
+		c.w = &w
+		c.r = r
 
 		ctx := context.WithValue(r.Context(), kctxKey, c)
 		r = r.WithContext(ctx)

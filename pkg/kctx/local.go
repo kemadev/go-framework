@@ -10,11 +10,11 @@ type localKey struct {
 }
 
 // Local retrieves a request-scoped value, set by [LocalSet].
-func (ctx *Kctx) Local(name string) any {
-	return ctx.Value(localKey{name: name})
+func (c *Kctx) Local(name string) any {
+	return c.Value(localKey{name: name})
 }
 
 // Local sets a request-scoped value, which can be retrieved using [Local] later on.
-func (ctx *Kctx) LocalSet(name string, value any) {
-	ctx.Context = context.WithValue(ctx.Context, localKey{name: name}, value)
+func (c *Kctx) LocalSet(name string, value any) {
+	c.Context = context.WithValue(c.Context, localKey{name: name}, value)
 }
