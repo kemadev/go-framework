@@ -272,6 +272,7 @@ linters:
         - T any
         - r *http.Request
         - w http.ResponseWriter
+        - c context.Context
     wsl:
       force-err-cuddling: true
 
