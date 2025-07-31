@@ -17,11 +17,7 @@ import (
 // LoggingMiddleware logs request details.
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		c := kctx.FromRequest(r)
-		if c == nil {
-			c.Logger(packageName).Warn("failure finding kctx in request context")
-			c = &kctx.Kctx{}
-		}
+		c := kctx.FromRequestWarn(r, packageName)
 
 		spanCtx := trace.SpanFromContext(c).SpanContext()
 		fmt.Printf("[LOGGING] TraceID: %s, SpanID: %s, Method: %s, Path: %s\n",
@@ -38,11 +34,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 // AuthMiddleware simulates authentication.
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		c := kctx.FromRequest(r)
-		if c == nil {
-			c.Logger(packageName).Warn("failure finding kctx in request context")
-			c = &kctx.Kctx{}
-		}
+		c := kctx.FromRequestWarn(r, packageName)
 
 		userID := "whoever"
 		span := c.Span(r)
@@ -84,11 +76,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 // TimingMiddleware logs timing.
 func TimingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		c := kctx.FromRequest(r)
-		if c == nil {
-			c.Logger(packageName).Warn("failure finding kctx in request context")
-			c = &kctx.Kctx{}
-		}
+		c := kctx.FromRequestWarn(r, packageName)
 
 		spanCtx := trace.SpanFromContext(c).SpanContext()
 		fmt.Printf("[TIMING] TraceID: %s, SpanID: %s, Starting request\n",

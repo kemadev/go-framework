@@ -148,3 +148,12 @@ const (
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Frame-Options
 	XFrameOptions = "X-Frame-Options"
 )
+
+const (
+	EncodingGzip     = "gzip"
+	EncodingCompress = "compress"
+	EncodingDeflate  = "deflate"
+	EncodingBr       = "br"
+	EncodingZstd     = "zstd"
+	EncodingIdentity = "identity"
+)

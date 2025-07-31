@@ -55,11 +55,7 @@ func main() {
 }
 
 func FooBar(w http.ResponseWriter, r *http.Request) {
-	c := kctx.FromRequest(r)
-	if c == nil {
-		c.Logger(packageName).Warn("failure finding kctx in request context")
-		c = &kctx.Kctx{}
-	}
+	c := kctx.FromRequestWarn(r, packageName)
 
 	// Get user from context (set by AuthMiddleware)
 	user := c.Local("user")
@@ -81,15 +77,13 @@ func FooBar(w http.ResponseWriter, r *http.Request) {
 
 	span.SetAttributes(attribute.String("bar", r.PathValue("bar")))
 
+	fmt.Println(c.AcceptsLanguage("gzip"))
+
 	fmt.Fprintf(w, "Hello, %v! TraceID: %s", user, spanCtx.TraceID().String())
 }
 
 func Redir(w http.ResponseWriter, r *http.Request) {
-	c := kctx.FromRequest(r)
-	if c == nil {
-		c.Logger(packageName).Warn("failure finding kctx in request context")
-		c = &kctx.Kctx{}
-	}
+	c := kctx.FromRequestWarn(r, packageName)
 
 	c.Redirect(http.StatusPermanentRedirect, url.URL{
 		Scheme: "https",

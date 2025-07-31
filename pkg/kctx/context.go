@@ -39,6 +39,16 @@ func FromRequest(r *http.Request) *Kctx {
 	return fromContext(r.Context())
 }
 
+// FromRequestWarn extracts Kctx from [net/http.Request]. If context is not found, it returns a new Kctx and logs a warning.
+func FromRequestWarn(r *http.Request, packageName string) *Kctx {
+	c := fromContext(r.Context())
+	if c == nil {
+		c.Logger(packageName).Warn("failure finding kctx in request context")
+		c = &Kctx{}
+	}
+	return c
+}
+
 // FromContext extracts Kctx from [context.Context]. If context is not found, it returns nil.
 func FromContext(c context.Context) *Kctx {
 	return fromContext(c)
@@ -52,24 +62,12 @@ func fromContext(c context.Context) *Kctx {
 	return kctx
 }
 
-func normalizeHeaders(headers http.Header) {
-	for key := range headers {
-		canonical := http.CanonicalHeaderKey(key)
-		if key != canonical {
-			headers[canonical] = headers[key]
-			delete(headers, key)
-		}
-	}
-}
-
 // Middleware manages Kctx lifecycle in a [sync.Pool]. It populates initializes a kctx instance,
-// populates kctx key in context and propagates it down the chain. It also normalizes request headers.
+// populates kctx key in context and propagates it down the chain.
 func Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		c := kctxPool.Get().(*Kctx)
 		defer c.release()
-
-		normalizeHeaders(r.Header)
 
 		reqCtx := r.Context()
 		c.Context = reqCtx
