@@ -79,11 +79,12 @@ func Middleware(next http.Handler) http.Handler {
 
 		normalizeHeaders(r.Header)
 
-		c.Context = r.Context()
+		reqCtx := r.Context()
+		c.Context = reqCtx
 		c.w = &w
 		c.r = r
 
-		ctx := context.WithValue(r.Context(), kctxKey, c)
+		ctx := context.WithValue(reqCtx, kctxKey, c)
 		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)
