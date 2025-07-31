@@ -8,6 +8,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/kemadev/go-framework/pkg/kctx"
 	"github.com/kemadev/go-framework/pkg/router"
@@ -43,6 +44,10 @@ func main() {
 		"GET /foo/{bar}",
 		http.HandlerFunc(FooBar),
 	)
+	app.HandleInstrumented(
+		"GET /redir",
+		http.HandlerFunc(Redir),
+	)
 
 	server.Run(app.ServerHandlerInstrumented())
 }
@@ -71,4 +76,13 @@ func FooBar(w http.ResponseWriter, r *http.Request) {
 	span.SetAttributes(attribute.String("bar", r.PathValue("bar")))
 
 	fmt.Fprintf(w, "Hello, %v! TraceID: %s", user, spanCtx.TraceID().String())
+}
+
+func Redir(w http.ResponseWriter, r *http.Request) {
+	c := kctx.FromRequest(r)
+
+	c.Redirect(http.StatusPermanentRedirect, url.URL{
+		Scheme: "https",
+		Host:   "google.com",
+	})
 }
