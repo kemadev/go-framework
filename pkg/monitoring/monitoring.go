@@ -24,13 +24,13 @@ const (
 )
 
 const (
-	// HTTPLivenessCheckPath is the path for the liveness check over HTTP.
+	// HTTPLivenessCheckPattern is the pattern for the liveness check over HTTP.
 	// It is used by Kubernetes to check if the application is alive.
-	HTTPLivenessCheckPath = "/healthz"
-	// HTTPReadinessCheckPath is the path for the readiness check over HTTP.
+	HTTPLivenessCheckPattern = "GET /healthz"
+	// HTTPReadinessCheckPattern is the pattern for the readiness check over HTTP.
 	// It is used by Kubernetes to check if the application is ready to serve traffic, as
 	// well as returning some metrics.
-	HTTPReadinessCheckPath = "/readyz"
+	HTTPReadinessCheckPattern = "GET /readyz"
 )
 
 // String returns the string representation of the status.
@@ -47,6 +47,11 @@ func (s Status) String() string {
 	default:
 		return "unknown"
 	}
+}
+
+// MarshalText satisfies [encoding.TextMarshaller]
+func (s Status) MarshalText() ([]byte, error) {
+	return []byte(s.String()), nil
 }
 
 // HTTPCode returns the appropriate HTTP status code for the status.
@@ -78,3 +83,15 @@ func (s Status) IsReady() bool {
 }
 
 type CheckResults map[string]Status
+
+func (checks CheckResults) Status() Status {
+	status := StatusOK
+
+	for _, val := range checks {
+		if val > status {
+			status = val
+		}
+	}
+
+	return status
+}

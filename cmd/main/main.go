@@ -11,6 +11,7 @@ import (
 	"net/url"
 
 	"github.com/kemadev/go-framework/pkg/kctx"
+	"github.com/kemadev/go-framework/pkg/monitoring"
 	"github.com/kemadev/go-framework/pkg/router"
 	"github.com/kemadev/go-framework/pkg/server"
 	"go.opentelemetry.io/otel/attribute"
@@ -22,6 +23,17 @@ const packageName = "github.com/kemadev/go-framework/cmd/main"
 
 func main() {
 	app := router.New()
+
+	app.HandleInstrumented(
+		monitoring.LivenessHandler(
+			func() monitoring.CheckResults { return monitoring.CheckResults{} },
+		),
+	)
+	app.HandleInstrumented(
+		monitoring.ReadinessHandler(
+			func() monitoring.CheckResults { return monitoring.CheckResults{} },
+		),
+	)
 
 	// Add middlewares
 	app.UseInstrumented("kctx-middleware", kctx.Middleware)

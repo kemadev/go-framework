@@ -4,39 +4,54 @@
 package monitoring
 
 import (
+	"encoding/json"
 	"net/http"
 	"time"
 
 	"github.com/kemadev/go-framework/pkg/config"
+	"github.com/kemadev/go-framework/pkg/header"
 )
 
 type LivenessResponse struct {
 	Timestamp   time.Time         `json:"timestamp"`
 	Started     bool              `json:"started"`
-	Status      string            `json:"status"`
+	Status      Status            `json:"status"`
 	Version     string            `json:"version"`
 	Environment string            `json:"environment"`
 	Checks      map[string]Status `json:"checks"`
 }
 
-// LivenessHandler handles liveness checks.
-func LivenessHandler(conf config.Runtime) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}
-}
+// LivenessHandler returns the pattern that should handle liveness checks, as well as associated liveness checking function
+// The function that is passed is used as status checker.
+func LivenessHandler(
+	livenessChecker func() CheckResults,
+) (string, http.HandlerFunc) {
+	return HTTPLivenessCheckPattern, func(w http.ResponseWriter, r *http.Request) {
+		checks := livenessChecker()
 
-// GetLivenessStatus return liveness status.
-func GetLivenessStatus(checks CheckResults) Status {
-	// TODO Obviously implement this status check
-	return StatusOK
-}
+		status := LivenessResponse{
+			Timestamp: time.Now(),
+			// If serving HTTP, we started
+			Started: true,
+			Status:  checks.Status(),
+			Checks:  checks,
+		}
 
-// CheckLiveness performs liveness checks and returns a map of results
-// It always returns [StatusOK] as responding to liveness probe via HTTP means that the app is alive.
-func CheckLiveness() CheckResults {
-	// TODO Obviously implement this status check
-	return CheckResults{
-		"http": StatusOK,
+		conf, err := config.NewManager().Load()
+		if err != nil {
+			status.Checks["config"] = StatusDown
+		}
+
+		status.Version = conf.Runtime.AppVersion
+		status.Environment = conf.Runtime.Environment
+
+		body, err := json.Marshal(status)
+		if err != nil {
+			status.Checks["jsonMarshal"] = StatusDown
+		}
+
+		w.Header().Set(header.ContentType, header.ValueAcceptJSON)
+		w.WriteHeader(status.Status.HTTPCode())
+		w.Write(body)
 	}
 }

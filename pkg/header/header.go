@@ -159,5 +159,6 @@ const (
 )
 
 const (
-	ValueAcceptAll = "*/*"
+	ValueAcceptAll  = "*/*"
+	ValueAcceptJSON = "application/json"
 )
