@@ -23,8 +23,7 @@ import (
 )
 
 const (
-	// DefaultLoggerName is the name of the default [slog.Logger].
-	DefaultLoggerName = "github.com/kemadev/go-framework"
+	packageName = "github.com/kemadev/go-framework/pkg/server"
 )
 
 // Run starts an HTTP server with [mux] as its handler and manages its lifecycle. It takes care of loading
@@ -59,7 +58,7 @@ func Run(handler http.Handler) {
 	// Set default logger for the application
 	slog.SetLogLoggerLevel(conf.Runtime.SlogLevel())
 	// Use default logger provider configured by [otel.SetupOTelSDK]
-	slog.SetDefault(otelslog.NewLogger(DefaultLoggerName, otelslog.WithSource(true)))
+	slog.SetDefault(otelslog.NewLogger(packageName, otelslog.WithSource(true)))
 
 	// Global program return code
 	var exitCode int
@@ -74,7 +73,9 @@ func Run(handler http.Handler) {
 
 		shutdownErr := otelShutdown(shutdownCtx)
 		if shutdownErr != nil {
-			log.FallbackError(fmt.Errorf("error shutting down OpenTelemetry: %w", shutdownErr))
+			log.FallbackError(
+				fmt.Errorf("error shutting down OpenTelemetry: %w", shutdownErr),
+			)
 			// Do not override previous error code
 			if exitCode == 0 {
 				exitCode = 1

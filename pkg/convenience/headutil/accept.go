@@ -1,10 +1,11 @@
-package kctx
+package headutil
 
 import (
+	"net/http"
 	"strconv"
 	"strings"
 
-	"github.com/kemadev/go-framework/pkg/header"
+	"github.com/kemadev/go-framework/pkg/convenience/headkey"
 )
 
 // AcceptedValue represents a parsed Accept header value with its quality factor
@@ -14,18 +15,18 @@ type AcceptedValue struct {
 }
 
 // Accepts returns whether client signals accepting given media type (based on Accept header)
-func (c *Kctx) Accepts(encoding string) bool {
-	return accepts(c.r.Header.Get(header.Accept), encoding)
+func Accepts(r *http.Request, encoding string) bool {
+	return accepts(r.Header.Get(headkey.Accept), encoding)
 }
 
 // AcceptsEncoding returns whether client signals accepting given encoding
-func (c *Kctx) AcceptsEncoding(encoding string) bool {
-	return accepts(c.r.Header.Get(header.AcceptEncoding), encoding)
+func AcceptsEncoding(r *http.Request, encoding string) bool {
+	return accepts(r.Header.Get(headkey.AcceptEncoding), encoding)
 }
 
 // AcceptsLanguage returns whether client signals accepting given language
-func (c *Kctx) AcceptsLanguage(language string) bool {
-	return accepts(c.r.Header.Get(header.AcceptLanguage), language)
+func AcceptsLanguage(r *http.Request, language string) bool {
+	return accepts(r.Header.Get(headkey.AcceptLanguage), language)
 }
 
 func accepts(head string, val string) bool {
