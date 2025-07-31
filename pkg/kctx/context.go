@@ -61,11 +61,23 @@ func fromContext(c context.Context) (*Kctx, bool) {
 	return &Kctx{Context: c}, false
 }
 
+func normalizeHeaders(headers http.Header) {
+	for key := range headers {
+		canonical := http.CanonicalHeaderKey(key)
+		if key != canonical {
+			headers[canonical] = headers[key]
+			delete(headers, key)
+		}
+	}
+}
+
 // Middleware manages Kctx lifecycle in a [sync.Pool].
 func Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		c := kctxPool.Get().(*Kctx)
 		defer c.release()
+
+		normalizeHeaders(r.Header)
 
 		c.Context = r.Context()
 		c.w = &w
