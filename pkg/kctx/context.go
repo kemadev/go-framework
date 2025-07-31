@@ -22,7 +22,7 @@ var kctxKey = contextKey{}
 
 type Kctx struct {
 	context.Context
-	w *http.ResponseWriter
+	w http.ResponseWriter
 	r *http.Request
 }
 
@@ -81,7 +81,7 @@ func Middleware(next http.Handler) http.Handler {
 
 		reqCtx := r.Context()
 		c.Context = reqCtx
-		c.w = &w
+		c.w = w
 		c.r = r
 
 		ctx := context.WithValue(reqCtx, kctxKey, c)

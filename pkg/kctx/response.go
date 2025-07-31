@@ -1,13 +1,12 @@
 package kctx
 
 import (
-	"net/http"
 	"net/url"
 
 	"github.com/kemadev/go-framework/pkg/header"
 )
 
-func Redirect(w http.ResponseWriter, url url.URL, code int) {
-	w.Header().Set(header.Location, url.String())
-	w.WriteHeader(code)
+func (c *Kctx) Redirect(code int, url url.URL) {
+	c.w.Header().Set(header.Location, url.String())
+	c.w.WriteHeader(code)
 }
