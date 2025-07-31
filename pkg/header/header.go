@@ -150,10 +150,14 @@ const (
 )
 
 const (
-	EncodingGzip     = "gzip"
-	EncodingCompress = "compress"
-	EncodingDeflate  = "deflate"
-	EncodingBr       = "br"
-	EncodingZstd     = "zstd"
-	EncodingIdentity = "identity"
+	ValueEncodingGzip     = "gzip"
+	ValueEncodingCompress = "compress"
+	ValueEncodingDeflate  = "deflate"
+	ValueEncodingBr       = "br"
+	ValueEncodingZstd     = "zstd"
+	ValueEncodingIdentity = "identity"
+)
+
+const (
+	ValueAcceptAll = "*/*"
 )
