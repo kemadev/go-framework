@@ -5,10 +5,11 @@ package kctx
 
 import (
 	"context"
-	"log/slog"
 	"net/http"
 	"sync"
 )
+
+const packageName = "github.com/kemadev/go-framework/pkg/kctx"
 
 var kctxPool = sync.Pool{
 	New: func() interface{} {
@@ -33,32 +34,22 @@ func (c *Kctx) release() {
 	kctxPool.Put(c)
 }
 
-// FromRequest extracts Kctx from [net/http.Request].
+// FromRequest extracts Kctx from [net/http.Request]. If context is not found, it returns nil.
 func FromRequest(r *http.Request) *Kctx {
-	newCtx, found := fromContext(r.Context())
-	if !found {
-		slog.Warn("kctx not found in context")
-	}
-
-	return newCtx
+	return fromContext(r.Context())
 }
 
-// FromContext extracts Kctx from [context.Context].
+// FromContext extracts Kctx from [context.Context]. If context is not found, it returns nil.
 func FromContext(c context.Context) *Kctx {
-	newCtx, found := fromContext(c)
-	if !found {
-		slog.Warn("kctx not found in context")
-	}
-
-	return newCtx
+	return fromContext(c)
 }
 
-func fromContext(c context.Context) (*Kctx, bool) {
-	if kctx, ok := c.Value(kctxKey).(*Kctx); ok {
-		return kctx, true
+func fromContext(c context.Context) *Kctx {
+	kctx, ok := c.Value(kctxKey).(*Kctx)
+	if !ok {
+		return nil
 	}
-	// Fallback
-	return &Kctx{Context: c}, false
+	return kctx
 }
 
 func normalizeHeaders(headers http.Header) {
@@ -71,7 +62,8 @@ func normalizeHeaders(headers http.Header) {
 	}
 }
 
-// Middleware manages Kctx lifecycle in a [sync.Pool].
+// Middleware manages Kctx lifecycle in a [sync.Pool]. It populates initializes a kctx instance,
+// populates kctx key in context and propagates it down the chain. It also normalizes request headers.
 func Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		c := kctxPool.Get().(*Kctx)

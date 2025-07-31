@@ -18,6 +18,8 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
+const packageName = "github.com/kemadev/go-framework/cmd/main"
+
 func main() {
 	app := router.New()
 
@@ -54,6 +56,10 @@ func main() {
 
 func FooBar(w http.ResponseWriter, r *http.Request) {
 	c := kctx.FromRequest(r)
+	if c == nil {
+		c.Logger(packageName).Warn("failure finding kctx in request context")
+		c = &kctx.Kctx{}
+	}
 
 	// Get user from context (set by AuthMiddleware)
 	user := c.Local("user")
@@ -80,6 +86,10 @@ func FooBar(w http.ResponseWriter, r *http.Request) {
 
 func Redir(w http.ResponseWriter, r *http.Request) {
 	c := kctx.FromRequest(r)
+	if c == nil {
+		c.Logger(packageName).Warn("failure finding kctx in request context")
+		c = &kctx.Kctx{}
+	}
 
 	c.Redirect(http.StatusPermanentRedirect, url.URL{
 		Scheme: "https",
