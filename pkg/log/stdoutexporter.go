@@ -95,10 +95,10 @@ func NewExporter(opts ...stdoutlog.Option) (*Exporter, error) {
 }
 
 // Export exports log records to writer.
-func (e *Exporter) Export(ctx context.Context, records []sdklog.Record) error {
+func (e *Exporter) Export(c context.Context, records []sdklog.Record) error {
 	for _, record := range records {
 		// Honor context cancellation.
-		err := ctx.Err()
+		err := c.Err()
 		if err != nil {
 			return fmt.Errorf("error present in context: %w", err)
 		}

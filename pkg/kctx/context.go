@@ -28,8 +28,8 @@ func FromRequest(r *http.Request) *Kctx {
 }
 
 // FromContext extracts Kctx from [context.Context].
-func FromContext(ctx context.Context) *Kctx {
-	newCtx, found := fromContext(ctx)
+func FromContext(c context.Context) *Kctx {
+	newCtx, found := fromContext(c)
 	if !found {
 		slog.Warn("kctx not found in context")
 	}
@@ -37,21 +37,21 @@ func FromContext(ctx context.Context) *Kctx {
 	return newCtx
 }
 
-func fromContext(ctx context.Context) (*Kctx, bool) {
-	if kctx, ok := ctx.Value(kctxKey).(*Kctx); ok {
+func fromContext(c context.Context) (*Kctx, bool) {
+	if kctx, ok := c.Value(kctxKey).(*Kctx); ok {
 		return kctx, true
 	}
 	// Fallback
-	return &Kctx{Context: ctx}, false
+	return &Kctx{Context: c}, false
 }
 
 // Middleware manages Kctx lifecycle in a [sync.Pool].
 func Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.WithValue(r.Context(), kctxKey, &Kctx{
+		c := context.WithValue(r.Context(), kctxKey, &Kctx{
 			Context: r.Context(),
 		})
-		r = r.WithContext(ctx)
+		r = r.WithContext(c)
 
 		next.ServeHTTP(w, r)
 	})

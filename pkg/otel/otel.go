@@ -36,7 +36,7 @@ import (
 // If it does not return an error, a propoer call to shutdown is needed to
 // clean up the OpenTelemetry SDK.
 func SetupOTelSDK(
-	ctx context.Context,
+	c context.Context,
 	conf config.Global,
 ) (func(context.Context) error, error) {
 	var err error
@@ -46,10 +46,10 @@ func SetupOTelSDK(
 	// shutdown calls cleanup functions registered via shutdownFuncs.
 	// The errors from the calls are joined.
 	// Each registered cleanup will be invoked once.
-	shutdown := func(ctx context.Context) error {
+	shutdown := func(c context.Context) error {
 		var err error
 		for _, fn := range shutdownFuncs {
-			err = errors.Join(err, fn(ctx))
+			err = errors.Join(err, fn(c))
 		}
 
 		shutdownFuncs = nil
@@ -59,7 +59,7 @@ func SetupOTelSDK(
 
 	// handleErr calls shutdown for cleanup and makes sure that all errors are returned.
 	handleErr := func(inErr error) {
-		err = errors.Join(inErr, shutdown(ctx))
+		err = errors.Join(inErr, shutdown(c))
 	}
 
 	// Set up propagator.
@@ -70,7 +70,7 @@ func SetupOTelSDK(
 
 	// Set up resource in order to enrich telemetry data.
 	res, err := resource.New(
-		ctx,
+		c,
 		resource.WithSchemaURL(semconv.SchemaURL),
 		resource.WithFromEnv(),
 		resource.WithHost(),
@@ -101,7 +101,7 @@ func SetupOTelSDK(
 	}
 
 	// Set up logger provider.
-	loggerProvider, err := newLoggerProvider(ctx, res, conf)
+	loggerProvider, err := newLoggerProvider(c, res, conf)
 	if err != nil {
 		handleErr(err)
 
@@ -112,7 +112,7 @@ func SetupOTelSDK(
 	global.SetLoggerProvider(loggerProvider)
 
 	// Set up meter provider.
-	meterProvider, err := newMeterProvider(ctx, res, conf)
+	meterProvider, err := newMeterProvider(c, res, conf)
 	if err != nil {
 		handleErr(err)
 
@@ -123,7 +123,7 @@ func SetupOTelSDK(
 	otel.SetMeterProvider(meterProvider)
 
 	// Set up trace provider.
-	tracerProvider, err := newTracerProvider(ctx, res, conf)
+	tracerProvider, err := newTracerProvider(c, res, conf)
 	if err != nil {
 		handleErr(err)
 
@@ -138,7 +138,7 @@ func SetupOTelSDK(
 
 // newLoggerProvider returns a new OpenTelemetry logger provider, and an error if any occurred during the setup.
 func newLoggerProvider(
-	ctx context.Context,
+	c context.Context,
 	res *resource.Resource,
 	conf config.Global,
 ) (*log.LoggerProvider, error) {
@@ -152,7 +152,7 @@ func newLoggerProvider(
 	)
 
 	grpcExporter, err := otlploggrpc.New(
-		ctx,
+		c,
 		otlploggrpc.WithCompressor(conf.Observability.ExporterCompression),
 		otlploggrpc.WithEndpointURL(conf.Observability.EndpointURL),
 	)
@@ -199,7 +199,7 @@ func newLoggerProvider(
 // The meter provider is configured to batch export metrics to the OpenTelemetry collector, or synchrounously to stdout
 // if conf.Runtime.Environment is set to [github.com/kemadev/go-framework/pkg/config.EnvLocal].
 func newMeterProvider(
-	ctx context.Context,
+	c context.Context,
 	res *resource.Resource,
 	conf config.Global,
 ) (*metric.MeterProvider, error) {
@@ -225,7 +225,7 @@ func newMeterProvider(
 		exporter = exp
 	} else {
 		exp, err := otlpmetricgrpc.New(
-			ctx,
+			c,
 			otlpmetricgrpc.WithCompressor(conf.Observability.ExporterCompression),
 			otlpmetricgrpc.WithEndpointURL(conf.Observability.EndpointURL),
 		)
@@ -255,12 +255,12 @@ func newMeterProvider(
 // newTracerProvider returns a new OpenTelemetry tracer provider, and an error if any occurred during the setup.
 // The tracer provider is configured to batch export traces to the OpenTelemetry collector.
 func newTracerProvider(
-	ctx context.Context,
+	c context.Context,
 	res *resource.Resource,
 	conf config.Global,
 ) (*trace.TracerProvider, error) {
 	exp, err := otlptracegrpc.New(
-		ctx,
+		c,
 		otlptracegrpc.WithCompressor(conf.Observability.ExporterCompression),
 		otlptracegrpc.WithEndpointURL(conf.Observability.EndpointURL),
 	)

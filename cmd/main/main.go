@@ -48,13 +48,13 @@ func main() {
 }
 
 func FooBar(w http.ResponseWriter, r *http.Request) {
-	ctx := kctx.FromRequest(r)
+	c := kctx.FromRequest(r)
 
 	// Get user from context (set by AuthMiddleware)
-	user := ctx.Local("user")
+	user := c.Local("user")
 
 	// Get span context for logging
-	span := ctx.Span(r)
+	span := c.Span(r)
 	spanCtx := span.SpanContext()
 	fmt.Printf("[HANDLER] TraceID: %s, SpanID: %s, User: %v\n",
 		spanCtx.TraceID().String(),
@@ -62,7 +62,7 @@ func FooBar(w http.ResponseWriter, r *http.Request) {
 		user,
 	)
 
-	bag := ctx.Baggage(r)
+	bag := c.Baggage(r)
 	span.AddEvent(
 		"handling this...",
 		trace.WithAttributes(semconv.UserID(bag.Member(string(semconv.UserIDKey)).Value())),

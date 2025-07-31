@@ -17,9 +17,9 @@ import (
 // LoggingMiddleware logs request details.
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := kctx.FromRequest(r)
+		c := kctx.FromRequest(r)
 
-		spanCtx := trace.SpanFromContext(ctx).SpanContext()
+		spanCtx := trace.SpanFromContext(c).SpanContext()
 		fmt.Printf("[LOGGING] TraceID: %s, SpanID: %s, Method: %s, Path: %s\n",
 			spanCtx.TraceID().String(),
 			spanCtx.SpanID().String(),
@@ -34,10 +34,10 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 // AuthMiddleware simulates authentication.
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := kctx.FromRequest(r)
+		c := kctx.FromRequest(r)
 
 		userID := "whoever"
-		span := ctx.Span(r)
+		span := c.Span(r)
 		span.SetAttributes(
 			semconv.UserID(userID),
 			attribute.Bool("auth.authenticated", true),
@@ -51,7 +51,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		newCtx, err := ctx.BaggageSet(r, mem)
+		newCtx, err := c.BaggageSet(r, mem)
 		if err != nil {
 			fmt.Printf("Failed to set baggage: %v\n", err)
 			next.ServeHTTP(w, r)
@@ -59,7 +59,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx.Context = newCtx
+		c.Context = newCtx
 
 		spanCtx := span.SpanContext()
 		fmt.Printf("[AUTH] TraceID: %s, SpanID: %s, User: "+userID+"\n",
@@ -67,18 +67,18 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			spanCtx.SpanID().String(),
 		)
 
-		ctx.LocalSet("user", userID)
+		c.LocalSet("user", userID)
 
-		next.ServeHTTP(w, r.WithContext(ctx.Context))
+		next.ServeHTTP(w, r.WithContext(c.Context))
 	})
 }
 
 // TimingMiddleware logs timing.
 func TimingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := kctx.FromRequest(r)
+		c := kctx.FromRequest(r)
 
-		spanCtx := trace.SpanFromContext(ctx).SpanContext()
+		spanCtx := trace.SpanFromContext(c).SpanContext()
 		fmt.Printf("[TIMING] TraceID: %s, SpanID: %s, Starting request\n",
 			spanCtx.TraceID().String(),
 			spanCtx.SpanID().String(),

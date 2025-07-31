@@ -112,14 +112,14 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 func (r *Router) ServerHandlerInstrumented() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		holder := &PatternHolder{}
-		ctx := context.WithValue(req.Context(), PatternKey{}, holder)
+		c := context.WithValue(req.Context(), PatternKey{}, holder)
 
 		name := req.Method + " - " + ServerRootSpanName
 
-		ctx, span := otel.Tracer(ServerRootSpanName).Start(ctx, name)
+		c, span := otel.Tracer(ServerRootSpanName).Start(c, name)
 		defer span.End()
 
-		r.ServeHTTP(w, req.WithContext(ctx))
+		r.ServeHTTP(w, req.WithContext(c))
 
 		if holder.Pattern != "" {
 			span.SetName(holder.Pattern + " - " + ServerRootSpanName)
