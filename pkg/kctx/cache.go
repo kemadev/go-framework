@@ -1,7 +1,6 @@
 package kctx
 
 import (
-	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -97,21 +96,30 @@ func (head *CacheHeader) addDuration(b *strings.Builder, directive string, durat
 	b.WriteString(strconv.Itoa(int(duration.Seconds())))
 }
 
-// CachePolicySet sets cache control header for given cace directive
+// CachePolicySet sets cache control header with given cache header
 func (c *Kctx) CachePolicySet(head CacheHeader) {
 	c.w.Header().Set(header.CacheControl, head.Build())
 }
 
-func (c *Kctx) CacheDecision(r *http.Response) CacheDecision {
+// CacheDecisionFromRequest return a caching decision from based on the request headers
+func (c *Kctx) CacheDecisionFromRequest() CacheDecision {
+	cacheControl := c.r.Header.Get(header.CacheControl)
+	if cacheControl != "" {
+		if strings.Contains(cacheControl, "no-cache") {
+			return CacheBypass
+		}
+		if strings.Contains(cacheControl, "max-age=0") {
+			return CacheRefresh
+		}
+	}
+
+	if c.r.Header.Get(header.IfNoneMatch) != "" ||
+		c.r.Header.Get(header.IfModifiedSince) != "" ||
+		c.r.Header.Get(header.IfUnmodifiedSince) != "" ||
+		c.r.Header.Get(header.IfMatch) != "" ||
+		c.r.Header.Get(header.IfRange) != "" {
+		return CacheRevalidate
+	}
+
 	return CacheAllow
 }
-
-// Age
-// Etag
-// Last-Modified
-// Vary
-// If-Match
-// If-Modified-Since
-// If-None-Match
-// If-Range
-// If-Unmodified-Since
