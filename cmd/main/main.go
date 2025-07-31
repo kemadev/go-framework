@@ -77,7 +77,7 @@ func FooBar(w http.ResponseWriter, r *http.Request) {
 
 	span.SetAttributes(attribute.String("bar", r.PathValue("bar")))
 
-	fmt.Println(c.AcceptsLanguage("gzip"))
+	fmt.Println(c.Accepts("gzip"))
 
 	fmt.Fprintf(w, "Hello, %v! TraceID: %s", user, spanCtx.TraceID().String())
 }

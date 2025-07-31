@@ -13,6 +13,11 @@ type AcceptedValue struct {
 	Quality float64
 }
 
+// Accepts returns whether client signals accepting given media type (based on Accept header)
+func (c *Kctx) Accepts(encoding string) bool {
+	return accepts(c.r.Header.Get(header.Accept), encoding)
+}
+
 // AcceptsEncoding returns whether client signals accepting given encoding
 func (c *Kctx) AcceptsEncoding(encoding string) bool {
 	return accepts(c.r.Header.Get(header.AcceptEncoding), encoding)
@@ -73,9 +78,13 @@ func parseAcceptHeader(header string) []AcceptedValue {
 			accepted = append(accepted, acceptedValue)
 			continue
 		}
+		if len(parts) != 2 {
+			// Malformed quality
+			continue
+		}
 
-		for i := range parts[1:] {
-			param := strings.TrimSpace(parts[i])
+		for _, part := range parts[1:] {
+			param := strings.TrimSpace(part)
 
 			qualPrefix := "q="
 			lenQualPrefix := len(qualPrefix)
@@ -84,7 +93,7 @@ func parseAcceptHeader(header string) []AcceptedValue {
 				continue
 			}
 
-			qual, err := strconv.ParseFloat(param[lenQualPrefix:], 10)
+			qual, err := strconv.ParseFloat(param[lenQualPrefix:], 32)
 			if err != nil {
 				// Fallback
 				continue
