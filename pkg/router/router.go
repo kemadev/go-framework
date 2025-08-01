@@ -20,9 +20,7 @@ type PatternKey struct{}
 
 // Router is an HTTP router.
 type Router struct {
-	globalChain []func(http.Handler) http.Handler
-	routeChain  []func(http.Handler) http.Handler
-	isSubRouter bool
+	routeChain []func(http.Handler) http.Handler
 	*http.ServeMux
 }
 
@@ -33,20 +31,15 @@ func New() *Router {
 
 // Use appends [mw] to the routers chain.
 func (r *Router) Use(mw ...func(http.Handler) http.Handler) {
-	if r.isSubRouter {
-		r.routeChain = append(r.routeChain, mw...)
-	} else {
-		r.globalChain = append(r.globalChain, mw...)
-	}
+	r.routeChain = append(r.routeChain, mw...)
 }
 
 // Group adds all routers down the chain to a group. All members of a group inherits from
 // their parent's routers chain.
 func (r *Router) Group(group func(r *Router)) {
 	subRouter := &Router{
-		routeChain:  slices.Clone(r.routeChain),
-		isSubRouter: true,
-		ServeMux:    r.ServeMux,
+		routeChain: slices.Clone(r.routeChain),
+		ServeMux:   r.ServeMux,
 	}
 	group(subRouter)
 }
@@ -68,7 +61,7 @@ func (r *Router) Handle(pattern string, h http.Handler) {
 // ServeHTTP implements http.Handler, applying global middleware.
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var h http.Handler = r.ServeMux
-	for _, mw := range slices.Backward(r.globalChain) {
+	for _, mw := range slices.Backward(r.routeChain) {
 		h = mw(h)
 	}
 
