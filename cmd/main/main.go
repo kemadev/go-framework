@@ -39,14 +39,14 @@ func main() {
 	)
 
 	// Add middlewares
-	app.Use(LoggingMiddleware)
+	app.Use(otel.WrapMiddleware("logging", LoggingMiddleware))
 
 	// Create groups
 	app.Group(func(r *router.Router) {
-		r.Use(AuthMiddleware)
+		r.Use(otel.WrapMiddleware("auth", AuthMiddleware))
 
 		r.Group(func(r *router.Router) {
-			r.Use(TimingMiddleware)
+			r.Use(otel.WrapMiddleware("timing", TimingMiddleware))
 
 			r.Handle(
 				otel.WrapHandler(
