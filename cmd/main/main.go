@@ -27,6 +27,9 @@ const packageName = "github.com/kemadev/go-framework/cmd/main"
 func main() {
 	app := router.New()
 
+	// Add middlewares
+	app.Use(otel.WrapMiddleware("logging", LoggingMiddleware))
+
 	app.Handle(
 		monitoring.LivenessHandler(
 			func() monitoring.CheckResults { return monitoring.CheckResults{} },
@@ -37,9 +40,6 @@ func main() {
 			func() monitoring.CheckResults { return monitoring.CheckResults{} },
 		),
 	)
-
-	// Add middlewares
-	app.Use(otel.WrapMiddleware("logging", LoggingMiddleware))
 
 	// Create groups
 	app.Group(func(r *router.Router) {
