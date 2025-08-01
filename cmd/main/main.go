@@ -10,9 +10,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/kemadev/go-framework/pkg/convenience/headutil"
-	"github.com/kemadev/go-framework/pkg/convenience/headval"
 	"github.com/kemadev/go-framework/pkg/convenience/local"
+	"github.com/kemadev/go-framework/pkg/convenience/otel"
 	"github.com/kemadev/go-framework/pkg/convenience/resp"
 	"github.com/kemadev/go-framework/pkg/convenience/trace"
 	"github.com/kemadev/go-framework/pkg/monitoring"
@@ -28,45 +27,48 @@ const packageName = "github.com/kemadev/go-framework/cmd/main"
 func main() {
 	app := router.New()
 
-	app.HandleInstrumented(
+	app.Handle(
 		monitoring.LivenessHandler(
 			func() monitoring.CheckResults { return monitoring.CheckResults{} },
 		),
 	)
-	app.HandleInstrumented(
+	app.Handle(
 		monitoring.ReadinessHandler(
 			func() monitoring.CheckResults { return monitoring.CheckResults{} },
 		),
 	)
 
 	// Add middlewares
-	app.UseInstrumented("logging-middleware", LoggingMiddleware)
+	app.Use(LoggingMiddleware)
 
 	// Create groups
 	app.Group(func(r *router.Router) {
-		r.UseInstrumented("auth-middleware", AuthMiddleware)
+		r.Use(AuthMiddleware)
 
 		r.Group(func(r *router.Router) {
-			r.UseInstrumented("timing-middleware", TimingMiddleware)
+			r.Use(TimingMiddleware)
 
-			r.HandleInstrumented(
-				"GET /auth/{bar}",
-				http.HandlerFunc(FooBar),
+			r.Handle(
+				otel.WrapHandler(
+					"GET /auth/{bar}",
+					http.HandlerFunc(FooBar),
+				),
 			)
 		})
 	})
 
 	// Add handlers
-	app.HandleInstrumented(
-		"GET /foo/{bar}",
-		http.HandlerFunc(FooBar),
+	app.Handle(
+		otel.WrapHandler("GET /foo/{bar}", http.HandlerFunc(FooBar)),
 	)
-	app.HandleInstrumented(
-		"GET /redir",
-		http.HandlerFunc(Redir),
+	app.Handle(
+		otel.WrapHandler(
+			"GET /redir",
+			http.HandlerFunc(Redir),
+		),
 	)
 
-	server.Run(app.ServerHandlerInstrumented())
+	server.Run(otel.WrapMux(app, packageName))
 }
 
 func FooBar(w http.ResponseWriter, r *http.Request) {
@@ -89,8 +91,6 @@ func FooBar(w http.ResponseWriter, r *http.Request) {
 	)
 
 	span.SetAttributes(attribute.String("bar", r.PathValue("bar")))
-
-	fmt.Println(headutil.IsMIME(r.Header, headval.AcceptJSON))
 
 	fmt.Fprintf(w, "Hello, %v! TraceID: %s", user, spanCtx.TraceID().String())
 }

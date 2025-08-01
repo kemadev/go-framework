@@ -7,12 +7,8 @@
 package router
 
 import (
-	"context"
 	"net/http"
 	"slices"
-
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	"go.opentelemetry.io/otel"
 )
 
 const ServerRootSpanName = "server"
@@ -21,17 +17,6 @@ type PatternHolder struct {
 	Pattern string
 }
 type PatternKey struct{}
-
-func injectPattern(pattern string, next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		holder, ok := r.Context().Value(PatternKey{}).(*PatternHolder)
-		if ok {
-			holder.Pattern = pattern
-		}
-
-		next.ServeHTTP(w, r)
-	})
-}
 
 // Router is an HTTP router.
 type Router struct {
@@ -52,18 +37,6 @@ func (r *Router) Use(mw ...func(http.Handler) http.Handler) {
 		r.routeChain = append(r.routeChain, mw...)
 	} else {
 		r.globalChain = append(r.globalChain, mw...)
-	}
-}
-
-// UseInstrumented appends [mw] to the routers chain, wrapping the handler with OpenTelemetry instrumentation.
-func (r *Router) UseInstrumented(name string, mw func(http.Handler) http.Handler) {
-	instrumentedMw := func(next http.Handler) http.Handler {
-		return otelhttp.NewHandler(mw(next), name)
-	}
-	if r.isSubRouter {
-		r.routeChain = append(r.routeChain, instrumentedMw)
-	} else {
-		r.globalChain = append(r.globalChain, instrumentedMw)
 	}
 }
 
@@ -92,12 +65,6 @@ func (r *Router) Handle(pattern string, h http.Handler) {
 	r.ServeMux.Handle(pattern, h)
 }
 
-// HandleInstrumented registers a handler with otelhttp instrumentation and pattern injection.
-func (r *Router) HandleInstrumented(pattern string, h http.Handler) {
-	h = injectPattern(pattern, h)
-	r.Handle(pattern, otelhttp.NewHandler(h, pattern))
-}
-
 // ServeHTTP implements http.Handler, applying global middleware.
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var h http.Handler = r.ServeMux
@@ -106,23 +73,4 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	h.ServeHTTP(w, req)
-}
-
-// ServerHandlerInstrumented returns an instrumented handler for use as http.Server.Handler.
-func (r *Router) ServerHandlerInstrumented() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		holder := &PatternHolder{}
-		c := context.WithValue(req.Context(), PatternKey{}, holder)
-
-		name := req.Method + " - " + ServerRootSpanName
-
-		c, span := otel.Tracer(ServerRootSpanName).Start(c, name)
-		defer span.End()
-
-		r.ServeHTTP(w, req.WithContext(c))
-
-		if holder.Pattern != "" {
-			span.SetName(holder.Pattern + " - " + ServerRootSpanName)
-		}
-	})
 }

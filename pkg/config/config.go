@@ -48,7 +48,7 @@ type Server struct {
 	// IdleTimeout is the HTTP idle timeout for the HTTP server
 	IdleTimeout time.Duration `default:"60s"             required:"true"`
 	// ProxyHeader is the proxy header for forwarded entity
-	ProxyHeader string `default:"X-Forwarded-For" required:"true"`
+	ProxyHeader string `default:"Forwarded" required:"true"`
 	// ShutdownGracePeriod is the grace period to give the server before canceling contexits t upon shutdown
 	ShutdownGracePeriod time.Duration `default:"5s"              required:"true"`
 }
