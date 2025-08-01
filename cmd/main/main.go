@@ -10,14 +10,17 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/kemadev/go-framework/pkg/header"
-	"github.com/kemadev/go-framework/pkg/kctx"
+	"github.com/kemadev/go-framework/pkg/convenience/headutil"
+	"github.com/kemadev/go-framework/pkg/convenience/headval"
+	"github.com/kemadev/go-framework/pkg/convenience/local"
+	"github.com/kemadev/go-framework/pkg/convenience/resp"
+	"github.com/kemadev/go-framework/pkg/convenience/trace"
 	"github.com/kemadev/go-framework/pkg/monitoring"
 	"github.com/kemadev/go-framework/pkg/router"
 	"github.com/kemadev/go-framework/pkg/server"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
-	"go.opentelemetry.io/otel/trace"
+	oteltrace "go.opentelemetry.io/otel/trace"
 )
 
 const packageName = "github.com/kemadev/go-framework/cmd/main"
@@ -37,7 +40,6 @@ func main() {
 	)
 
 	// Add middlewares
-	app.UseInstrumented("kctx-middleware", kctx.Middleware)
 	app.UseInstrumented("logging-middleware", LoggingMiddleware)
 
 	// Create groups
@@ -48,7 +50,7 @@ func main() {
 			r.UseInstrumented("timing-middleware", TimingMiddleware)
 
 			r.HandleInstrumented(
-				"GET /auth/2/{bar}",
+				"GET /auth/{bar}",
 				http.HandlerFunc(FooBar),
 			)
 		})
@@ -68,13 +70,11 @@ func main() {
 }
 
 func FooBar(w http.ResponseWriter, r *http.Request) {
-	c := kctx.FromRequestWarn(r, packageName)
-
 	// Get user from context (set by AuthMiddleware)
-	user := c.Local("user")
+	user := local.Get(r.Context(), "user")
 
 	// Get span context for logging
-	span := c.Span(r)
+	span := trace.Span(r.Context())
 	spanCtx := span.SpanContext()
 	fmt.Printf("[HANDLER] TraceID: %s, SpanID: %s, User: %v\n",
 		spanCtx.TraceID().String(),
@@ -82,23 +82,21 @@ func FooBar(w http.ResponseWriter, r *http.Request) {
 		user,
 	)
 
-	bag := c.Baggage(r)
+	bag := trace.Baggage(r.Context())
 	span.AddEvent(
 		"handling this...",
-		trace.WithAttributes(semconv.UserID(bag.Member(string(semconv.UserIDKey)).Value())),
+		oteltrace.WithAttributes(semconv.UserID(bag.Member(string(semconv.UserIDKey)).Value())),
 	)
 
 	span.SetAttributes(attribute.String("bar", r.PathValue("bar")))
 
-	fmt.Println(c.IsMIME(header.ValueAcceptJSON))
+	fmt.Println(headutil.IsMIME(r.Header, headval.AcceptJSON))
 
 	fmt.Fprintf(w, "Hello, %v! TraceID: %s", user, spanCtx.TraceID().String())
 }
 
 func Redir(w http.ResponseWriter, r *http.Request) {
-	c := kctx.FromRequestWarn(r, packageName)
-
-	c.Redirect(http.StatusPermanentRedirect, url.URL{
+	resp.Redirect(w, http.StatusPermanentRedirect, url.URL{
 		Scheme: "https",
 		Host:   "google.com",
 	})

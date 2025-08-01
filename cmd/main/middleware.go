@@ -7,19 +7,18 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/kemadev/go-framework/pkg/kctx"
+	"github.com/kemadev/go-framework/pkg/convenience/local"
+	"github.com/kemadev/go-framework/pkg/convenience/trace"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/baggage"
 	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
-	"go.opentelemetry.io/otel/trace"
+	oteltrace "go.opentelemetry.io/otel/trace"
 )
 
 // LoggingMiddleware logs request details.
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		c := kctx.FromRequestWarn(r, packageName)
-
-		spanCtx := trace.SpanFromContext(c).SpanContext()
+		spanCtx := oteltrace.SpanFromContext(r.Context()).SpanContext()
 		fmt.Printf("[LOGGING] TraceID: %s, SpanID: %s, Method: %s, Path: %s\n",
 			spanCtx.TraceID().String(),
 			spanCtx.SpanID().String(),
@@ -34,10 +33,8 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 // AuthMiddleware simulates authentication.
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		c := kctx.FromRequestWarn(r, packageName)
-
 		userID := "whoever"
-		span := c.Span(r)
+		span := trace.Span(r.Context())
 		span.SetAttributes(
 			semconv.UserID(userID),
 			attribute.Bool("auth.authenticated", true),
@@ -51,15 +48,13 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		newCtx, err := c.BaggageSet(r, mem)
+		c, err := trace.BaggageSet(r.Context(), mem)
 		if err != nil {
 			fmt.Printf("Failed to set baggage: %v\n", err)
-			next.ServeHTTP(w, r)
+			next.ServeHTTP(w, r.WithContext(c))
 
 			return
 		}
-
-		c.Context = newCtx
 
 		spanCtx := span.SpanContext()
 		fmt.Printf("[AUTH] TraceID: %s, SpanID: %s, User: "+userID+"\n",
@@ -67,18 +62,16 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			spanCtx.SpanID().String(),
 		)
 
-		c.LocalSet("user", userID)
+		c = local.Set(c, "user", userID)
 
-		next.ServeHTTP(w, r.WithContext(c.Context))
+		next.ServeHTTP(w, r.WithContext(c))
 	})
 }
 
 // TimingMiddleware logs timing.
 func TimingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		c := kctx.FromRequestWarn(r, packageName)
-
-		spanCtx := trace.SpanFromContext(c).SpanContext()
+		spanCtx := oteltrace.SpanFromContext(r.Context()).SpanContext()
 		fmt.Printf("[TIMING] TraceID: %s, SpanID: %s, Starting request\n",
 			spanCtx.TraceID().String(),
 			spanCtx.SpanID().String(),
