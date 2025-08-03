@@ -109,7 +109,7 @@ type TesterPayload struct {
 
 func Tester(w http.ResponseWriter, r *http.Request) {
 	parsed := new(TesterPayload)
-	code, err := req.JSON(w, r, parsed)
+	code, err := req.JSONFromBody(w, r, parsed)
 	if err != nil {
 		log.Logger("foo").Debug(err.Error())
 	}

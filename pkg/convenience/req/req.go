@@ -13,10 +13,10 @@ import (
 
 var ErrNotJSON = errors.New("content type is not JSON")
 
-// JSON parses [r]'s body as JSON into [dest] and returns appropriate HTTP status code for any
-// error encountered during processing (or ok status if there is no error).
+// JSONFromBody parses [r]'s body as JSON into [dest] (which must be an allocated object) and returns appropriate
+// HTTP status code for any error encountered during processing (or ok status if there is no error).
 // Please note that [net/http.MaxBytesReader] is not called, it is the responsability of the caller to set it accordingly.
-func JSON(w http.ResponseWriter, r *http.Request, dest any) (int, error) {
+func JSONFromBody(w http.ResponseWriter, r *http.Request, dest any) (int, error) {
 	ct := r.Header.Get(headkey.ContentType)
 	if ct != headval.AcceptJSON {
 		return http.StatusBadRequest, fmt.Errorf(
