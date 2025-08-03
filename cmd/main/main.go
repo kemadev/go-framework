@@ -8,7 +8,6 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"net/url"
 
 	"github.com/kemadev/go-framework/pkg/convenience/local"
 	"github.com/kemadev/go-framework/pkg/convenience/otel"
@@ -48,8 +47,8 @@ func main() {
 	)
 	r.Handle(
 		otel.WrapHandler(
-			"GET /redir",
-			http.HandlerFunc(Redir),
+			"GET /tester",
+			http.HandlerFunc(Tester),
 		),
 	)
 
@@ -96,9 +95,30 @@ func FooBar(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello, %v! TraceID: %s", user, spanCtx.TraceID().String())
 }
 
-func Redir(w http.ResponseWriter, r *http.Request) {
-	resp.Redirect(w, http.StatusPermanentRedirect, url.URL{
-		Scheme: "https",
-		Host:   "google.com",
+type TesterPayload2 struct {
+	Foo    string
+	hidden string
+}
+
+type TesterPayload struct {
+	hidden string
+	Foo    string `json:"hello"`
+	Bar    string
+	Baz    int
+	Qux    float64
+	Quux   TesterPayload2
+}
+
+func Tester(w http.ResponseWriter, r *http.Request) {
+	resp.JSON(w, TesterPayload{
+		hidden: "hidden",
+		Foo:    "1",
+		Bar:    "2",
+		Baz:    1,
+		Qux:    2,
+		Quux: TesterPayload2{
+			hidden: "hidden",
+			Foo:    "1",
+		},
 	})
 }
