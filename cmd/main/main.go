@@ -25,24 +25,36 @@ import (
 const packageName = "github.com/kemadev/go-framework/cmd/main"
 
 func main() {
-	app := router.New()
+	r := router.New()
 
 	// Add middlewares
-	app.Use(otel.WrapMiddleware("logging", LoggingMiddleware))
+	r.Use(otel.WrapMiddleware("logging", LoggingMiddleware))
 
-	app.Handle(
+	// Add monitoring endpoints
+	r.Handle(
 		monitoring.LivenessHandler(
 			func() monitoring.CheckResults { return monitoring.CheckResults{} },
 		),
 	)
-	app.Handle(
+	r.Handle(
 		monitoring.ReadinessHandler(
 			func() monitoring.CheckResults { return monitoring.CheckResults{} },
 		),
 	)
 
+	// Add handlers
+	r.Handle(
+		otel.WrapHandler("GET /foo/{bar}", http.HandlerFunc(FooBar)),
+	)
+	r.Handle(
+		otel.WrapHandler(
+			"GET /redir",
+			http.HandlerFunc(Redir),
+		),
+	)
+
 	// Create groups
-	app.Group(func(r *router.Router) {
+	r.Group(func(r *router.Router) {
 		r.Use(otel.WrapMiddleware("auth", AuthMiddleware))
 
 		r.Group(func(r *router.Router) {
@@ -57,18 +69,7 @@ func main() {
 		})
 	})
 
-	// Add handlers
-	app.Handle(
-		otel.WrapHandler("GET /foo/{bar}", http.HandlerFunc(FooBar)),
-	)
-	app.Handle(
-		otel.WrapHandler(
-			"GET /redir",
-			http.HandlerFunc(Redir),
-		),
-	)
-
-	server.Run(otel.WrapMux(app, packageName))
+	server.Run(otel.WrapMux(r, packageName))
 }
 
 func FooBar(w http.ResponseWriter, r *http.Request) {
