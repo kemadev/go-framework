@@ -4,6 +4,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -18,8 +19,8 @@ import (
 const ConfigurationEnvVarPrefix = "kema"
 
 var (
-	ErrVariableRequired  = fmt.Errorf("environment variable required")
-	ErrVariableMalformed = fmt.Errorf("environment malformed")
+	ErrVariableRequired  = errors.New("environment variable required")
+	ErrVariableMalformed = errors.New("environment malformed")
 )
 
 // Global is the server configuration struct.
@@ -38,19 +39,19 @@ type Global struct {
 // Server holds the HTTP server configuration.
 type Server struct {
 	// BindAddr is the server bind addressfor the HTTP server
-	BindAddr string `default:"[::]"            required:"true"`
+	BindAddr string `default:"[::]"      required:"true"`
 	// BindPort is the server bind portfor the HTTP server
-	BindPort int `default:"8080"            required:"true"`
+	BindPort int `default:"8080"      required:"true"`
 	// ReadTimeout is the HTTP read timeout for the HTTP server
-	ReadTimeout time.Duration `default:"15s"             required:"true"`
+	ReadTimeout time.Duration `default:"15s"       required:"true"`
 	// WriteTimeout is the HTTP write timeout for the HTTP server
-	WriteTimeout time.Duration `default:"15s"             required:"true"`
+	WriteTimeout time.Duration `default:"15s"       required:"true"`
 	// IdleTimeout is the HTTP idle timeout for the HTTP server
-	IdleTimeout time.Duration `default:"60s"             required:"true"`
+	IdleTimeout time.Duration `default:"60s"       required:"true"`
 	// ProxyHeader is the proxy header for forwarded entity
 	ProxyHeader string `default:"Forwarded" required:"true"`
 	// ShutdownGracePeriod is the grace period to give the server before canceling contexits t upon shutdown
-	ShutdownGracePeriod time.Duration `default:"5s"              required:"true"`
+	ShutdownGracePeriod time.Duration `default:"5s"        required:"true"`
 }
 
 // Runtime holds the runtime configuration.

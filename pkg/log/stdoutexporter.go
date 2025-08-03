@@ -5,6 +5,7 @@ package log
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"regexp"
@@ -36,7 +37,7 @@ const (
 	reset = "\033[0m"
 )
 
-var ErrCodeFilePathMalformed = fmt.Errorf("unexpected source filepath")
+var ErrCodeFilePathMalformed = errors.New("unexpected source filepath")
 
 // Exporter is a custom log exporter that formats and outputs log records to stdout.
 // It uses the OpenTelemetry SDK's stdoutlog.Exporter as a base, but formats the output

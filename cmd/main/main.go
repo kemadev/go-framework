@@ -10,8 +10,9 @@ import (
 	"net/http"
 
 	"github.com/kemadev/go-framework/pkg/convenience/local"
+	"github.com/kemadev/go-framework/pkg/convenience/log"
 	"github.com/kemadev/go-framework/pkg/convenience/otel"
-	"github.com/kemadev/go-framework/pkg/convenience/resp"
+	"github.com/kemadev/go-framework/pkg/convenience/req"
 	"github.com/kemadev/go-framework/pkg/convenience/trace"
 	"github.com/kemadev/go-framework/pkg/monitoring"
 	"github.com/kemadev/go-framework/pkg/router"
@@ -47,7 +48,7 @@ func main() {
 	)
 	r.Handle(
 		otel.WrapHandler(
-			"GET /tester",
+			"POST /tester",
 			http.HandlerFunc(Tester),
 		),
 	)
@@ -103,22 +104,15 @@ type TesterPayload2 struct {
 type TesterPayload struct {
 	hidden string
 	Foo    string `json:"hello"`
-	Bar    string
-	Baz    int
-	Qux    float64
 	Quux   TesterPayload2
 }
 
 func Tester(w http.ResponseWriter, r *http.Request) {
-	resp.JSON(w, TesterPayload{
-		hidden: "hidden",
-		Foo:    "1",
-		Bar:    "2",
-		Baz:    1,
-		Qux:    2,
-		Quux: TesterPayload2{
-			hidden: "hidden",
-			Foo:    "1",
-		},
-	})
+	parsed := new(TesterPayload)
+	code, err := req.JSON(w, r, parsed)
+	if err != nil {
+		log.Logger("foo").Debug(err.Error())
+	}
+	log.Logger("foo").Debug(fmt.Sprintf("%v", parsed))
+	w.WriteHeader(code)
 }
