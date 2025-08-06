@@ -6,7 +6,6 @@ SPDX-License-Identifier: MPL-2.0
 package main
 
 import (
-	"embed"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -18,15 +17,13 @@ import (
 	"github.com/kemadev/go-framework/pkg/monitoring"
 	"github.com/kemadev/go-framework/pkg/router"
 	"github.com/kemadev/go-framework/pkg/server"
+	"github.com/kemadev/go-framework/web"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 	oteltrace "go.opentelemetry.io/otel/trace"
 )
 
 const packageName = "github.com/kemadev/go-framework/cmd/main"
-
-//go:embed static/*
-var static embed.FS
 
 func main() {
 	r := router.New()
@@ -73,7 +70,7 @@ func main() {
 		})
 	})
 
-	r.Handle("GET /static/", http.StripPrefix("/", http.FileServer(http.FS(static))))
+	r.Handle("GET /static/", http.StripPrefix("/", http.FileServer(http.FS(web.GetStaticFS()))))
 
 	server.Run(otel.WrapMux(r, packageName))
 }
