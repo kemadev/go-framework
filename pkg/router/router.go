@@ -7,8 +7,11 @@
 package router
 
 import (
+	"embed"
 	"net/http"
 	"slices"
+
+	"github.com/kemadev/go-framework/pkg/convenience/render"
 )
 
 const ServerRootSpanName = "server"
@@ -56,13 +59,36 @@ func (r *Router) HandleFunc(pattern string, h http.HandlerFunc) {
 	r.Handle(pattern, h)
 }
 
-// Handle registers a handler for a pattern, automatically injecting the pattern into the context.
+// Handle registers a handler for a pattern.
 func (r *Router) Handle(pattern string, h http.Handler) {
 	for _, mw := range slices.Backward(r.routeChain) {
 		h = mw(h)
 	}
 
 	r.ServeMux.Handle(pattern, h)
+}
+
+// HandleStatic registers a handler for a pattern, serving static files from [fs].
+func (r *Router) HandleStatic(pattern string, fs embed.FS) {
+	handler := http.FileServer(http.FS(fs))
+	r.Handle(pattern, handler)
+}
+
+// HandleHtmlTmpl registers a handler for a pattern, executing [html/template.Template] files from [fs], using [renderer] with
+// data from [dataFunc], using template nammed after [net/http.Request.PathValue] of [pathValueKey] suffixed by `.html`.
+func (r *Router) HandleHtmlTmpl(
+	pattern string,
+	fs embed.FS,
+	renderer *render.TemplateRenderer,
+	dataFunc func(r *http.Request) (any, error),
+	pathValueKey string,
+) {
+	handler := renderer.HandlerFuncWithData(
+		dataFunc,
+		pathValueKey,
+		".html",
+	)
+	r.Handle(pattern, handler)
 }
 
 // ServeHTTP implements http.Handler, applying global middleware.

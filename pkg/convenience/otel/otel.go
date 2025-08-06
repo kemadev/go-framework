@@ -37,7 +37,7 @@ func WrapMux(mux *router.Router, packageName string) http.Handler {
 	})
 }
 
-// WrapMux wraps a handler with an OpenTelemetry span.
+// WrapHandler wraps a handler with an OpenTelemetry span.
 func WrapHandler(
 	pattern string,
 	handler func(w http.ResponseWriter, r *http.Request),
@@ -51,6 +51,7 @@ func WrapHandler(
 	})
 }
 
+// WrapMiddleware wraps a middleware with an OpenTelemetry span.
 func WrapMiddleware(
 	spanName string,
 	middleware Middleware,

@@ -1,11 +1,13 @@
 package web
 
-import "embed"
+import (
+	"embed"
+)
 
 //go:embed static/*
 var static embed.FS
 
-//go:embed tmpl/*
+//go:embed tmpl/*.html
 var tmpl embed.FS
 
 // GetStaticFS returns static assets as an [embed.FS]

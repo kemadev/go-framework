@@ -12,6 +12,7 @@ import (
 
 	"github.com/kemadev/go-framework/pkg/convenience/local"
 	"github.com/kemadev/go-framework/pkg/convenience/otel"
+	"github.com/kemadev/go-framework/pkg/convenience/render"
 	"github.com/kemadev/go-framework/pkg/convenience/req"
 	"github.com/kemadev/go-framework/pkg/convenience/trace"
 	"github.com/kemadev/go-framework/pkg/monitoring"
@@ -70,7 +71,21 @@ func main() {
 		})
 	})
 
-	r.Handle("GET /static/", http.StripPrefix("/", http.FileServer(http.FS(web.GetStaticFS()))))
+	r.HandleStatic("GET /static/", web.GetStaticFS())
+
+	tmplFS := web.GetTmplFS()
+	renderer, _ := render.New(tmplFS)
+	r.HandleHtmlTmpl(
+		"GET /tmpl/{tmpl}",
+		tmplFS,
+		renderer,
+		func(r *http.Request) (any, error) {
+			return map[string]any{
+				"WorldName": "WoRlD",
+			}, nil
+		},
+		"tmpl",
+	)
 
 	server.Run(otel.WrapMux(r, packageName))
 }

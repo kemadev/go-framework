@@ -13,3 +13,7 @@ const (
 	AcceptAll  = "*/*"
 	AcceptJSON = "application/json"
 )
+
+const (
+	ContentTypeHTMLUTF8 = "text/html; charset=utf-8"
+)
