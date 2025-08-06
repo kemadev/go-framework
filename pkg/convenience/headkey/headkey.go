@@ -91,6 +91,8 @@ const (
 	MaxForwards = "Max-Forwards"
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Prefer
 	Prefer = "Prefer"
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Priority
+	Priority = "Priority"
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Range
 	Range = "Range"
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Referer
