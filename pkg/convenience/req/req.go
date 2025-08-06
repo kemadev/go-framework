@@ -5,13 +5,22 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
+	"net"
 	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/kemadev/go-framework/pkg/convenience/headkey"
 	"github.com/kemadev/go-framework/pkg/convenience/headval"
 )
 
-var ErrNotJSON = errors.New("content type is not JSON")
+var (
+	ErrNotJSON                    = errors.New("content type is not JSON")
+	ErrNoForwardedHeader          = errors.New("no Forwarded header found in request")
+	ErrForwardedDirectiveNotFound = errors.New("Forwarded directive not found in request header")
+	ErrForwardedDirectiveInvalid  = errors.New("Forwarded directive is invalid")
+)
 
 // JSONFromBody parses [r]'s body as JSON into a new instance of type T and returns
 // the parsed object along with an appropriate HTTP status code for any error encountered
@@ -76,4 +85,86 @@ func JSONFromBody[T any](w http.ResponseWriter, r *http.Request) (T, int, error)
 	}
 
 	return result, http.StatusOK, nil
+}
+
+func extractFromForwardedHeaderFirst(r *http.Request, extractKey string) (string, error) {
+	forwarded := r.Header.Get(headkey.Forwarded)
+	if forwarded == "" {
+		return "", ErrNoForwardedHeader
+	}
+
+	forwardedDirective := func() string {
+		parts := strings.SplitSeq(forwarded, ";")
+		for part := range parts {
+			extractor := extractKey + "="
+			found := strings.Index(part, extractor)
+			if found >= 0 {
+				return part[len(extractor):]
+			}
+		}
+		return ""
+	}()
+
+	if forwardedDirective == "" {
+		return "", ErrForwardedDirectiveNotFound
+	}
+
+	return forwardedDirective, nil
+}
+
+func IP(r *http.Request) (net.IP, error) {
+	ipString, err := extractFromForwardedHeaderFirst(r, "for")
+	if err != nil {
+		return net.IP{}, fmt.Errorf("error extracting IP from request: %w", err)
+	}
+
+	ip := net.ParseIP(ipString)
+	if ip == nil {
+		return net.IP{}, ErrForwardedDirectiveInvalid
+	}
+
+	return ip, nil
+}
+
+func IPs(r *http.Request) ([]net.IP, error) {
+	forwarded := r.Header.Get(headkey.Forwarded)
+	if forwarded == "" {
+		return []net.IP{}, ErrNoForwardedHeader
+	}
+
+	parts := strings.SplitSeq(forwarded, ";")
+	ips := []net.IP{}
+	for part := range parts {
+		extractor := "for="
+		ipsChain := strings.SplitSeq(part, ", ")
+		for chainPart := range ipsChain {
+			ipString := chainPart[len(extractor):]
+			slog.Debug(ipString)
+			ip := net.ParseIP(ipString)
+			if ip == nil {
+				return []net.IP{}, ErrForwardedDirectiveInvalid
+			}
+			ips = append(ips, ip)
+		}
+	}
+
+	return ips, nil
+}
+
+func Host(r *http.Request) (*url.URL, error) {
+	hostString, err := extractFromForwardedHeaderFirst(r, "host")
+	if err != nil {
+		return nil, fmt.Errorf("error extracting host from request: %w", err)
+	}
+
+	host, err := url.Parse(hostString)
+	if err != nil {
+		return nil, fmt.Errorf("error extracting host from request: %w", err)
+	}
+
+	if host == nil {
+		return nil, ErrForwardedDirectiveInvalid
+	}
+
+	return host, nil
 }

@@ -7,13 +7,11 @@ package main
 
 import (
 	"embed"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
 
 	"github.com/kemadev/go-framework/pkg/convenience/local"
-	"github.com/kemadev/go-framework/pkg/convenience/log"
 	"github.com/kemadev/go-framework/pkg/convenience/otel"
 	"github.com/kemadev/go-framework/pkg/convenience/req"
 	"github.com/kemadev/go-framework/pkg/convenience/trace"
@@ -54,7 +52,7 @@ func main() {
 	)
 	r.Handle(
 		otel.WrapHandler(
-			"POST /tester",
+			"GET /tester",
 			http.HandlerFunc(Tester),
 		),
 	)
@@ -116,11 +114,10 @@ type TesterPayload struct {
 }
 
 func Tester(w http.ResponseWriter, r *http.Request) {
-	parsed, code, err := req.JSONFromBody[TesterPayload](w, r)
+	ip, err := req.IPs(r)
 	if err != nil {
-		log.Logger("foo").Debug(err.Error(), slog.Int("code", code))
+		slog.Debug(err.Error())
+		return
 	}
-	str, _ := json.Marshal(parsed)
-	log.Logger("foo").Debug(fmt.Sprintf("%s", str))
-	w.WriteHeader(code)
+	slog.Debug(fmt.Sprintf("%s", ip))
 }
