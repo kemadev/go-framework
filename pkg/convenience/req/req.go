@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log/slog"
 	"net"
 	"net/http"
 	"net/url"
@@ -87,84 +86,174 @@ func JSONFromBody[T any](w http.ResponseWriter, r *http.Request) (T, int, error)
 	return result, http.StatusOK, nil
 }
 
-func extractFromForwardedHeaderFirst(r *http.Request, extractKey string) (string, error) {
-	forwarded := r.Header.Get(headkey.Forwarded)
-	if forwarded == "" {
-		return "", ErrNoForwardedHeader
-	}
+// IP parses the Forwarded headers and returns the forwarded IP (the first to appear in the headers), and an error if any occurs.
+func IP(r *http.Request) (net.IP, error) {
+	for _, head := range r.Header[headkey.Forwarded] {
+		if head == "" {
+			return nil, ErrNoForwardedHeader
+		}
 
-	forwardedDirective := func() string {
-		parts := strings.SplitSeq(forwarded, ";")
-		for part := range parts {
-			extractor := extractKey + "="
-			found := strings.Index(part, extractor)
-			if found >= 0 {
-				return part[len(extractor):]
+		entries := strings.SplitSeq(head, ",")
+		for entry := range entries {
+			entry = strings.TrimSpace(entry)
+			if entry == "" {
+				return nil, ErrForwardedDirectiveInvalid
+			}
+
+			directives := strings.SplitSeq(entry, ";")
+			for directive := range directives {
+				directive = strings.TrimSpace(directive)
+
+				extractor := "for="
+				if !strings.HasPrefix(directive, extractor) {
+					continue
+				}
+
+				ipString := directive[len(extractor):]
+				ipString = strings.TrimPrefix(ipString, `"`)
+				ipString = strings.TrimSuffix(ipString, `"`)
+				ipString = strings.TrimPrefix(ipString, `[`)
+				ipString = strings.TrimSuffix(ipString, `]`)
+
+				ip := net.ParseIP(ipString)
+				if ip == nil {
+					return nil, ErrForwardedDirectiveInvalid
+				}
+
+				return ip, nil
 			}
 		}
-		return ""
-	}()
-
-	if forwardedDirective == "" {
-		return "", ErrForwardedDirectiveNotFound
 	}
 
-	return forwardedDirective, nil
+	return nil, ErrForwardedDirectiveInvalid
 }
 
-func IP(r *http.Request) (net.IP, error) {
-	ipString, err := extractFromForwardedHeaderFirst(r, "for")
-	if err != nil {
-		return net.IP{}, fmt.Errorf("error extracting IP from request: %w", err)
-	}
+// IPs parses the Forwarded headers and returns the forwarded IPs, and an error if any occurs.
+func IPs(r *http.Request) ([]*net.IP, error) {
+	var ips []*net.IP
 
-	ip := net.ParseIP(ipString)
-	if ip == nil {
-		return net.IP{}, ErrForwardedDirectiveInvalid
-	}
+	for _, head := range r.Header[headkey.Forwarded] {
+		if head == "" {
+			return nil, ErrNoForwardedHeader
+		}
 
-	return ip, nil
-}
-
-func IPs(r *http.Request) ([]net.IP, error) {
-	forwarded := r.Header.Get(headkey.Forwarded)
-	if forwarded == "" {
-		return []net.IP{}, ErrNoForwardedHeader
-	}
-
-	parts := strings.SplitSeq(forwarded, ";")
-	ips := []net.IP{}
-	for part := range parts {
-		extractor := "for="
-		ipsChain := strings.SplitSeq(part, ", ")
-		for chainPart := range ipsChain {
-			ipString := chainPart[len(extractor):]
-			slog.Debug(ipString)
-			ip := net.ParseIP(ipString)
-			if ip == nil {
-				return []net.IP{}, ErrForwardedDirectiveInvalid
+		entries := strings.SplitSeq(head, ",")
+		for entry := range entries {
+			entry = strings.TrimSpace(entry)
+			if entry == "" {
+				return nil, ErrForwardedDirectiveInvalid
 			}
-			ips = append(ips, ip)
+
+			directives := strings.SplitSeq(entry, ";")
+			for directive := range directives {
+				directive = strings.TrimSpace(directive)
+
+				extractor := "for="
+				if !strings.HasPrefix(directive, extractor) {
+					continue
+				}
+
+				ipString := directive[len(extractor):]
+				ipString = strings.TrimPrefix(ipString, `"`)
+				ipString = strings.TrimSuffix(ipString, `"`)
+				ipString = strings.TrimPrefix(ipString, `[`)
+				ipString = strings.TrimSuffix(ipString, `]`)
+
+				ip := net.ParseIP(ipString)
+				if ip == nil {
+					return nil, ErrForwardedDirectiveInvalid
+				}
+
+				ips = append(ips, &ip)
+			}
+		}
+
+		if len(ips) == 0 {
+			return nil, ErrForwardedDirectiveInvalid
 		}
 	}
 
 	return ips, nil
 }
 
+// Host parses the Forwarded headers and returns the forwarded host (the first to appear in the headers), and an error if any occurs.
 func Host(r *http.Request) (*url.URL, error) {
-	hostString, err := extractFromForwardedHeaderFirst(r, "host")
-	if err != nil {
-		return nil, fmt.Errorf("error extracting host from request: %w", err)
+	for _, head := range r.Header[headkey.Forwarded] {
+		if head == "" {
+			return nil, ErrNoForwardedHeader
+		}
+
+		entries := strings.SplitSeq(head, ",")
+		for entry := range entries {
+			entry = strings.TrimSpace(entry)
+			if entry == "" {
+				return nil, ErrForwardedDirectiveInvalid
+			}
+
+			directives := strings.SplitSeq(entry, ";")
+			for directive := range directives {
+				directive = strings.TrimSpace(directive)
+
+				extractor := "host="
+				if !strings.HasPrefix(directive, extractor) {
+					continue
+				}
+
+				hostString := directive[len(extractor):]
+
+				host, err := url.Parse(hostString)
+				if err != nil || host == nil {
+					return nil, ErrForwardedDirectiveInvalid
+				}
+
+				return host, nil
+			}
+		}
 	}
 
-	host, err := url.Parse(hostString)
-	if err != nil {
-		return nil, fmt.Errorf("error extracting host from request: %w", err)
+	return nil, ErrForwardedDirectiveInvalid
+}
+
+// Hosts parses the Forwarded headers and returns the forwarded hosts, and an error if any occurs.
+func Hosts(r *http.Request) ([]*url.URL, error) {
+	var hosts []*url.URL
+
+	for _, head := range r.Header[headkey.Forwarded] {
+		if head == "" {
+			return nil, ErrNoForwardedHeader
+		}
+
+		entries := strings.SplitSeq(head, ",")
+		for entry := range entries {
+			entry = strings.TrimSpace(entry)
+			if entry == "" {
+				return nil, ErrForwardedDirectiveInvalid
+			}
+
+			directives := strings.SplitSeq(entry, ";")
+			for directive := range directives {
+				directive = strings.TrimSpace(directive)
+
+				extractor := "host="
+				if !strings.HasPrefix(directive, extractor) {
+					continue
+				}
+
+				hostString := directive[len(extractor):]
+
+				host, err := url.Parse(hostString)
+				if err != nil || host == nil {
+					return nil, ErrForwardedDirectiveInvalid
+				}
+
+				hosts = append(hosts, host)
+			}
+		}
+
+		if len(hosts) == 0 {
+			return nil, ErrForwardedDirectiveInvalid
+		}
 	}
 
-	if host == nil {
-		return nil, ErrForwardedDirectiveInvalid
-	}
-
-	return host, nil
+	return hosts, nil
 }

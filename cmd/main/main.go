@@ -114,7 +114,7 @@ type TesterPayload struct {
 }
 
 func Tester(w http.ResponseWriter, r *http.Request) {
-	ip, err := req.IPs(r)
+	ip, err := req.Hosts(r)
 	if err != nil {
 		slog.Debug(err.Error())
 		return
