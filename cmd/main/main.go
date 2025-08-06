@@ -6,7 +6,10 @@ SPDX-License-Identifier: MPL-2.0
 package main
 
 import (
+	"embed"
+	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/kemadev/go-framework/pkg/convenience/local"
@@ -23,6 +26,9 @@ import (
 )
 
 const packageName = "github.com/kemadev/go-framework/cmd/main"
+
+//go:embed static/*
+var static embed.FS
 
 func main() {
 	r := router.New()
@@ -69,6 +75,8 @@ func main() {
 		})
 	})
 
+	r.Handle("GET /static/", http.StripPrefix("/", http.FileServer(http.FS(static))))
+
 	server.Run(otel.WrapMux(r, packageName))
 }
 
@@ -108,11 +116,11 @@ type TesterPayload struct {
 }
 
 func Tester(w http.ResponseWriter, r *http.Request) {
-	parsed := new(TesterPayload)
-	code, err := req.JSONFromBody(w, r, parsed)
+	parsed, code, err := req.JSONFromBody[TesterPayload](w, r)
 	if err != nil {
-		log.Logger("foo").Debug(err.Error())
+		log.Logger("foo").Debug(err.Error(), slog.Int("code", code))
 	}
-	log.Logger("foo").Debug(fmt.Sprintf("%v", parsed))
+	str, _ := json.Marshal(parsed)
+	log.Logger("foo").Debug(fmt.Sprintf("%s", str))
 	w.WriteHeader(code)
 }
