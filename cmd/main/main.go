@@ -71,20 +71,28 @@ func main() {
 		})
 	})
 
-	r.HandleStatic("GET /static/", web.GetStaticFS())
+	r.Handle(
+		otel.WrapHandler(
+			"GET /static/",
+			http.FileServerFS(web.GetStaticFS()).ServeHTTP,
+		),
+	)
 
 	tmplFS := web.GetTmplFS()
 	renderer, _ := render.New(tmplFS)
-	r.HandleHtmlTmpl(
-		"GET /tmpl/{tmpl}",
-		tmplFS,
-		renderer,
-		func(r *http.Request) (any, error) {
-			return map[string]any{
-				"WorldName": "WoRlD",
-			}, nil
-		},
-		"tmpl",
+	r.Handle(
+		otel.WrapHandler(
+			"GET /tmpl/{tmpl}",
+			renderer.HandlerFuncWithData(
+				func(r *http.Request) (any, error) {
+					return map[string]any{
+						"WorldName": "WoRlD",
+					}, nil
+				},
+				"tmpl",
+				".html",
+			),
+		),
 	)
 
 	server.Run(otel.WrapMux(r, packageName))
