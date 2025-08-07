@@ -92,9 +92,11 @@ func (tr *TemplateRenderer) Execute(
 	return nil
 }
 
-// HandlerFuncWithData creates an HTTP handler function with dynamic data
+// HandlerFuncWithData creates an HTTP handler function with dynamic data, using [templatePathResolver] to form
+// template name from request URL path, or a default resolver if none is provided.
 func (tr *TemplateRenderer) HandlerFuncWithData(
 	dataFunc func(*http.Request) (any, error),
+	templatePathResolver func(originalPath string) string,
 ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		data, err := dataFunc(r)
@@ -108,7 +110,13 @@ func (tr *TemplateRenderer) HandlerFuncWithData(
 			return
 		}
 
-		path := tr.resolvePath(r.URL.Path)
+		path := r.URL.Path
+
+		if templatePathResolver != nil {
+			path = templatePathResolver(path)
+		} else {
+			path = tr.resolvePath(path)
+		}
 
 		_, exists := tr.templates[path]
 		if !exists {
@@ -148,10 +156,5 @@ func (tr *TemplateRenderer) resolvePath(urlPath string) string {
 		return cleanPath
 	}
 
-	htmlPath := cleanPath + ".html"
-	if _, exists := tr.templates[htmlPath]; exists {
-		return htmlPath
-	}
-
-	return cleanPath
+	return cleanPath + ".html"
 }

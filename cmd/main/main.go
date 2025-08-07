@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"path"
+	"strings"
 
 	"github.com/kemadev/go-framework/pkg/convenience/local"
 	"github.com/kemadev/go-framework/pkg/convenience/otel"
@@ -84,13 +86,38 @@ func main() {
 	renderer, _ := render.New(tmplFS)
 	r.Handle(
 		otel.WrapHandler(
-			"GET /tmpl/",
-			renderer.HandlerFuncWithData(
-				func(r *http.Request) (any, error) {
-					return map[string]any{
-						"WorldName": "WoRlD",
-					}, nil
-				},
+			"GET /",
+			http.HandlerFunc(
+				renderer.HandlerFuncWithData(
+					func(r *http.Request) (any, error) {
+						return map[string]any{
+							"WorldName": "WoRlD",
+						}, nil
+					},
+					func(urlPath string) string {
+						urlPath = "tmpl/" + urlPath
+
+						cleanPath := path.Clean(urlPath)
+
+						if cleanPath == "." || cleanPath == "/" {
+							return "/index.html"
+						}
+
+						if !strings.HasPrefix(cleanPath, "/") {
+							cleanPath = "/" + cleanPath
+						}
+
+						if strings.HasSuffix(cleanPath, "/") {
+							return cleanPath + "index.html"
+						}
+
+						if path.Ext(cleanPath) != "" {
+							return cleanPath
+						}
+
+						return cleanPath + ".html"
+					},
+				),
 			),
 		),
 	)
