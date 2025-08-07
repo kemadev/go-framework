@@ -67,8 +67,7 @@ func (r *Router) Handle(pattern string, h http.Handler) {
 
 // HandleStatic registers a handler for a pattern, serving static files from [fs].
 func (r *Router) HandleStatic(pattern string, fs embed.FS) {
-	handler := http.FileServer(http.FS(fs))
-	r.Handle(pattern, handler)
+	r.Handle(pattern, http.FileServerFS(fs))
 }
 
 // HandleHtmlTmpl registers a handler for a pattern, executing [html/template.Template] files from [fs], using [renderer] with
