@@ -71,6 +71,7 @@ func main() {
 		})
 	})
 
+	// Handle static assets
 	r.Handle(
 		otel.WrapHandler(
 			"GET /static/",
@@ -78,19 +79,18 @@ func main() {
 		),
 	)
 
+	// Handle template assets
 	tmplFS := web.GetTmplFS()
 	renderer, _ := render.New(tmplFS)
 	r.Handle(
 		otel.WrapHandler(
-			"GET /tmpl/{tmpl}",
+			"GET /tmpl/",
 			renderer.HandlerFuncWithData(
 				func(r *http.Request) (any, error) {
 					return map[string]any{
 						"WorldName": "WoRlD",
 					}, nil
 				},
-				"tmpl",
-				".html",
 			),
 		),
 	)
