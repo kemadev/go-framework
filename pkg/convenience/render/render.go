@@ -6,16 +6,10 @@ import (
 	"fmt"
 	"html/template"
 	"io/fs"
-	"log/slog"
 	"net/http"
-	"path"
 	"path/filepath"
-	"strings"
 
 	"github.com/kemadev/go-framework/pkg/convenience/headkey"
-	"github.com/kemadev/go-framework/pkg/convenience/headval"
-	"github.com/kemadev/go-framework/pkg/convenience/log"
-	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 )
 
 const packageName = "github.com/kemadev/go-framework/pkg/convenience/render"
@@ -63,8 +57,7 @@ func (tr *TemplateRenderer) loadTemplates(tmpl embed.FS) error {
 			return fmt.Errorf("failed to parse template %s: %w", path, err)
 		}
 
-		// Add leading `/` to permit matching request URLs
-		tr.templates["/"+path] = t
+		tr.templates[path] = t
 
 		return nil
 	})
@@ -75,6 +68,7 @@ func (tr *TemplateRenderer) Execute(
 	w http.ResponseWriter,
 	templateName string,
 	data any,
+	contentType string,
 ) error {
 	t, exists := tr.templates[templateName]
 
@@ -82,7 +76,7 @@ func (tr *TemplateRenderer) Execute(
 		return fmt.Errorf("%s: %w", templateName, ErrTemplateNotFound)
 	}
 
-	w.Header().Set(headkey.ContentType, headval.ContentTypeHTMLUTF8)
+	w.Header().Set(headkey.ContentType, contentType)
 
 	err := t.Execute(w, data)
 	if err != nil {
@@ -90,71 +84,4 @@ func (tr *TemplateRenderer) Execute(
 	}
 
 	return nil
-}
-
-// HandlerFuncWithData creates an HTTP handler function with dynamic data, using [templatePathResolver] to form
-// template name from request URL path, or a default resolver if none is provided.
-func (tr *TemplateRenderer) HandlerFuncWithData(
-	dataFunc func(*http.Request) (any, error),
-	templatePathResolver func(originalPath string) string,
-) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		data, err := dataFunc(r)
-		if err != nil {
-			log.Logger(packageName).Error(
-				"can't load template data",
-				slog.String(string(semconv.ErrorMessageKey), err.Error()),
-				slog.String(string(semconv.URLPathKey), r.URL.Path),
-			)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		path := r.URL.Path
-
-		if templatePathResolver != nil {
-			path = templatePathResolver(path)
-		} else {
-			path = tr.resolvePath(path)
-		}
-
-		_, exists := tr.templates[path]
-		if !exists {
-			http.NotFound(w, r)
-			return
-		}
-
-		err = tr.Execute(w, path, data)
-		if err != nil {
-			log.Logger(packageName).Error(
-				"can't execute template",
-				slog.String(string(semconv.ErrorMessageKey), err.Error()),
-				slog.String(string(semconv.URLPathKey), r.URL.Path),
-			)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-	}
-}
-
-func (tr *TemplateRenderer) resolvePath(urlPath string) string {
-	cleanPath := path.Clean(urlPath)
-
-	if cleanPath == "." || cleanPath == "/" {
-		return "/index.html"
-	}
-
-	if !strings.HasPrefix(cleanPath, "/") {
-		cleanPath = "/" + cleanPath
-	}
-
-	if strings.HasSuffix(cleanPath, "/") {
-		return cleanPath + "index.html"
-	}
-
-	if path.Ext(cleanPath) != "" {
-		return cleanPath
-	}
-
-	return cleanPath + ".html"
 }

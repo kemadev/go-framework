@@ -2,6 +2,7 @@ package resp
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -9,6 +10,8 @@ import (
 	"github.com/kemadev/go-framework/pkg/convenience/headkey"
 	"github.com/kemadev/go-framework/pkg/convenience/headval"
 )
+
+var ErrTemplateNotFound = errors.New("template not found")
 
 // Redirect sends an HTTP redirect with given code and URL
 func Redirect(w http.ResponseWriter, code int, url url.URL) {

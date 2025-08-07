@@ -6,13 +6,14 @@ SPDX-License-Identifier: MPL-2.0
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
-	"path"
-	"strings"
 
+	"github.com/kemadev/go-framework/pkg/convenience/headval"
 	"github.com/kemadev/go-framework/pkg/convenience/local"
+	"github.com/kemadev/go-framework/pkg/convenience/log"
 	"github.com/kemadev/go-framework/pkg/convenience/otel"
 	"github.com/kemadev/go-framework/pkg/convenience/render"
 	"github.com/kemadev/go-framework/pkg/convenience/req"
@@ -87,42 +88,42 @@ func main() {
 	r.Handle(
 		otel.WrapHandler(
 			"GET /",
-			http.HandlerFunc(
-				renderer.HandlerFuncWithData(
-					func(r *http.Request) (any, error) {
-						return map[string]any{
-							"WorldName": "WoRlD",
-						}, nil
-					},
-					func(urlPath string) string {
-						urlPath = "tmpl/" + urlPath
-
-						cleanPath := path.Clean(urlPath)
-
-						if cleanPath == "." || cleanPath == "/" {
-							return "/index.html"
-						}
-
-						if !strings.HasPrefix(cleanPath, "/") {
-							cleanPath = "/" + cleanPath
-						}
-
-						if strings.HasSuffix(cleanPath, "/") {
-							return cleanPath + "index.html"
-						}
-
-						if path.Ext(cleanPath) != "" {
-							return cleanPath
-						}
-
-						return cleanPath + ".html"
-					},
-				),
-			),
+			ExampleTemplateRender(renderer),
 		),
 	)
 
 	server.Run(otel.WrapMux(r, packageName))
+}
+
+func ExampleTemplateRender(
+	tr *render.TemplateRenderer,
+) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		err := tr.Execute(
+			w,
+			// Mind directory name in tmplate FS
+			"tmpl/hello.html",
+			map[string]any{
+				"WorldName": "WoRlD",
+			},
+			headval.ContentTypeHTMLUTF8,
+		)
+		if err != nil {
+			if errors.Is(err, render.ErrTemplateNotFound) {
+				http.NotFound(w, r)
+				return
+			}
+
+			log.Logger(packageName).
+				Error("error rendering template",
+					slog.String(
+						string(semconv.ErrorMessageKey),
+						err.Error(),
+					),
+				)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	}
 }
 
 func FooBar(w http.ResponseWriter, r *http.Request) {
