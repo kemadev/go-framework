@@ -74,7 +74,7 @@ func main() {
 		})
 	})
 
-	// Handle static assets
+	// Handle static (public) assets
 	r.Handle(
 		otel.WrapHandler(
 			"GET /static/",
