@@ -8,6 +8,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 
@@ -16,8 +17,8 @@ import (
 	"github.com/kemadev/go-framework/pkg/convenience/log"
 	"github.com/kemadev/go-framework/pkg/convenience/otel"
 	"github.com/kemadev/go-framework/pkg/convenience/render"
-	"github.com/kemadev/go-framework/pkg/convenience/req"
 	"github.com/kemadev/go-framework/pkg/convenience/trace"
+	"github.com/kemadev/go-framework/pkg/encoding"
 	"github.com/kemadev/go-framework/pkg/monitoring"
 	"github.com/kemadev/go-framework/pkg/router"
 	"github.com/kemadev/go-framework/pkg/server"
@@ -33,6 +34,7 @@ func main() {
 	r := router.New()
 
 	// Add middlewares
+	r.Use(otel.WrapMiddleware("logging", encoding.DecompressMiddleware))
 	r.Use(otel.WrapMiddleware("logging", LoggingMiddleware))
 
 	// Add monitoring endpoints
@@ -53,7 +55,7 @@ func main() {
 	)
 	r.Handle(
 		otel.WrapHandler(
-			"GET /tester",
+			"POST /tester",
 			http.HandlerFunc(Tester),
 		),
 	)
@@ -162,10 +164,6 @@ type TesterPayload struct {
 }
 
 func Tester(w http.ResponseWriter, r *http.Request) {
-	ip, err := req.Hosts(r)
-	if err != nil {
-		slog.Debug(err.Error())
-		return
-	}
-	slog.Debug(fmt.Sprintf("%s", ip))
+	bod, _ := io.ReadAll(r.Body)
+	slog.Debug(fmt.Sprintf("%s", bod))
 }
