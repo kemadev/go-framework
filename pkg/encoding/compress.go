@@ -22,7 +22,6 @@ import (
 type CompressConfig struct {
 	// Gzip compression level (-1 to 9, where -1 is default compression)
 	Level int
-
 	// Minimum response length before compression is applied
 	MinLength int
 }

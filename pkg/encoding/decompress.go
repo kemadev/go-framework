@@ -16,21 +16,13 @@ import (
 
 var ErrFailureGetDecompressorFromPool = errors.New("can't get a decompressor from pool")
 
-type Decompressor interface {
-	gzipDecompressPool() sync.Pool
-}
-
-var decompressPool = sync.Pool{
-	New: func() any {
-		return new(gzip.Reader)
-	},
-}
-
 // DecompressMiddleware returns a middleware that performs automatic decompression of request body when
 // content encoding is gzip. It is inspired from [echo's implementation].
 //
 // [echo's implementation]: https://github.com/labstack/echo/blob/master/middleware/decompress.go
 func DecompressMiddleware(next http.Handler) http.Handler {
+	decompressPool := gzipDecompressPool()
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get(headkey.ContentEncoding) != headval.EncodingGzip {
 			next.ServeHTTP(w, r)
@@ -69,4 +61,13 @@ func DecompressMiddleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+func gzipDecompressPool() sync.Pool {
+	return sync.Pool{
+		New: func() interface{} {
+			r := new(gzip.Reader)
+			return r
+		},
+	}
 }
