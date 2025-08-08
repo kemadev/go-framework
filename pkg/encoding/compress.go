@@ -183,7 +183,7 @@ func (w *compressResponseWriter) Write(data []byte) (int, error) {
 	}
 
 	// We already decided to compress, write to gzip writer
-	n, err := w.writer.Write(data)
+	_, err := w.writer.Write(data)
 	if err != nil {
 		return 0, fmt.Errorf("error writing compressed response: %w", err)
 	}
