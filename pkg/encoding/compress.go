@@ -45,7 +45,7 @@ const CompressionMinThreshold = 2 * 1024
 // when the client accepts gzip encoding.
 func CompressMiddleware(next http.Handler) http.Handler {
 	return CompressMiddlewareWithConfig(CompressConfig{
-		Level: gzip.DefaultCompression,
+		Level:     gzip.DefaultCompression,
 		MinLength: CompressionMinThreshold,
 	})(next)
 }
@@ -171,19 +171,24 @@ func (w *compressResponseWriter) Write(data []byte) (int, error) {
 				w.ResponseWriter.WriteHeader(w.statusCode)
 			}
 
-			return w.writer.Write(w.buffer.Bytes())
+			_, err := w.writer.Write(w.buffer.Bytes())
+			if err != nil {
+				return 0, fmt.Errorf("error writing compressed response: %w", err)
+			}
+
+			return len(data), nil
 		}
 
 		return n, nil
 	}
 
-	// We already decided to compress, just write
+	// We already decided to compress, write to gzip writer
 	n, err := w.writer.Write(data)
 	if err != nil {
-		return n, fmt.Errorf("error writing compressed response: %w", err)
+		return 0, fmt.Errorf("error writing compressed response: %w", err)
 	}
 
-	return n, nil
+	return len(data), nil
 }
 
 func (w *compressResponseWriter) Flush() {
