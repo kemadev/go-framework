@@ -41,8 +41,10 @@ type compressResponseWriter struct {
 // gzip overhead makes response bigger for small bodies, and thus wastes CPU time for counter-productive results
 const CompressionMinThreshold = 2 * 1024
 
-// CompressMiddleware returns a middleware that performs automatic compression of response body
-// when the client accepts gzip encoding.
+// CompressMiddleware returns a middleware that performs automatic gzip compression of response body
+// when the client accepts it. It is inspired from [echo's implementation].
+//
+// [echo's implementation]: https://github.com/labstack/echo/blob/master/middleware/compress.go
 func CompressMiddleware(next http.Handler) http.Handler {
 	return CompressMiddlewareWithConfig(CompressConfig{
 		Level:     gzip.DefaultCompression,
