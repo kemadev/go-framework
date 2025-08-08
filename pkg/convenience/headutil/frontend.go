@@ -18,10 +18,6 @@ type AccessControl struct {
 	AccessControlExposeHeaders []string
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Max-Age
 	AccessControlMaxAge time.Duration
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Request-Headers
-	AccessControlRequestHeaders []string
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Request-Method
-	AccessControlRequestMethod string
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy#fetch_directives
@@ -50,13 +46,6 @@ type ContentSecurityPolicyFetchDirectives struct {
 	StyleSource string
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/worker-src
 	WorkerSource string
-}
-
-type ContentSecurityPolicyBaseURI struct {
-	// https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/base#href
-	HRef url.URL
-	// https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/base#target
-	Target string
 }
 
 const (
@@ -91,7 +80,7 @@ const (
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy#document_directives
 type ContentSecurityPolicyDocumentDirectives struct {
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/base-uri
-	BaseURI ContentSecurityPolicyBaseURI
+	BaseURI string
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/sandbox
 	Sandbox string
 }
@@ -108,6 +97,8 @@ type ContentSecurityPolicyNavigationDirectives struct {
 type ContentSecurityPolicy struct {
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/child-src
 	FetchDirectives ContentSecurityPolicyFetchDirectives
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy#document_directives
+	DocumentDirectives ContentSecurityPolicyDocumentDirectives
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy#navigation_directives
 	NavigationDirectives ContentSecurityPolicyNavigationDirectives
 }
@@ -175,101 +166,6 @@ type ReferrerPolicy struct {
 }
 
 const (
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Dest#audio
-	SecFetchDestAudio = "audio"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Dest#audioworklet
-	SecFetchDestAudioWorklet = "audioworklet"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Dest#document
-	SecFetchDestDocument = "document"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Dest#embed
-	SecFetchDestEmbed = "embed"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Dest#empty
-	SecFetchDestEmpty = "empty"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Dest#font
-	SecFetchDestFont = "font"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Dest#frame
-	SecFetchDestFrame = "frame"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Dest#iframe
-	SecFetchDestIFrame = "iframe"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Dest#image
-	SecFetchDestImage = "image"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Dest#manifest
-	SecFetchDestManifest = "manifest"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Dest#object
-	SecFetchDestObject = "object"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Dest#paintworklet
-	SecFetchDestPaintWorklet = "paintworklet"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Dest#report
-	SecFetchDestReport = "report"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Dest#script
-	SecFetchDestScript = "script"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Dest#serviceworker
-	SecFetchDestServiceWorker = "serviceworker"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Dest#sharedworker
-	SecFetchDestSharedWorker = "sharedworker"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Dest#style
-	SecFetchDestStyle = "style"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Dest#track
-	SecFetchDestTrack = "track"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Dest#video
-	SecFetchDestVideo = "video"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Dest#webidentity
-	SecFetchDestWebIdentity = "webidentity"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Dest#worker
-	SecFetchDestWorker = "worker"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Dest#xslt
-	SecFetchDestXSLT = "xslt"
-)
-
-const (
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Mode#cors
-	SecFetchModeCORS = "cors"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Mode#navigate
-	SecFetchModeNavigate = "navigate"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Mode#no-cors
-	SecFetchModeNoCORS = "no-cors"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Mode#same-origin
-	SecFetchModeSameOrigin = "same-origin"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Mode#websocket
-	SecFetchModeWebSocket = "websocket"
-)
-
-const (
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Site#cross-site
-	SecFetchSiteCrossSite = "cross-site"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Site#same-origin
-	SecFetchSiteSameOrigin = "same-origin"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Site#same-site
-	SecFetchSiteSameSite = "same-site"
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Site#none
-	SecFetchSiteNone = "none"
-)
-
-type SecFetch struct {
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Dest
-	SecFetchDest string
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Mode
-	SecFetchMode string
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Site
-	SecFetchSite string
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-User
-	SecFetchUser bool
-}
-
-type SecWebSocket struct {
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-WebSocket-Accept
-	SecWebSocketAccept string
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-WebSocket-Extensions
-	SecWebSocketExtensions []string
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-WebSocket-Key
-	SecWebSocketKey string
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-WebSocket-Protocol
-	SecWebSocketProtocol string
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-WebSocket-Version
-	SecWebSocketVersion int
-}
-
-const (
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Frame-Options#deny
 	FrameOptionsDeny = "DENY"
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Frame-Options#sameorigin
@@ -283,20 +179,57 @@ type OtherOptions struct {
 	FrameOptions string
 }
 
-type CSRFToken struct {
-	Token string
-}
-
 type SecurityHeadersConfig struct {
 	AccessControl         AccessControl
 	ContentSecurityPolicy ContentSecurityPolicy
 	CrossOriginPolicy     CrossOriginPolicy
 	ReferrerPolicy        ReferrerPolicy
-	SecFetch              SecFetch
-	SecWebSocket          SecWebSocket
 	OtherOptions          OtherOptions
 }
 
 var DefaultStrict = SecurityHeadersConfig{
-	AccessControl: AccessControl{},
+	AccessControl: AccessControl{
+		AccessControlAllowCredentials: false,
+		AccessControlAllowHeaders:     []string{},
+		AccessControlAllowMethods:     []string{},
+		AccessControlAllowOrigin:      url.URL{},
+		AccessControlExposeHeaders:    []string{},
+		AccessControlMaxAge:           5 * time.Second,
+	},
+	ContentSecurityPolicy: ContentSecurityPolicy{
+		FetchDirectives: ContentSecurityPolicyFetchDirectives{
+			ChildSource:    "none",
+			ConnectSource:  "none",
+			DefaultSource:  "none",
+			FontSource:     "none",
+			FrameSource:    "none",
+			ImageSource:    "none",
+			ManifestSource: "none",
+			MediaSource:    "none",
+			ObjectSource:   "none",
+			ScriptSource:   "none",
+			StyleSource:    "none",
+			WorkerSource:   "none",
+		},
+		DocumentDirectives: ContentSecurityPolicyDocumentDirectives{
+			BaseURI: "none",
+			Sandbox: "",
+		},
+		NavigationDirectives: ContentSecurityPolicyNavigationDirectives{
+			FormAction:     "none",
+			FrameAncestors: "none",
+		},
+	},
+	CrossOriginPolicy: CrossOriginPolicy{
+		CrossOriginEmbedderPolicy: CrossOriginEmbedderPolicyRequireCORP,
+		CrossOriginOpenerPolicy:   CrossOriginOpenerPolicySameOrigin,
+		CrossOriginResourcePolicy: CrossOriginResourcePolicySameOrigin,
+	},
+	ReferrerPolicy: ReferrerPolicy{
+		ReferrerPolicy: ReferrerPolicySameOrigin,
+	},
+	OtherOptions: OtherOptions{
+		ContentTypeOptionsNoSniff: true,
+		FrameOptions:              FrameOptionsDeny,
+	},
 }
