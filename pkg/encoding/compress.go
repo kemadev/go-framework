@@ -191,22 +191,29 @@ func (w *compressResponseWriter) Write(data []byte) (int, error) {
 	return len(data), nil
 }
 
+// Write implements [net/http.ResponseWriter].
 func (w *compressResponseWriter) Flush() {
-	// If we haven't exceeded minimum length, force compression
 	if !w.minLengthExceeded {
-		w.minLengthExceeded = true
-
-		w.Header().Set(headkey.ContentEncoding, headval.EncodingGzip)
 		if w.wroteHeader {
 			w.ResponseWriter.WriteHeader(w.statusCode)
 		}
 
-		_, err := w.Write(w.buffer.Bytes())
-		if err != nil {
-			log.Logger(packageName).
-				Error("error writing buffered data during flush",
-					slog.String(string(semconv.ErrorMessageKey), err.Error()))
+		if w.buffer.Len() > 0 {
+			_, err := w.buffer.WriteTo(w.ResponseWriter)
+			if err != nil {
+				log.Logger(packageName).
+					Error("error writing uncompressed buffered data during flush",
+						slog.String(string(semconv.ErrorMessageKey), err.Error()))
+			}
+			w.buffer.Reset()
 		}
+
+		w.wroteBody = true
+
+		if flusher, ok := w.ResponseWriter.(http.Flusher); ok {
+			flusher.Flush()
+		}
+		return
 	}
 
 	err := w.writer.Flush()
