@@ -11,9 +11,20 @@ const (
 
 const (
 	AcceptAll  = "*/*"
-	AcceptJSON = "application/json"
 )
 
 const (
-	ContentTypeHTMLUTF8 = "text/html; charset=utf-8"
+    MIMEApplicationForm                  = "application/x-www-form-urlencoded"
+    MIMEApplicationJSON                  = "application/json"
+    MIMEApplicationJSONCharsetUTF8       = "application/json; charset=utf-8"
+    MIMEMultipartForm                    = "multipart/form-data"
+    MIMEOctetStream                      = "application/octet-stream"
+    MIMETextCSS                          = "text/css"
+    MIMETextCSSCharsetUTF8               = "text/css; charset=utf-8"
+    MIMETextHTML                         = "text/html"
+    MIMETextHTMLCharsetUTF8              = "text/html; charset=utf-8"
+    MIMETextJavaScript                   = "text/javascript"
+    MIMETextJavaScriptCharsetUTF8        = "text/javascript; charset=utf-8"
+    MIMETextPlain                        = "text/plain"
+    MIMETextPlainCharsetUTF8             = "text/plain; charset=utf-8"
 )

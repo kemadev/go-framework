@@ -29,7 +29,7 @@ func JSONFromBody[T any](w http.ResponseWriter, r *http.Request) (T, int, error)
 	var zero T
 
 	ct := r.Header.Get(headkey.ContentType)
-	if ct != headval.AcceptJSON {
+	if !strings.HasPrefix(ct, headval.MIMEApplicationJSON) {
 		return zero, http.StatusBadRequest, fmt.Errorf(
 			"error processing JSON with content type %q: %w",
 			ct,

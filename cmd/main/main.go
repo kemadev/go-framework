@@ -106,7 +106,7 @@ func ExampleTemplateRender(
 			map[string]any{
 				"WorldName": "WoRlD",
 			},
-			headval.ContentTypeHTMLUTF8,
+			headval.MIMETextHTMLCharsetUTF8,
 		)
 		if err != nil {
 			if errors.Is(err, render.ErrTemplateNotFound) {

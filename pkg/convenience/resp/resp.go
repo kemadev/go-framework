@@ -27,7 +27,7 @@ func JSON(w http.ResponseWriter, payload any) error {
 		return fmt.Errorf("error marshalling json: %w", err)
 	}
 
-	w.Header().Set(headkey.ContentType, headval.AcceptJSON)
+	w.Header().Set(headkey.ContentType, headval.MIMEApplicationJSONCharsetUTF8)
 	w.Write(body)
 
 	return nil

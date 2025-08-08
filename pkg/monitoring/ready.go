@@ -79,7 +79,7 @@ func ReadinessHandler(
 			status.Checks["jsonMarshal"] = StatusDown
 		}
 
-		w.Header().Set(headkey.ContentType, headval.AcceptJSON)
+		w.Header().Set(headkey.ContentType, headval.MIMEApplicationJSONCharsetUTF8)
 		w.WriteHeader(status.Ready.HTTPCode())
 		w.Write(body)
 	}
