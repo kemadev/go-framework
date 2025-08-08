@@ -167,4 +167,6 @@ type TesterPayload struct {
 func Tester(w http.ResponseWriter, r *http.Request) {
 	bod, _ := io.ReadAll(r.Body)
 	slog.Debug(fmt.Sprintf("%s", bod))
+	w.WriteHeader(200)
+	w.Write([]byte("this is the response"))
 }
