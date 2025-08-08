@@ -179,7 +179,19 @@ type TesterPayload struct {
 }
 
 func Tester(w http.ResponseWriter, r *http.Request) {
-	bod, _ := io.ReadAll(r.Body)
+	bod, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.ErrLog("Tester", "read err", err)
+		var maxBytesErr *http.MaxBytesError
+		if errors.As(err, &maxBytesErr) {
+			http.Error(
+				w,
+				http.StatusText(http.StatusRequestEntityTooLarge),
+				http.StatusRequestEntityTooLarge,
+			)
+			return
+		}
+	}
 	slog.Debug(fmt.Sprintf("%s", bod))
 	w.WriteHeader(200)
 	w.Write([]byte("this is the response"))

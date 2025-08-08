@@ -2,6 +2,7 @@ package encoding
 
 import (
 	"compress/gzip"
+	"errors"
 	"io"
 	"net/http"
 	"sync"
@@ -29,9 +30,12 @@ func DecompressMiddleware(next http.Handler) http.Handler {
 
 		decompressReader, ok := pe.(*gzip.Reader)
 		if !ok || decompressReader == nil {
-			log.ErrLog(packageName, "error decompressing body", ErrFailureGetFromPool)
-			w.WriteHeader(http.StatusServiceUnavailable)
-			w.Write([]byte(http.StatusText(http.StatusServiceUnavailable)))
+			log.ErrLog(packageName, "error getting decompressor", ErrFailureGetFromPool)
+			http.Error(
+				w,
+				http.StatusText(http.StatusServiceUnavailable),
+				http.StatusServiceUnavailable,
+			)
 
 			return
 		}
@@ -46,9 +50,23 @@ func DecompressMiddleware(next http.Handler) http.Handler {
 				next.ServeHTTP(w, r)
 				return
 			}
+
+			var maxBytesErr *http.MaxBytesError
+			if errors.As(err, &maxBytesErr) {
+				http.Error(
+					w,
+					http.StatusText(http.StatusRequestEntityTooLarge),
+					http.StatusRequestEntityTooLarge,
+				)
+				return
+			}
+
 			log.ErrLog(packageName, "error resetting body decompressor: %w", err)
-			w.WriteHeader(http.StatusServiceUnavailable)
-			w.Write([]byte(http.StatusText(http.StatusServiceUnavailable)))
+			http.Error(
+				w,
+				http.StatusText(http.StatusServiceUnavailable),
+				http.StatusServiceUnavailable,
+			)
 
 			return
 		}
