@@ -38,7 +38,7 @@ func main() {
 
 	// Always protect your routes (you can further customize at handler / group level)
 	r.Use(otel.WrapMiddleware("timeout", timeout.NewMiddleware(5*time.Second)))
-	r.Use(otel.WrapMiddleware("maxbytes", maxbytes.NewMiddleware(1)))
+	r.Use(otel.WrapMiddleware("maxbytes", maxbytes.NewMiddleware(100000)))
 
 	// Add other middlewares
 	r.Use(otel.WrapMiddleware("decompress", encoding.DecompressMiddleware))
