@@ -6,7 +6,6 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io"
-	"log/slog"
 	"net"
 	"net/http"
 	"sync"
@@ -15,7 +14,6 @@ import (
 	"github.com/kemadev/go-framework/pkg/convenience/headutil"
 	"github.com/kemadev/go-framework/pkg/convenience/headval"
 	"github.com/kemadev/go-framework/pkg/convenience/log"
-	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 )
 
 // CompressConfig defines the configuration for compression middleware.
@@ -74,9 +72,7 @@ func CompressMiddlewareWithConfig(conf CompressConfig) func(http.Handler) http.H
 
 			gzipWriter, ok := pe.(*gzip.Writer)
 			if !ok || gzipWriter == nil {
-				log.Logger(packageName).
-					Error("error getting compressor from pool",
-						slog.String(string(semconv.ErrorMessageKey), "invalid compressor type"))
+				log.ErrLog(packageName, "error getting compressor from pool", ErrFailureGetFromPool)
 				next.ServeHTTP(w, r)
 
 				return
@@ -89,9 +85,7 @@ func CompressMiddlewareWithConfig(conf CompressConfig) func(http.Handler) http.H
 
 			buffer, ok := be.(*bytes.Buffer)
 			if !ok || buffer == nil {
-				log.Logger(packageName).
-					Error("error getting buffer from pool",
-						slog.String(string(semconv.ErrorMessageKey), "invalid buffer type"))
+				log.ErrLog(packageName, "error getting buffer from pool", ErrFailureGetFromPool)
 				next.ServeHTTP(w, r)
 
 				return
@@ -121,18 +115,14 @@ func CompressMiddlewareWithConfig(conf CompressConfig) func(http.Handler) http.H
 					}
 					_, err := crw.buffer.WriteTo(crw.ResponseWriter)
 					if err != nil {
-						log.Logger(packageName).
-							Error("error writing uncompressed response",
-								slog.String(string(semconv.ErrorMessageKey), err.Error()))
+						log.ErrLog(packageName, "error writing uncompressed response", err)
 					}
 					gzipWriter.Reset(io.Discard)
 				}
 
 				err := gzipWriter.Close()
 				if err != nil {
-					log.Logger(packageName).
-						Error("error closing gzip writer",
-							slog.String(string(semconv.ErrorMessageKey), err.Error()))
+					log.ErrLog(packageName, "error closing gzip writer", err)
 				}
 
 				compressPool.Put(gzipWriter)
@@ -202,9 +192,11 @@ func (w *compressResponseWriter) Flush() {
 		if w.buffer.Len() > 0 {
 			_, err := w.buffer.WriteTo(w.ResponseWriter)
 			if err != nil {
-				log.Logger(packageName).
-					Error("error writing uncompressed buffered data during flush",
-						slog.String(string(semconv.ErrorMessageKey), err.Error()))
+				log.ErrLog(
+					packageName,
+					"error writing uncompressed buffered data during flush",
+					err,
+				)
 			}
 			w.buffer.Reset()
 		}
@@ -219,9 +211,7 @@ func (w *compressResponseWriter) Flush() {
 
 	err := w.writer.Flush()
 	if err != nil {
-		log.Logger(packageName).
-			Error("error flushing gzip writer",
-				slog.String(string(semconv.ErrorMessageKey), err.Error()))
+		log.ErrLog(packageName, "error flushing gzip writer", err)
 	}
 
 	if flusher, ok := w.ResponseWriter.(http.Flusher); ok {

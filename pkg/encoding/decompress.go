@@ -2,19 +2,14 @@ package encoding
 
 import (
 	"compress/gzip"
-	"errors"
 	"io"
-	"log/slog"
 	"net/http"
 	"sync"
 
 	"github.com/kemadev/go-framework/pkg/convenience/headkey"
 	"github.com/kemadev/go-framework/pkg/convenience/headval"
 	"github.com/kemadev/go-framework/pkg/convenience/log"
-	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 )
-
-var ErrFailureGetDecompressorFromPool = errors.New("can't get a decompressor from pool")
 
 // DecompressMiddleware returns a middleware that performs automatic decompression of request body when
 // content encoding is gzip. It is inspired from [echo's implementation].
@@ -34,8 +29,7 @@ func DecompressMiddleware(next http.Handler) http.Handler {
 
 		decompressReader, ok := pe.(*gzip.Reader)
 		if !ok || decompressReader == nil {
-			log.Logger(packageName).
-				Error("error decompressing body", slog.String(string(semconv.ErrorMessageKey), ErrFailureGetDecompressorFromPool.Error()))
+			log.ErrLog(packageName, "error decompressing body", ErrFailureGetFromPool)
 			return
 		}
 
@@ -49,8 +43,7 @@ func DecompressMiddleware(next http.Handler) http.Handler {
 				next.ServeHTTP(w, r)
 				return
 			}
-			log.Logger(packageName).
-				Error("error resetting body decompressor: %w", slog.String(string(semconv.ErrorMessageKey), err.Error()))
+			log.ErrLog(packageName, "error resetting body decompressor: %w", err)
 			return
 		}
 

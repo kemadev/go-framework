@@ -5,9 +5,18 @@ package log
 
 import (
 	"log/slog"
+
+	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 )
 
 // Logger retrieves the logger nammed after name. Name should be the package name.
 func Logger(name string) *slog.Logger {
 	return GetPackageLogger(name)
+}
+
+// ErrLog retrieves the logger nammed after name and logs [msg], attaching [err] as attribute.
+func ErrLog(name string, msg string, err error) {
+	GetPackageLogger(
+		name,
+	).Error("error occured", slog.String(string(semconv.ErrorMessageKey), err.Error()))
 }
