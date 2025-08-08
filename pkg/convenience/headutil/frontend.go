@@ -1,8 +1,14 @@
 package headutil
 
 import (
+	"fmt"
+	"net/http"
 	"net/url"
+	"strconv"
+	"strings"
 	"time"
+
+	"github.com/kemadev/go-framework/pkg/convenience/headkey"
 )
 
 type AccessControl struct {
@@ -49,6 +55,8 @@ type ContentSecurityPolicyFetchDirectives struct {
 }
 
 const (
+	// Custom, special value to set strict sandbox (renders as `sandbox;`)
+	ContentSecurityPolicySandboxStrict = "true"
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/sandbox#allow-downloads
 	ContentSecurityPolicySandboxAllowDownloads = "allow-downloads"
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/sandbox#allow-forms
@@ -187,7 +195,205 @@ type SecurityHeadersConfig struct {
 	OtherOptions          OtherOptions
 }
 
-var DefaultStrict = SecurityHeadersConfig{
+func (conf *SecurityHeadersConfig) Headers() *http.Header {
+	head := http.Header{}
+
+	if conf.AccessControl.AccessControlAllowCredentials {
+		head.Set(
+			headkey.AccessControlAllowCredentials,
+			strconv.FormatBool(conf.AccessControl.AccessControlAllowCredentials),
+		)
+	}
+
+	if len(conf.AccessControl.AccessControlAllowHeaders) > 0 {
+		head.Set(
+			headkey.AccessControlAllowHeaders,
+			strings.Join(conf.AccessControl.AccessControlAllowHeaders, ", "),
+		)
+	}
+
+	if len(conf.AccessControl.AccessControlAllowMethods) > 0 {
+		head.Set(
+			headkey.AccessControlAllowMethods,
+			strings.Join(conf.AccessControl.AccessControlAllowMethods, ", "),
+		)
+	}
+
+	if conf.AccessControl.AccessControlAllowOrigin.String() != "" {
+		head.Set(
+			headkey.AccessControlAllowOrigin,
+			conf.AccessControl.AccessControlAllowOrigin.String(),
+		)
+	}
+
+	if len(conf.AccessControl.AccessControlExposeHeaders) > 0 {
+		head.Set(
+			headkey.AccessControlExposeHeaders,
+			strings.Join(conf.AccessControl.AccessControlExposeHeaders, ", "),
+		)
+	}
+
+	if conf.AccessControl.AccessControlMaxAge > 0 {
+		head.Set(
+			headkey.AccessControlMaxAge,
+			strconv.FormatInt(int64(conf.AccessControl.AccessControlMaxAge.Seconds()), 10),
+		)
+	}
+
+	csp := conf.ContentSecurityPolicy.buildCSPHeader()
+	if csp != "" {
+		head.Set(headkey.ContentSecurityPolicy, csp)
+	}
+
+	if conf.CrossOriginPolicy.CrossOriginEmbedderPolicy != "" {
+		head.Set(
+			headkey.CrossOriginEmbedderPolicy,
+			conf.CrossOriginPolicy.CrossOriginEmbedderPolicy,
+		)
+	}
+
+	if conf.CrossOriginPolicy.CrossOriginOpenerPolicy != "" {
+		head.Set(headkey.CrossOriginOpenerPolicy, conf.CrossOriginPolicy.CrossOriginOpenerPolicy)
+	}
+
+	if conf.CrossOriginPolicy.CrossOriginResourcePolicy != "" {
+		head.Set(
+			headkey.CrossOriginResourcePolicy,
+			conf.CrossOriginPolicy.CrossOriginResourcePolicy,
+		)
+	}
+
+	if conf.ReferrerPolicy.ReferrerPolicy != "" {
+		head.Set(headkey.ReferrerPolicy, conf.ReferrerPolicy.ReferrerPolicy)
+	}
+
+	if conf.OtherOptions.ContentTypeOptionsNoSniff {
+		head.Set(headkey.XContentTypeOptions, "nosniff")
+	}
+
+	if conf.OtherOptions.FrameOptions != "" {
+		head.Set(headkey.XFrameOptions, conf.OtherOptions.FrameOptions)
+	}
+
+	return &head
+}
+
+func (conf *ContentSecurityPolicy) buildCSPHeader() string {
+	var directives []string
+
+	if conf.FetchDirectives.DefaultSource != "" {
+		directives = append(
+			directives,
+			fmt.Sprintf("default-src '%s'", conf.FetchDirectives.DefaultSource),
+		)
+	}
+	if conf.FetchDirectives.ChildSource != "" {
+		directives = append(
+			directives,
+			fmt.Sprintf("child-src '%s'", conf.FetchDirectives.ChildSource),
+		)
+	}
+	if conf.FetchDirectives.ConnectSource != "" {
+		directives = append(
+			directives,
+			fmt.Sprintf("connect-src '%s'", conf.FetchDirectives.ConnectSource),
+		)
+	}
+	if conf.FetchDirectives.FontSource != "" {
+		directives = append(
+			directives,
+			fmt.Sprintf("font-src '%s'", conf.FetchDirectives.FontSource),
+		)
+	}
+	if conf.FetchDirectives.FrameSource != "" {
+		directives = append(
+			directives,
+			fmt.Sprintf("frame-src '%s'", conf.FetchDirectives.FrameSource),
+		)
+	}
+	if conf.FetchDirectives.ImageSource != "" {
+		directives = append(
+			directives,
+			fmt.Sprintf("img-src '%s'", conf.FetchDirectives.ImageSource),
+		)
+	}
+	if conf.FetchDirectives.ManifestSource != "" {
+		directives = append(
+			directives,
+			fmt.Sprintf(
+				"manifest-src '%s'",
+				conf.FetchDirectives.ManifestSource,
+			),
+		)
+	}
+	if conf.FetchDirectives.MediaSource != "" {
+		directives = append(
+			directives,
+			fmt.Sprintf("media-src '%s'", conf.FetchDirectives.MediaSource),
+		)
+	}
+	if conf.FetchDirectives.ObjectSource != "" {
+		directives = append(
+			directives,
+			fmt.Sprintf("object-src '%s'", conf.FetchDirectives.ObjectSource),
+		)
+	}
+	if conf.FetchDirectives.ScriptSource != "" {
+		directives = append(
+			directives,
+			fmt.Sprintf("script-src '%s'", conf.FetchDirectives.ScriptSource),
+		)
+	}
+	if conf.FetchDirectives.StyleSource != "" {
+		directives = append(
+			directives,
+			fmt.Sprintf("style-src '%s'", conf.FetchDirectives.StyleSource),
+		)
+	}
+	if conf.FetchDirectives.WorkerSource != "" {
+		directives = append(
+			directives,
+			fmt.Sprintf("worker-src '%s'", conf.FetchDirectives.WorkerSource),
+		)
+	}
+
+	if conf.DocumentDirectives.BaseURI != "" {
+		directives = append(
+			directives,
+			fmt.Sprintf("base-uri '%s'", conf.DocumentDirectives.BaseURI),
+		)
+	}
+	if conf.DocumentDirectives.Sandbox != "" {
+		if conf.DocumentDirectives.Sandbox == "true" {
+			directives = append(directives, "sandbox")
+		} else {
+			directives = append(directives, fmt.Sprintf("sandbox '%s'", conf.DocumentDirectives.Sandbox))
+		}
+	}
+
+	if conf.NavigationDirectives.FormAction != "" {
+		directives = append(
+			directives,
+			fmt.Sprintf(
+				"form-action '%s'",
+				conf.NavigationDirectives.FormAction,
+			),
+		)
+	}
+	if conf.NavigationDirectives.FrameAncestors != "" {
+		directives = append(
+			directives,
+			fmt.Sprintf(
+				"frame-ancestors '%s'",
+				conf.NavigationDirectives.FrameAncestors,
+			),
+		)
+	}
+
+	return strings.Join(directives, "; ")
+}
+
+var SecHeadersDefaultStrict = SecurityHeadersConfig{
 	AccessControl: AccessControl{
 		AccessControlAllowCredentials: false,
 		AccessControlAllowHeaders:     []string{},
