@@ -42,7 +42,7 @@ const (
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Language
 	ContentLanguage = "Content-Language"
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Length
-	Contentlength = "Content-Length"
+	ContentLength = "Content-Length"
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Location
 	ContentLocation = "Content-Location"
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Range

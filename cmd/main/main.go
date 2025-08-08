@@ -35,6 +35,7 @@ func main() {
 
 	// Add middlewares
 	r.Use(otel.WrapMiddleware("logging", encoding.DecompressMiddleware))
+	r.Use(otel.WrapMiddleware("logging", encoding.CompressMiddleware))
 	r.Use(otel.WrapMiddleware("logging", LoggingMiddleware))
 
 	// Add monitoring endpoints
