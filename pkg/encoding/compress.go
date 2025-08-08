@@ -73,7 +73,8 @@ func CompressMiddlewareWithConfig(conf CompressConfig) func(http.Handler) http.H
 			gzipWriter, ok := pe.(*gzip.Writer)
 			if !ok || gzipWriter == nil {
 				log.ErrLog(packageName, "error getting compressor from pool", ErrFailureGetFromPool)
-				next.ServeHTTP(w, r)
+				w.WriteHeader(http.StatusServiceUnavailable)
+				w.Write([]byte(http.StatusText(http.StatusServiceUnavailable)))
 
 				return
 			}
@@ -86,7 +87,8 @@ func CompressMiddlewareWithConfig(conf CompressConfig) func(http.Handler) http.H
 			buffer, ok := be.(*bytes.Buffer)
 			if !ok || buffer == nil {
 				log.ErrLog(packageName, "error getting buffer from pool", ErrFailureGetFromPool)
-				next.ServeHTTP(w, r)
+				w.WriteHeader(http.StatusServiceUnavailable)
+				w.Write([]byte(http.StatusText(http.StatusServiceUnavailable)))
 
 				return
 			}
@@ -116,6 +118,10 @@ func CompressMiddlewareWithConfig(conf CompressConfig) func(http.Handler) http.H
 					_, err := crw.buffer.WriteTo(crw.ResponseWriter)
 					if err != nil {
 						log.ErrLog(packageName, "error writing uncompressed response", err)
+						w.WriteHeader(http.StatusServiceUnavailable)
+						w.Write([]byte(http.StatusText(http.StatusServiceUnavailable)))
+
+						return
 					}
 					gzipWriter.Reset(io.Discard)
 				}
@@ -123,6 +129,10 @@ func CompressMiddlewareWithConfig(conf CompressConfig) func(http.Handler) http.H
 				err := gzipWriter.Close()
 				if err != nil {
 					log.ErrLog(packageName, "error closing gzip writer", err)
+					w.WriteHeader(http.StatusServiceUnavailable)
+					w.Write([]byte(http.StatusText(http.StatusServiceUnavailable)))
+
+					return
 				}
 
 				compressPool.Put(gzipWriter)
@@ -197,6 +207,10 @@ func (w *compressResponseWriter) Flush() {
 					"error writing uncompressed buffered data during flush",
 					err,
 				)
+				w.WriteHeader(http.StatusServiceUnavailable)
+				w.Write([]byte(http.StatusText(http.StatusServiceUnavailable)))
+
+				return
 			}
 			w.buffer.Reset()
 		}
@@ -212,6 +226,10 @@ func (w *compressResponseWriter) Flush() {
 	err := w.writer.Flush()
 	if err != nil {
 		log.ErrLog(packageName, "error flushing gzip writer", err)
+		w.WriteHeader(http.StatusServiceUnavailable)
+		w.Write([]byte(http.StatusText(http.StatusServiceUnavailable)))
+
+		return
 	}
 
 	if flusher, ok := w.ResponseWriter.(http.Flusher); ok {

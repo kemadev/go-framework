@@ -11,6 +11,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/kemadev/go-framework/pkg/convenience/headval"
 	"github.com/kemadev/go-framework/pkg/convenience/local"
@@ -19,9 +20,11 @@ import (
 	"github.com/kemadev/go-framework/pkg/convenience/render"
 	"github.com/kemadev/go-framework/pkg/convenience/trace"
 	"github.com/kemadev/go-framework/pkg/encoding"
+	"github.com/kemadev/go-framework/pkg/maxbytes"
 	"github.com/kemadev/go-framework/pkg/monitoring"
 	"github.com/kemadev/go-framework/pkg/router"
 	"github.com/kemadev/go-framework/pkg/server"
+	"github.com/kemadev/go-framework/pkg/timeout"
 	"github.com/kemadev/go-framework/web"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
@@ -33,9 +36,13 @@ const packageName = "github.com/kemadev/go-framework/cmd/main"
 func main() {
 	r := router.New()
 
-	// Add middlewares
-	r.Use(otel.WrapMiddleware("logging", encoding.DecompressMiddleware))
-	r.Use(otel.WrapMiddleware("logging", encoding.CompressMiddleware))
+	// Always protect your routes (you can further customize at handler / group level)
+	r.Use(otel.WrapMiddleware("timeout", timeout.NewMiddleware(5*time.Second)))
+	r.Use(otel.WrapMiddleware("maxbytes", maxbytes.NewMiddleware(1)))
+
+	// Add other middlewares
+	r.Use(otel.WrapMiddleware("decompress", encoding.DecompressMiddleware))
+	r.Use(otel.WrapMiddleware("compress", encoding.CompressMiddleware))
 	r.Use(otel.WrapMiddleware("logging", LoggingMiddleware))
 
 	// Add monitoring endpoints
@@ -92,6 +99,13 @@ func main() {
 		otel.WrapHandler(
 			"GET /",
 			ExampleTemplateRender(renderer),
+		),
+	)
+
+	r.Handle(
+		otel.WrapHandler(
+			"GET /sleep",
+			timeout.WrapHandler(http.HandlerFunc(Wait), 1*time.Second).ServeHTTP,
 		),
 	)
 
@@ -167,6 +181,12 @@ type TesterPayload struct {
 func Tester(w http.ResponseWriter, r *http.Request) {
 	bod, _ := io.ReadAll(r.Body)
 	slog.Debug(fmt.Sprintf("%s", bod))
+	w.WriteHeader(200)
+	w.Write([]byte("this is the response"))
+}
+
+func Wait(w http.ResponseWriter, r *http.Request) {
+	time.Sleep(3 * time.Second)
 	w.WriteHeader(200)
 	w.Write([]byte("this is the response"))
 }

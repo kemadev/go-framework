@@ -30,6 +30,9 @@ func DecompressMiddleware(next http.Handler) http.Handler {
 		decompressReader, ok := pe.(*gzip.Reader)
 		if !ok || decompressReader == nil {
 			log.ErrLog(packageName, "error decompressing body", ErrFailureGetFromPool)
+			w.WriteHeader(http.StatusServiceUnavailable)
+			w.Write([]byte(http.StatusText(http.StatusServiceUnavailable)))
+
 			return
 		}
 
@@ -44,6 +47,9 @@ func DecompressMiddleware(next http.Handler) http.Handler {
 				return
 			}
 			log.ErrLog(packageName, "error resetting body decompressor: %w", err)
+			w.WriteHeader(http.StatusServiceUnavailable)
+			w.Write([]byte(http.StatusText(http.StatusServiceUnavailable)))
+
 			return
 		}
 
