@@ -28,7 +28,7 @@ const (
 
 // Run starts an HTTP server with [mux] as its handler and manages its lifecycle. It takes care of loading
 // configuration and OpenTelemetry SDK initialization for the server. However, HTTP routes instrumentation is not handled.
-func Run(handler http.Handler) {
+func Run(handler http.Handler, conf config.Global) {
 	// Intercept signals
 	sigCtx, stopSig := signal.NotifyContext(
 		context.Background(),
@@ -39,17 +39,8 @@ func Run(handler http.Handler) {
 	)
 	defer stopSig()
 
-	// Get app config
-	configManager := config.NewManager()
-
-	conf, err := configManager.Get()
-	if err != nil {
-		log.FallbackError(fmt.Errorf("error getting config: %w", err))
-		os.Exit(1)
-	}
-
 	// Set up OpenTelemetry.
-	otelShutdown, err := otel.SetupOTelSDK(sigCtx, *conf)
+	otelShutdown, err := otel.SetupOTelSDK(sigCtx, conf)
 	if err != nil {
 		log.FallbackError(fmt.Errorf("error setting up OpenTelemetry SDK: %w", err))
 		os.Exit(1)

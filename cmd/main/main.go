@@ -11,8 +11,11 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"os"
 	"time"
 
+	"github.com/kemadev/go-framework/pkg/client"
+	"github.com/kemadev/go-framework/pkg/config"
 	"github.com/kemadev/go-framework/pkg/convenience/headval"
 	"github.com/kemadev/go-framework/pkg/convenience/local"
 	"github.com/kemadev/go-framework/pkg/convenience/log"
@@ -20,12 +23,14 @@ import (
 	"github.com/kemadev/go-framework/pkg/convenience/render"
 	"github.com/kemadev/go-framework/pkg/convenience/trace"
 	"github.com/kemadev/go-framework/pkg/encoding"
+	flog "github.com/kemadev/go-framework/pkg/log"
 	"github.com/kemadev/go-framework/pkg/maxbytes"
 	"github.com/kemadev/go-framework/pkg/monitoring"
 	"github.com/kemadev/go-framework/pkg/router"
 	"github.com/kemadev/go-framework/pkg/server"
 	"github.com/kemadev/go-framework/pkg/timeout"
 	"github.com/kemadev/go-framework/web"
+	"github.com/valkey-io/valkey-go"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 	oteltrace "go.opentelemetry.io/otel/trace"
@@ -34,6 +39,22 @@ import (
 const packageName = "github.com/kemadev/go-framework/cmd/main"
 
 func main() {
+	// Get app config
+	configManager := config.NewManager()
+
+	conf, err := configManager.Get()
+	if err != nil {
+		flog.FallbackError(fmt.Errorf("error getting config: %w", err))
+		os.Exit(1)
+	}
+
+	// Create clients
+	client, err := client.NewValkeyDBClient(conf.Client.Database)
+	if err != nil {
+		flog.FallbackError(err)
+		os.Exit(1)
+	}
+
 	r := router.New()
 
 	// Always protect your routes (you can further customize at handler / group level)
@@ -109,7 +130,14 @@ func main() {
 		),
 	)
 
-	server.Run(otel.WrapMux(r, packageName))
+	r.Handle(
+		otel.WrapHandler(
+			"GET /db",
+			DBConn(client),
+		),
+	)
+
+	server.Run(otel.WrapMux(r, packageName), *conf)
 }
 
 func ExampleTemplateRender(
@@ -195,6 +223,21 @@ func Tester(w http.ResponseWriter, r *http.Request) {
 	slog.Debug(fmt.Sprintf("%s", bod))
 	w.WriteHeader(200)
 	w.Write([]byte("this is the response"))
+}
+
+func DBConn(client valkey.Client) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		err := client.Do(r.Context(), client.B().Set().Key("key").Value(r.URL.Path).Nx().Build()).
+			Error()
+		if err != nil {
+			log.ErrLog(packageName, "error db set", err)
+			http.Error(
+				w,
+				http.StatusText(http.StatusInternalServerError),
+				http.StatusInternalServerError,
+			)
+		}
+	}
 }
 
 func Wait(w http.ResponseWriter, r *http.Request) {

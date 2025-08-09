@@ -122,7 +122,8 @@ services:
     volumes:
       - valkey-cache:/data
     ports:
-      - 6379:6379
+      # Note that host uses 6380 to avoid port clash
+      - 6380:6379
     networks:
       - app
     restart: always
@@ -165,6 +166,7 @@ services:
     networks:
       - opensearch
       - app
+
   opensearch-dashboards:
     profiles:
       - never
