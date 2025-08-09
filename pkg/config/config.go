@@ -167,11 +167,11 @@ func (conf *Runtime) IsLocalEnvironment() bool {
 
 // load processes configuration from environment variables with the given prefix.
 func load(prefix string, cfg any) error {
-	return processStruct(prefix, reflect.ValueOf(cfg).Elem(), "")
+	return processStruct(prefix, reflect.ValueOf(cfg).Elem(), "", true)
 }
 
 // processStruct recursively processes struct fields.
-func processStruct(prefix string, v reflect.Value, parentPath string) error {
+func processStruct(prefix string, v reflect.Value, parentPath string, parentRequired bool) error {
 	t := v.Type()
 
 	for i := range v.NumField() {
@@ -188,12 +188,20 @@ func processStruct(prefix string, v reflect.Value, parentPath string) error {
 
 		switch field.Kind() {
 		case reflect.Struct:
-			err := processStruct(prefix, field, buildPath(parentPath, fieldName))
+			// Check if this struct field is required
+			structRequired := fieldType.Tag.Get("required") == "true"
+
+			// If parent is not required, this struct is also not required
+			if !parentRequired {
+				structRequired = false
+			}
+
+			err := processStruct(prefix, field, buildPath(parentPath, fieldName), structRequired)
 			if err != nil {
 				return fmt.Errorf("error processing struct field %s: %w", fieldName, err)
 			}
 		default:
-			err := processField(field, fieldType, envVarName)
+			err := processField(field, fieldType, envVarName, parentRequired)
 			if err != nil {
 				return fmt.Errorf("error processing field %s: %w", fieldType.Name, err)
 			}
@@ -204,9 +212,17 @@ func processStruct(prefix string, v reflect.Value, parentPath string) error {
 }
 
 // processField processes a single struct field.
-func processField(field reflect.Value, fieldType reflect.StructField, envVarName string) error {
+func processField(
+	field reflect.Value,
+	fieldType reflect.StructField,
+	envVarName string,
+	parentRequired bool,
+) error {
 	defaultValue := fieldType.Tag.Get("default")
-	required := fieldType.Tag.Get("required") == "true"
+	fieldRequired := fieldType.Tag.Get("required") == "true"
+
+	// If parent struct is not required, this field is also not required
+	required := fieldRequired && parentRequired
 
 	envValue := os.Getenv(envVarName)
 
@@ -327,7 +343,7 @@ func buildPath(parentPath, fieldName string) string {
 		return fieldName
 	}
 
-	return parentPath + "_" + fieldName
+	return parentPath + fieldName
 }
 
 // CamelToScreamingSnake converts camelCase to SCREAMING_SNAKE_CASE.

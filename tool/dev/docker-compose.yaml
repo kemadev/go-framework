@@ -35,6 +35,7 @@ services:
       KEMA_OBSERVABILITY_ENDPOINT_URL: http://kemadev-go-framework-jaeger-1:4317
       # Set this to a strictly positive value to export metrics to stdout
       KEMA_OBSERVABILITY_METRICS_EXPORT_INTERVAL: 0
+      KEMA_CLIENT_DATABASE_CLIENT_ADDRESS: "foo, bar"
     ports:
       - 8080:8080
     restart: always
