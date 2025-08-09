@@ -48,6 +48,8 @@ func Run(handler http.Handler) {
 		os.Exit(1)
 	}
 
+	fmt.Printf("%+v\n", conf)
+
 	// Set up OpenTelemetry.
 	otelShutdown, err := otel.SetupOTelSDK(sigCtx, *conf)
 	if err != nil {

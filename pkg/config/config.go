@@ -29,11 +29,13 @@ var (
 // e.g. [Global.Observability.EndpointURL] is populated from environment variable `[ConfigurationEnvVarPrefix]_OBSERVABILITY_ENDPOINT_URL`.
 type Global struct {
 	// Server holds the HTTP server configuration
-	Server Server
+	Server Server `required:"true"`
 	// Runtime holds the runtime configuration
-	Runtime Runtime
+	Runtime Runtime `required:"true"`
 	// Observability holds the observability configuration
-	Observability Observability
+	Observability Observability `required:"true"`
+	// Client holds the clients configurations
+	Client Client `required:"false"`
 }
 
 // Server holds the HTTP server configuration.
@@ -79,6 +81,32 @@ type Observability struct {
 	// ShutdownGracePeriod is the grace period to give the instrumentation before canceling its context upon shutdown
 	ShutdownGracePeriod time.Duration `required:"true" default:"5s"`
 }
+
+// Client holds the clients configurations.
+type Client struct {
+	// Database holds database configuration
+	Database DatabaseConfig `required:"false"`
+	// Cache holds cache configuration
+	Cache CacheConfig `required:"false"`
+	// ObjectStorage holds object storage configuration
+	ObjectStorage ObjectStorageConfig `required:"false"`
+}
+
+type DatabaseConfig struct {
+	ClientAddress []string `required:"true"`
+	MasterSet     string   `required:"true"`
+	Username      string   `required:"true"`
+	Password      string   `required:"true"`
+}
+
+type CacheConfig struct {
+	ClientAddress         []string      `required:"true"`
+	ShardsRefreshInterval time.Duration `required:"true" default:"120s"`
+	Username              string        `required:"true"`
+	Password              string        `required:"true"`
+}
+
+type ObjectStorageConfig struct{}
 
 // Manager handles configuration loading and caching.
 type Manager struct {
@@ -202,6 +230,16 @@ func setFieldValue(field reflect.Value, value, envVarName string) error {
 	switch field.Kind() {
 	case reflect.String:
 		field.SetString(value)
+	case reflect.Slice:
+		if field.Type().Elem().Kind() == reflect.String {
+			return setStringSlice(field, value)
+		}
+		return fmt.Errorf(
+			"%s - unsupported slice type %s: %w",
+			envVarName,
+			field.Type(),
+			ErrVariableMalformed,
+		)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		if field.Type() == reflect.TypeOf(time.Duration(0)) {
 			duration, err := time.ParseDuration(value)
@@ -242,6 +280,30 @@ func setFieldValue(field reflect.Value, value, envVarName string) error {
 	default:
 		return fmt.Errorf("%s - %s: %w", field.Kind(), envVarName, ErrVariableMalformed)
 	}
+	return nil
+}
+
+func setStringSlice(field reflect.Value, value string) error {
+	if value == "" {
+		field.Set(reflect.MakeSlice(field.Type(), 0, 0))
+		return nil
+	}
+
+	parts := strings.Split(value, ",")
+	result := make([]string, 0, len(parts))
+
+	for _, part := range parts {
+		trimmed := strings.TrimSpace(part)
+		if trimmed != "" {
+			result = append(result, trimmed)
+		}
+	}
+
+	slice := reflect.MakeSlice(field.Type(), len(result), len(result))
+	for i, str := range result {
+		slice.Index(i).SetString(str)
+	}
+	field.Set(slice)
 
 	return nil
 }
