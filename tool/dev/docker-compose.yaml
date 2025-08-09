@@ -95,7 +95,7 @@ services:
   valkey-database:
     image: valkey/valkey:alpine
     profiles:
-      - never
+      - dev
     environment:
       VALKEY_EXTRA_FLAGS: --protected-mode yes --requirepass dev
     volumes:
@@ -116,7 +116,7 @@ services:
   valkey-cache:
     image: valkey/valkey:alpine
     profiles:
-      - never
+      - dev
     environment:
       VALKEY_EXTRA_FLAGS: --protected-mode yes --requirepass dev
     volumes:
