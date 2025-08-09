@@ -54,6 +54,7 @@ func main() {
 		flog.FallbackError(err)
 		os.Exit(1)
 	}
+	defer client.Close()
 
 	r := router.New()
 
@@ -227,7 +228,7 @@ func Tester(w http.ResponseWriter, r *http.Request) {
 
 func DBConn(client valkey.Client) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		err := client.Do(r.Context(), client.B().Set().Key("key").Value(r.URL.Path).Nx().Build()).
+		err := client.Do(r.Context(), client.B().Set().Key("key").Value(time.Now().String()).Build()).
 			Error()
 		if err != nil {
 			log.ErrLog(packageName, "error db set", err)
@@ -237,6 +238,8 @@ func DBConn(client valkey.Client) func(w http.ResponseWriter, r *http.Request) {
 				http.StatusInternalServerError,
 			)
 		}
+		w.Write([]byte(http.StatusText(http.StatusOK)))
+		w.WriteHeader(http.StatusOK)
 	}
 }
 
