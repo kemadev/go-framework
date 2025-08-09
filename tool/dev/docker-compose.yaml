@@ -35,7 +35,10 @@ services:
       KEMA_OBSERVABILITY_ENDPOINT_URL: http://kemadev-go-framework-jaeger-1:4317
       # Set this to a strictly positive value to export metrics to stdout
       KEMA_OBSERVABILITY_METRICS_EXPORT_INTERVAL: 0
-      KEMA_CLIENT_DATABASE_CLIENT_ADDRESS: "foo, bar"
+      KEMA_CLIENT_DATABASE_CLIENT_ADDRESS: "kemadev-go-framework-valkey-database-1:6379"
+      KEMA_CLIENT_DATABASE_PASSWORD: "dev"
+      KEMA_CLIENT_CACHE_CLIENT_ADDRESS: "kemadev-go-framework-valkey-cache-1:6379"
+      KEMA_CLIENT_CACHE_PASSWORD: "dev"
     ports:
       - 8080:8080
     restart: always
@@ -83,43 +86,41 @@ services:
     restart: always
 
 ---
-# Provide Postgresql for SQL, enable by setting according profile
-volumes:
-  postgresql:
-    driver: local
-services:
-  postgresql:
-    image: postgres:alpine
-    profiles:
-      - never
-    environment:
-      POSTGRES_DB: dev
-      POSTGRES_USER: dev
-      POSTGRES_PASSWORD: dev
-    volumes:
-      - postgresql:/var/lib/postgresql
-    ports:
-      - 5432:5432
-    networks:
-      - app
-    restart: always
-
-
----
 # Provide Valkey for NoSQL, enable by setting according profile
 volumes:
-  valkey:
+  valkey-database:
     driver: local
 
 services:
-  valkey:
+  valkey-database:
     image: valkey/valkey:alpine
     profiles:
       - never
     environment:
       VALKEY_EXTRA_FLAGS: --protected-mode yes --requirepass dev
     volumes:
-      - valkey:/data
+      - valkey-database:/data
+    ports:
+      - 6379:6379
+    networks:
+      - app
+    restart: always
+
+---
+# Provide Valkey for NoSQL, enable by setting according profile
+volumes:
+  valkey-cache:
+    driver: local
+
+services:
+  valkey-cache:
+    image: valkey/valkey:alpine
+    profiles:
+      - never
+    environment:
+      VALKEY_EXTRA_FLAGS: --protected-mode yes --requirepass dev
+    volumes:
+      - valkey-cache:/data
     ports:
       - 6379:6379
     networks:
