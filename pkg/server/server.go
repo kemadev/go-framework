@@ -26,8 +26,8 @@ const (
 	packageName = "github.com/kemadev/go-framework/pkg/server"
 )
 
-// Run starts an HTTP server with [mux] as its handler and manages its lifecycle. It takes care of loading
-// configuration and OpenTelemetry SDK initialization for the server. However, HTTP routes instrumentation is not handled.
+// Run starts an HTTP server with [mux] as its handler and manages its lifecycle. It takes care of OpenTelemetry
+// SDK initialization, however, HTTP routes instrumentation is not handled.
 func Run(handler http.Handler, conf config.Global) {
 	// Intercept signals
 	sigCtx, stopSig := signal.NotifyContext(
