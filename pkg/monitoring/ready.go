@@ -4,7 +4,7 @@
 package monitoring
 
 import (
-	"encoding/json/v2"
+	"encoding/json"
 	"net/http"
 	"runtime"
 	"time"
