@@ -8,7 +8,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"io"
 	"log/slog"
 	"net/http"
 	"os"
@@ -17,10 +16,10 @@ import (
 	"github.com/kemadev/go-framework/pkg/client"
 	"github.com/kemadev/go-framework/pkg/config"
 	"github.com/kemadev/go-framework/pkg/convenience/headval"
-	"github.com/kemadev/go-framework/pkg/convenience/local"
 	"github.com/kemadev/go-framework/pkg/convenience/log"
 	"github.com/kemadev/go-framework/pkg/convenience/otel"
 	"github.com/kemadev/go-framework/pkg/convenience/render"
+	"github.com/kemadev/go-framework/pkg/convenience/resp"
 	"github.com/kemadev/go-framework/pkg/convenience/trace"
 	"github.com/kemadev/go-framework/pkg/encoding"
 	flog "github.com/kemadev/go-framework/pkg/log"
@@ -31,12 +30,12 @@ import (
 	"github.com/kemadev/go-framework/pkg/timeout"
 	"github.com/kemadev/go-framework/web"
 	"github.com/valkey-io/valkey-go"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
-	oteltrace "go.opentelemetry.io/otel/trace"
 )
 
-const packageName = "github.com/kemadev/go-framework/cmd/main"
+const packageName = "github/go-framework/go-framework/cmd/main"
 
 func main() {
 	// Get app config
@@ -59,48 +58,50 @@ func main() {
 	r := router.New()
 
 	// Always protect your routes (you can further customize at handler / group level)
-	r.Use(otel.WrapMiddleware("timeout", timeout.NewMiddleware(5*time.Second)))
-	r.Use(otel.WrapMiddleware("maxbytes", maxbytes.NewMiddleware(100000)))
+	r.Use(timeout.NewMiddleware(5 * time.Second))
+	r.Use(maxbytes.NewMiddleware(100000))
 
 	// Add other middlewares
-	r.Use(otel.WrapMiddleware("decompress", encoding.DecompressMiddleware))
-	r.Use(otel.WrapMiddleware("compress", encoding.CompressMiddleware))
-	r.Use(otel.WrapMiddleware("logging", LoggingMiddleware))
+	r.Use(encoding.DecompressMiddleware)
+	r.Use(encoding.CompressMiddleware)
 
 	// Add monitoring endpoints
 	r.Handle(
 		monitoring.LivenessHandler(
+			// Add your check function
 			func() monitoring.CheckResults { return monitoring.CheckResults{} },
 		),
 	)
 	r.Handle(
 		monitoring.ReadinessHandler(
+			// Add your check function
 			func() monitoring.CheckResults { return monitoring.CheckResults{} },
 		),
 	)
 
 	// Add handlers
 	r.Handle(
-		otel.WrapHandler("GET /foo/{bar}", http.HandlerFunc(FooBar)),
+		otel.WrapHandler("GET /foo/{bar}", http.HandlerFunc(ExampleHandler)),
 	)
+
 	r.Handle(
 		otel.WrapHandler(
-			"POST /tester",
-			http.HandlerFunc(Tester),
+			"GET /db",
+			ExampleDBHandler(client),
 		),
 	)
 
-	// Create groups
+	// Create groups and sub-groups
 	r.Group(func(r *router.Router) {
-		r.Use(otel.WrapMiddleware("auth", AuthMiddleware))
+		r.Use(timeout.NewMiddleware(2 * time.Second))
 
 		r.Group(func(r *router.Router) {
-			r.Use(otel.WrapMiddleware("timing", TimingMiddleware))
+			r.Use(maxbytes.NewMiddleware(500000))
 
 			r.Handle(
 				otel.WrapHandler(
-					"GET /auth/{bar}",
-					http.HandlerFunc(FooBar),
+					"GET /bar/{baz}",
+					http.HandlerFunc(ExampleHandler),
 				),
 			)
 		})
@@ -124,21 +125,48 @@ func main() {
 		),
 	)
 
-	r.Handle(
-		otel.WrapHandler(
-			"GET /sleep",
-			timeout.WrapHandler(http.HandlerFunc(Wait), 1*time.Second).ServeHTTP,
-		),
-	)
-
-	r.Handle(
-		otel.WrapHandler(
-			"GET /db",
-			DBConn(client),
-		),
-	)
-
 	server.Run(otel.WrapMux(r, packageName), *conf)
+}
+
+func ExampleHandler(w http.ResponseWriter, r *http.Request) {
+	span := trace.Span(r.Context())
+	span.SetAttributes(attribute.String("bar", r.PathValue("bar")))
+
+	// Use otelhttp to call external services so it is automatically instrumented
+	eresp, err := otelhttp.Get(r.Context(), "https://example.com")
+	if err != nil {
+		log.ErrLog(packageName, "error calling external http endpoint", err)
+		// Prefer graceful degradation instead of throwing a 5XX error
+		http.Error(
+			w,
+			http.StatusText(http.StatusInternalServerError),
+			http.StatusInternalServerError,
+		)
+	}
+
+	type exampleResp struct {
+		Name  string
+		Attrs []string
+	}
+
+	var name []byte
+	_, err = eresp.Body.Read(name)
+	if err != nil {
+		log.ErrLog(packageName, "error calling external http endpoint", err)
+		// Prefer graceful degradation instead of throwing a 5XX error
+		http.Error(
+			w,
+			http.StatusText(http.StatusInternalServerError),
+			http.StatusInternalServerError,
+		)
+
+		return
+	}
+
+	resp.JSON(w, exampleResp{
+		Name:  string(name),
+		Attrs: []string{"whatever"},
+	})
 }
 
 func ExampleTemplateRender(
@@ -167,8 +195,33 @@ func ExampleTemplateRender(
 						err.Error(),
 					),
 				)
-			w.WriteHeader(http.StatusInternalServerError)
+			// Prefer graceful degradation instead of throwing a 5XX error
+			http.Error(
+				w,
+				http.StatusText(http.StatusInternalServerError),
+				http.StatusInternalServerError,
+			)
 		}
+	}
+}
+
+func ExampleDBHandler(client valkey.Client) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		err := client.Do(r.Context(), client.B().Set().Key("key").Value(time.Now().String()).Build()).
+			Error()
+		if err != nil {
+			log.ErrLog(packageName, "error db set", err)
+			// Prefer graceful degradation instead of throwing a 5XX error
+			http.Error(
+				w,
+				http.StatusText(http.StatusInternalServerError),
+				http.StatusInternalServerError,
+			)
+
+			return
+		}
+
+		resp.JSON(w, "ok")
 	}
 }
 

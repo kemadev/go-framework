@@ -47,7 +47,7 @@
 
 ### Documentation
 
-- Go code documentation is accessible thanks to [pkgsite](https://pkg.go.dev/golang.org/x/pkgsite/cmd/pkgsite)! Just run `pkgsite` in the root of the project to serve its documentation
+- Go code documentation is accessible by running `go doc -http` in the root of the project.
 - Global project documentation is available in the [doc](./doc) directory
 
 ### Development Guidelines and Conventions
@@ -56,12 +56,13 @@
 - You are encouraged to create your own `README.md` files in subdirectories to provide project-specific instructions, and to document more-widely scoped topics in [doc](./doc) directory
 - Code sharing is encouraged, such code should be placed in [pkg](pkg) and [internal/pkg](internal/pkg) directories, as-per Go's conventions
 - Importing other applications libraries and packages is encouraged, following code sharing encouragement
+- Writing idiomatic Go is **highly** encouraged
+- Sticking to standard library, using as few dependencies as possible, is encouraged
 - First class code documentation (following [Go doc comment guidelines](https://go.dev/doc/comment)) as well as project documentation is encouraged
 - Following [Learn Go with tests](https://github.com/quii/learn-go-with-tests) is encouraged
-- Following [Effective Go](https://go.dev/doc/effective_go) and [Google's styleguide](https://google.github.io/styleguide/go/) is encouraged
+- Following [Effective Go](https://go.dev/doc/effective_go) is encouraged
 - Following [locality of behaviour](https://htmx.org/essays/locality-of-behaviour/) and [principle of least astonishment](https://en.wikipedia.org/wiki/Principle_of_least_astonishment) is encouraged
 - Checking [Go proverbs](https://go-proverbs.github.io/) is encouraged
-- Variables, functions, methods, ... should be named in a short and descriptive way
 
 ### Project development
 

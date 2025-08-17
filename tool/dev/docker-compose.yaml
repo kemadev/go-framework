@@ -33,12 +33,12 @@ services:
       KEMA_RUNTIME_APP_VERSION: dev
       KEMA_RUNTIME_APP_NAMESPACE: whatever
       KEMA_OBSERVABILITY_ENDPOINT_URL: http://kemadev-go-framework-jaeger-1:4317
-      # Set this to a strictly positive value to export metrics to stdout
-      KEMA_OBSERVABILITY_METRICS_EXPORT_INTERVAL: 0
       KEMA_CLIENT_DATABASE_CLIENT_ADDRESS: "kemadev-go-framework-valkey-database-1:6379"
       KEMA_CLIENT_DATABASE_PASSWORD: "dev"
       KEMA_CLIENT_CACHE_CLIENT_ADDRESS: "kemadev-go-framework-valkey-cache-1:6379"
       KEMA_CLIENT_CACHE_PASSWORD: "dev"
+      # Set this to a strictly positive duration to export metrics to stdout
+      KEMA_OBSERVABILITY_METRICS_EXPORT_INTERVAL: 0s
     ports:
       - 8080:8080
     restart: always
@@ -86,6 +86,7 @@ services:
     restart: always
 
 ---
+<<<<<<< before updating
 # Provide Valkey for NoSQL, enable by setting according profile
 volumes:
   valkey-database:
@@ -102,6 +103,72 @@ services:
       - valkey-database:/data
     ports:
       - 6379:6379
+    networks:
+      - app
+    restart: always
+
+---
+||||||| last update
+# Provide Postgresql for SQL, enable by setting according profile
+volumes:
+  postgresql:
+    driver: local
+services:
+  postgresql:
+    image: postgres:alpine
+    profiles:
+      - never
+    environment:
+      POSTGRES_DB: dev
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev
+    volumes:
+      - postgresql:/var/lib/postgresql
+    ports:
+      - 5432:5432
+    networks:
+      - app
+    restart: always
+
+
+---
+=======
+>>>>>>> after updating
+# Provide Valkey for NoSQL, enable by setting according profile
+volumes:
+<<<<<<< before updating
+  valkey-cache:
+||||||| last update
+  valkey:
+=======
+  valkey-database:
+>>>>>>> after updating
+    driver: local
+
+services:
+<<<<<<< before updating
+  valkey-cache:
+||||||| last update
+  valkey:
+=======
+  valkey-database:
+>>>>>>> after updating
+    image: valkey/valkey:alpine
+    profiles:
+      - dev
+    environment:
+      VALKEY_EXTRA_FLAGS: --protected-mode yes --requirepass dev
+    volumes:
+<<<<<<< before updating
+      - valkey-cache:/data
+||||||| last update
+      - valkey:/data
+=======
+      - valkey-database:/data
+>>>>>>> after updating
+    ports:
+      # Note that host uses 6380 to avoid port clash
+      - 6380:6379
     networks:
       - app
     restart: always
@@ -126,46 +193,7 @@ services:
       - 6380:6379
     networks:
       - app
-    restart: always
-
----
-# Provide Opensearch for search, enable by setting according profile
-networks:
-  opensearch:
-    driver: bridge
-
-volumes:
-  opensearch:
-    driver: local
-
-services:
-  opensearch:
-    profiles:
-      - never
-    image: opensearchproject/opensearch:latest
-    environment:
-      cluster.name: dev
-      node.name: kemadev-go-framework-opensearch-1
-      discovery.seed_hosts: kemadev-go-framework-opensearch-1
-      cluster.initial_cluster_manager_nodes: kemadev-go-framework-opensearch-1
-      bootstrap.memory_lock: true
-      OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
-      OPENSEARCH_INITIAL_ADMIN_PASSWORD: OpenSearchDev_1
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 65536
-        hard: 65536
-    volumes:
-      - opensearch:/usr/share/opensearch/data
-    ports:
-      - 9200:9200
-      - 9600:9600
-    networks:
-      - opensearch
-      - app
+<<<<<<< before updating
 
   opensearch-dashboards:
     profiles:
@@ -177,3 +205,17 @@ services:
       OPENSEARCH_HOSTS: '["https://kemadev-go-framework-opensearch-1:9200"]'
     networks:
       - opensearch
+||||||| last update
+  opensearch-dashboards:
+    profiles:
+      - never
+    image: opensearchproject/opensearch-dashboards:latest
+    ports:
+      - 5601:5601
+    environment:
+      OPENSEARCH_HOSTS: '["https://kemadev-go-framework-opensearch-1:9200"]'
+    networks:
+      - opensearch
+=======
+    restart: always
+>>>>>>> after updating
