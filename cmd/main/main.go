@@ -8,7 +8,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"io"
 	"log/slog"
 	"net/http"
 	"os"
@@ -17,7 +16,6 @@ import (
 	"github.com/kemadev/go-framework/pkg/client"
 	"github.com/kemadev/go-framework/pkg/config"
 	"github.com/kemadev/go-framework/pkg/convenience/headval"
-	"github.com/kemadev/go-framework/pkg/convenience/local"
 	"github.com/kemadev/go-framework/pkg/convenience/log"
 	"github.com/kemadev/go-framework/pkg/convenience/otel"
 	"github.com/kemadev/go-framework/pkg/convenience/render"
@@ -35,7 +33,6 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
-	oteltrace "go.opentelemetry.io/otel/trace"
 )
 
 const packageName = "github/go-framework/go-framework/cmd/main"
@@ -226,81 +223,4 @@ func ExampleDBHandler(client valkey.Client) func(w http.ResponseWriter, r *http.
 
 		resp.JSON(w, "ok")
 	}
-}
-
-func FooBar(w http.ResponseWriter, r *http.Request) {
-	// Get user from context (set by AuthMiddleware)
-	user := local.Get(r.Context(), "user")
-
-	// Get span context for logging
-	span := trace.Span(r.Context())
-	spanCtx := span.SpanContext()
-	fmt.Printf("[HANDLER] TraceID: %s, SpanID: %s, User: %v\n",
-		spanCtx.TraceID().String(),
-		spanCtx.SpanID().String(),
-		user,
-	)
-
-	bag := trace.Baggage(r.Context())
-	span.AddEvent(
-		"handling this...",
-		oteltrace.WithAttributes(semconv.UserID(bag.Member(string(semconv.UserIDKey)).Value())),
-	)
-
-	span.SetAttributes(attribute.String("bar", r.PathValue("bar")))
-
-	fmt.Fprintf(w, "Hello, %v! TraceID: %s", user, spanCtx.TraceID().String())
-}
-
-type TesterPayload2 struct {
-	Foo    string
-	hidden string
-}
-
-type TesterPayload struct {
-	hidden string
-	Foo    string `json:"hello"`
-	Quux   TesterPayload2
-}
-
-func Tester(w http.ResponseWriter, r *http.Request) {
-	bod, err := io.ReadAll(r.Body)
-	if err != nil {
-		log.ErrLog("Tester", "read err", err)
-		var maxBytesErr *http.MaxBytesError
-		if errors.As(err, &maxBytesErr) {
-			http.Error(
-				w,
-				http.StatusText(http.StatusRequestEntityTooLarge),
-				http.StatusRequestEntityTooLarge,
-			)
-			return
-		}
-	}
-	slog.Debug(fmt.Sprintf("%s", bod))
-	w.WriteHeader(200)
-	w.Write([]byte("this is the response"))
-}
-
-func DBConn(client valkey.Client) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		err := client.Do(r.Context(), client.B().Set().Key("key").Value(time.Now().String()).Build()).
-			Error()
-		if err != nil {
-			log.ErrLog(packageName, "error db set", err)
-			http.Error(
-				w,
-				http.StatusText(http.StatusInternalServerError),
-				http.StatusInternalServerError,
-			)
-		}
-		w.Write([]byte(http.StatusText(http.StatusOK)))
-		w.WriteHeader(http.StatusOK)
-	}
-}
-
-func Wait(w http.ResponseWriter, r *http.Request) {
-	time.Sleep(3 * time.Second)
-	w.WriteHeader(200)
-	w.Write([]byte("this is the response"))
 }
