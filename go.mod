@@ -1,6 +1,6 @@
 module github.com/kemadev/go-framework
 
-go 1.24.2
+go 1.25.0
 
 require (
 	github.com/valkey-io/valkey-go v1.0.64
