@@ -142,6 +142,8 @@ func ExampleHandler(w http.ResponseWriter, r *http.Request) {
 			http.StatusText(http.StatusInternalServerError),
 			http.StatusInternalServerError,
 		)
+
+		return
 	}
 
 	type exampleResp struct {
