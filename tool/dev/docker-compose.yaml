@@ -101,8 +101,7 @@ services:
     volumes:
       - valkey-database:/data
     ports:
-      # Note that host uses 6380 to avoid port clash
-      - 6380:6379
+      - 6379:6379
     networks:
       - app
     restart: always
