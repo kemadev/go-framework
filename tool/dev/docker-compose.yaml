@@ -86,7 +86,6 @@ services:
     restart: always
 
 ---
-<<<<<<< before updating
 # Provide Valkey for NoSQL, enable by setting according profile
 volumes:
   valkey-database:
@@ -101,71 +100,6 @@ services:
       VALKEY_EXTRA_FLAGS: --protected-mode yes --requirepass dev
     volumes:
       - valkey-database:/data
-    ports:
-      - 6379:6379
-    networks:
-      - app
-    restart: always
-
----
-||||||| last update
-# Provide Postgresql for SQL, enable by setting according profile
-volumes:
-  postgresql:
-    driver: local
-services:
-  postgresql:
-    image: postgres:alpine
-    profiles:
-      - never
-    environment:
-      POSTGRES_DB: dev
-      POSTGRES_USER: dev
-      POSTGRES_PASSWORD: dev
-    volumes:
-      - postgresql:/var/lib/postgresql
-    ports:
-      - 5432:5432
-    networks:
-      - app
-    restart: always
-
-
----
-=======
->>>>>>> after updating
-# Provide Valkey for NoSQL, enable by setting according profile
-volumes:
-<<<<<<< before updating
-  valkey-cache:
-||||||| last update
-  valkey:
-=======
-  valkey-database:
->>>>>>> after updating
-    driver: local
-
-services:
-<<<<<<< before updating
-  valkey-cache:
-||||||| last update
-  valkey:
-=======
-  valkey-database:
->>>>>>> after updating
-    image: valkey/valkey:alpine
-    profiles:
-      - dev
-    environment:
-      VALKEY_EXTRA_FLAGS: --protected-mode yes --requirepass dev
-    volumes:
-<<<<<<< before updating
-      - valkey-cache:/data
-||||||| last update
-      - valkey:/data
-=======
-      - valkey-database:/data
->>>>>>> after updating
     ports:
       # Note that host uses 6380 to avoid port clash
       - 6380:6379
@@ -193,29 +127,4 @@ services:
       - 6380:6379
     networks:
       - app
-<<<<<<< before updating
-
-  opensearch-dashboards:
-    profiles:
-      - never
-    image: opensearchproject/opensearch-dashboards:latest
-    ports:
-      - 5601:5601
-    environment:
-      OPENSEARCH_HOSTS: '["https://kemadev-go-framework-opensearch-1:9200"]'
-    networks:
-      - opensearch
-||||||| last update
-  opensearch-dashboards:
-    profiles:
-      - never
-    image: opensearchproject/opensearch-dashboards:latest
-    ports:
-      - 5601:5601
-    environment:
-      OPENSEARCH_HOSTS: '["https://kemadev-go-framework-opensearch-1:9200"]'
-    networks:
-      - opensearch
-=======
     restart: always
->>>>>>> after updating
