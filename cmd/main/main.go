@@ -20,6 +20,7 @@ import (
 	"github.com/kemadev/go-framework/pkg/convenience/otel"
 	"github.com/kemadev/go-framework/pkg/convenience/render"
 	"github.com/kemadev/go-framework/pkg/convenience/resp"
+	"github.com/kemadev/go-framework/pkg/convenience/sechead"
 	"github.com/kemadev/go-framework/pkg/convenience/trace"
 	"github.com/kemadev/go-framework/pkg/encoding"
 	flog "github.com/kemadev/go-framework/pkg/log"
@@ -107,21 +108,25 @@ func main() {
 		})
 	})
 
+	r.Group(func(r *router.Router) {
+		r.Use(sechead.NewMiddleware(sechead.SecHeadersDefaultStrict))
+
+		// Handle template assets
+		tmplFS := web.GetTmplFS()
+		renderer, _ := render.New(tmplFS)
+		r.Handle(
+			otel.WrapHandler(
+				"GET /",
+				ExampleTemplateRender(renderer),
+			),
+		)
+	})
+
 	// Handle static (public) assets
 	r.Handle(
 		otel.WrapHandler(
 			"GET /static/",
 			http.FileServerFS(web.GetStaticFS()).ServeHTTP,
-		),
-	)
-
-	// Handle template assets
-	tmplFS := web.GetTmplFS()
-	renderer, _ := render.New(tmplFS)
-	r.Handle(
-		otel.WrapHandler(
-			"GET /",
-			ExampleTemplateRender(renderer),
 		),
 	)
 
