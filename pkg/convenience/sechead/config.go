@@ -1,4 +1,4 @@
-package headutil
+package sechead
 
 import (
 	"fmt"
@@ -195,7 +195,7 @@ type SecurityHeadersConfig struct {
 	OtherOptions          OtherOptions
 }
 
-func (conf *SecurityHeadersConfig) Headers() *http.Header {
+func (conf *SecurityHeadersConfig) Headers() http.Header {
 	head := http.Header{}
 
 	if conf.AccessControl.AccessControlAllowCredentials {
@@ -275,7 +275,7 @@ func (conf *SecurityHeadersConfig) Headers() *http.Header {
 		head.Set(headkey.XFrameOptions, conf.OtherOptions.FrameOptions)
 	}
 
-	return &head
+	return head
 }
 
 func (conf *ContentSecurityPolicy) buildCSPHeader() string {
