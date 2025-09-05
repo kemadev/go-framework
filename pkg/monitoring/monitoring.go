@@ -24,13 +24,15 @@ const (
 )
 
 const (
+	HTTPLivenessCheckPath  = "/healthz"
+	HTTPReadinessCheckPath = "/readyz"
 	// HTTPLivenessCheckPattern is the pattern for the liveness check over HTTP.
 	// It is used by Kubernetes to check if the application is alive.
-	HTTPLivenessCheckPattern = "GET /healthz"
+	HTTPLivenessCheckPattern = "GET " + HTTPLivenessCheckPath
 	// HTTPReadinessCheckPattern is the pattern for the readiness check over HTTP.
 	// It is used by Kubernetes to check if the application is ready to serve traffic, as
 	// well as returning some metrics.
-	HTTPReadinessCheckPattern = "GET /readyz"
+	HTTPReadinessCheckPattern = "GET " + HTTPReadinessCheckPath
 )
 
 // String returns the string representation of the status.
