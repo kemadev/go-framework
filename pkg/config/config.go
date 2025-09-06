@@ -92,7 +92,10 @@ type Client struct {
 	ObjectStorage ObjectStorageConfig `required:"false"`
 }
 
-type DatabaseConfig struct{}
+type DatabaseConfig struct {
+	// Connection URL used to connect to the database
+	ConnectionURL string `required:"false"`
+}
 
 type CacheConfig struct {
 	ClientAddress         []string      `required:"true"`
@@ -101,7 +104,12 @@ type CacheConfig struct {
 	Password              string        `required:"true"`
 }
 
-type ObjectStorageConfig struct{}
+type ObjectStorageConfig struct {
+	EndpointAddressAddress string `required:"true"`
+	AccessKeyID            string `required:"true"`
+	SecretAccessKey        string `required:"true"`
+	SSL                    bool   `required:"true"`
+}
 
 // Manager handles configuration loading and caching.
 type Manager struct {
