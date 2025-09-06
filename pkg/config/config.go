@@ -92,12 +92,7 @@ type Client struct {
 	ObjectStorage ObjectStorageConfig `required:"false"`
 }
 
-type DatabaseConfig struct {
-	ClientAddress []string `required:"true"`
-	MasterSet     string   `required:"true"`
-	Username      string   `required:"true"`
-	Password      string   `required:"true"`
-}
+type DatabaseConfig struct{}
 
 type CacheConfig struct {
 	ClientAddress         []string      `required:"true"`
