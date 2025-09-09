@@ -1,4 +1,4 @@
-ARG ALPINE_VERSION=3.21.3
+ARG ALPINE_VERSION=3.21.3@sha256:a8560b36e8b8210634f77d9f7f9efd7ffa463e380b75e2e74aff4511df3ef88c
 
 FROM --platform=${BUILDPLATFORM} docker.io/alpine:${ALPINE_VERSION} AS alpine-base
 
@@ -67,7 +67,7 @@ RUN --mount=type=cache,target=/root/go/pkg \
 	--mount=type=bind,source=.,target=. \
 	go build -gcflags="all=-N -l" -o /usr/local/bin/app ./cmd/main
 
-FROM gcr.io/distroless/static-debian12:nonroot AS goreleaser
+FROM gcr.io/distroless/static-debian12:nonroot@sha256:e8a4044e0b4ae4257efa45fc026c0bc30ad320d43bd4c1a7d5271bd241e386d0 AS goreleaser
 
 LABEL org.opencontainers.image.authors="kemadev"
 LABEL org.opencontainers.image.url="ghcr.io/kemadev/go-framework"
@@ -110,7 +110,7 @@ FROM dev AS debug
 ENTRYPOINT [ "dlv", "dap", "--listen", ":50000" ]
 
 # hadolint ignore=DL3007
-FROM gcr.io/distroless/static-debian12:nonroot AS main
+FROM gcr.io/distroless/static-debian12:nonroot@sha256:e8a4044e0b4ae4257efa45fc026c0bc30ad320d43bd4c1a7d5271bd241e386d0 AS main
 
 LABEL org.opencontainers.image.authors="kemadev"
 LABEL org.opencontainers.image.url="ghcr.io/kemadev/go-framework"
