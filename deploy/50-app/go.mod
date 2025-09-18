@@ -4,7 +4,7 @@ go 1.24.5
 
 require (
 	github.com/kemadev/infrastructure-components v0.0.0-20250714194653-702968884650
-	github.com/pulumi/pulumi/sdk/v3 v3.182.0
+	github.com/pulumi/pulumi/sdk/v3 v3.197.0
 )
 
 require (
@@ -68,7 +68,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pkg/term v1.1.0 // indirect
 	github.com/pulumi/appdash v0.0.0-20231130102222-75f619a67231 // indirect
-	github.com/pulumi/esc v0.14.3 // indirect
+	github.com/pulumi/esc v0.17.0 // indirect
 	github.com/pulumi/pulumi-kubernetes/sdk/v4 v4.23.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
