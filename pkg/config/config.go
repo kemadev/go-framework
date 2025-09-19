@@ -423,8 +423,6 @@ func (conf *Runtime) SlogLevel() slog.Level {
 
 // Redact returns a modified version of conf, redacting sensible values
 func (conf Global) Redact() (Global, error) {
-	conf.Client.Cache.Password = conf.Client.Cache.Password[0:(len(conf.Client.Cache.Password)/4)] + "..."
-	conf.Client.ObjectStorage.SecretAccessKey = conf.Client.ObjectStorage.SecretAccessKey[0:(len(conf.Client.ObjectStorage.SecretAccessKey)/4)] + "..."
 	DBPasswd, present := conf.Client.Database.ConnectionURL.User.Password()
 	if present {
 		redactedPasswd := DBPasswd[0:(len(DBPasswd)/4)] + "..."
@@ -439,6 +437,15 @@ func (conf Global) Redact() (Global, error) {
 			}
 			conf.Client.Database.ConnectionURL = *redactedURL
 		}
+	}
+	cachePasswdLen := len(conf.Client.Cache.Password)
+	if cachePasswdLen > 0 {
+		conf.Client.Cache.Password = conf.Client.Cache.Password[0:(cachePasswdLen/4)] + "..."
+	}
+
+	ObjectStorageAccessKeyLen := len(conf.Client.ObjectStorage.SecretAccessKey)
+	if ObjectStorageAccessKeyLen > 0 {
+		conf.Client.ObjectStorage.SecretAccessKey = conf.Client.ObjectStorage.SecretAccessKey[0:(ObjectStorageAccessKeyLen/4)] + "..."
 	}
 
 	return conf, nil
