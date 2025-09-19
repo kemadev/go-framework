@@ -15,6 +15,8 @@ import (
 	"sync"
 	"time"
 	"unicode"
+
+	"github.com/kemadev/go-framework/pkg/semver"
 )
 
 const ConfigurationEnvVarPrefix = "kema"
@@ -62,7 +64,7 @@ type Runtime struct {
 	// Environment the app is running in
 	Environment string `required:"true"`
 	// Application version
-	AppVersion string `required:"true"`
+	AppVersion semver.Version `required:"true"`
 	// Application name
 	AppName string `required:"true"`
 	// Application namespace
@@ -72,7 +74,7 @@ type Runtime struct {
 // Observability holds the observability configuration.
 type Observability struct {
 	// Address of OpenTelemetry endpoint where to send telemetry
-	EndpointURL string `required:"true"`
+	EndpointURL url.URL `required:"true"`
 	// Compression to use when sending telemetry
 	ExporterCompression string `required:"true" default:"gzip"`
 	// Percentage of request to sample for tracing
@@ -311,6 +313,17 @@ func setFieldValue(field reflect.Value, value string, envVarName string) error {
 				)
 			}
 			field.Set(reflect.ValueOf(*parsedURL))
+		case reflect.TypeOf(semver.Version{}):
+			parsedVersion, err := semver.Parse(value)
+			if err != nil {
+				return fmt.Errorf(
+					"%s - invalid version %s: %w",
+					envVarName,
+					value,
+					ErrVariableMalformed,
+				)
+			}
+			field.Set(reflect.ValueOf(parsedVersion))
 		default:
 			return fmt.Errorf(
 				"%s - unsupported struct type %s: %w",

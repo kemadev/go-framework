@@ -1,6 +1,13 @@
 package semver
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+	"strconv"
+	"strings"
+)
+
+var ErrMalformedVersion = errors.New("version string is malformed")
 
 type PreReleaseType int
 
@@ -102,4 +109,106 @@ func (v Version) String() string {
 		v.Version.Major, v.Version.Minor, v.Version.Patch,
 		v.PreRelease.Type.String(),
 		v.PreRelease.Version.Major, v.PreRelease.Version.Minor, v.PreRelease.Version.Patch)
+}
+
+func parseMajMinPatch(majStr string, minStr string, patchStr string) (int, int, int, error) {
+	maj, err := strconv.ParseInt(majStr, 10, 64)
+	if err != nil {
+		return 0, 0, 0, fmt.Errorf("maj %q: %w", maj, ErrMalformedVersion)
+	}
+
+	min, err := strconv.ParseInt(minStr, 10, 64)
+	if err != nil {
+		return 0, 0, 0, fmt.Errorf("min %q: %w", min, ErrMalformedVersion)
+	}
+
+	patch, err := strconv.ParseInt(patchStr, 10, 64)
+	if err != nil {
+		return 0, 0, 0, fmt.Errorf("patch %q: %w", patch, ErrMalformedVersion)
+	}
+
+	return int(maj), int(min), int(patch), nil
+}
+
+func parseRel(
+	majStr string,
+	minStr string,
+	patchStr string,
+) (int, int, int, PreReleaseType, error) {
+	patchParts := strings.Split(patchStr, "-")
+
+	var relVer PreReleaseType
+
+	switch len(patchParts) {
+	case 1:
+		relVer = PreReleaseTypeNone
+	case 2:
+		patchStr = patchParts[0]
+		switch patchParts[1] {
+		case "alpha":
+			relVer = PreReleaseTypeAlpha
+		case "beta":
+			relVer = PreReleaseTypeBeta
+		}
+	default:
+		return 0, 0, 0, 0, fmt.Errorf("patch version %q: %w", patchStr, ErrMalformedVersion)
+	}
+
+	maj, min, patch, err := parseMajMinPatch(majStr, minStr, patchStr)
+	if err != nil {
+		return 0, 0, 0, 0, fmt.Errorf("error parsing version: %w", err)
+	}
+
+	return maj, min, patch, relVer, nil
+}
+
+func Parse(str string) (Version, error) {
+	parts := strings.Split(str, ".")
+
+	switch len(parts) {
+	case 3:
+		maj, min, patch, ver, err := parseRel(parts[0], parts[1], parts[2])
+		if err != nil {
+			return Version{}, fmt.Errorf("version %q: %w", str, err)
+		}
+
+		return Version{
+			Version: MajMinPatch{
+				Major: maj,
+				Minor: min,
+				Patch: patch,
+			},
+			PreRelease: PreRelease{
+				Type: ver,
+			},
+		}, nil
+	case 6:
+		maj, min, patch, ver, err := parseRel(parts[0], parts[1], parts[2])
+		if err != nil {
+			return Version{}, fmt.Errorf("version %q: %w", str, err)
+		}
+
+		preMaj, preMin, prePatch, err := parseMajMinPatch(parts[3], parts[4], parts[5])
+		if err != nil {
+			return Version{}, fmt.Errorf("version %q: %w", str, err)
+		}
+
+		return Version{
+			Version: MajMinPatch{
+				Major: maj,
+				Minor: min,
+				Patch: patch,
+			},
+			PreRelease: PreRelease{
+				Type: ver,
+				Version: MajMinPatch{
+					Major: preMaj,
+					Minor: preMin,
+					Patch: prePatch,
+				},
+			},
+		}, nil
+	}
+
+	return Version{}, fmt.Errorf("version %q: %w", str, ErrMalformedVersion)
 }
