@@ -67,7 +67,7 @@ RUN --mount=type=cache,target=/root/go/pkg \
 	--mount=type=bind,source=.,target=. \
 	go build -gcflags="all=-N -l" -o /usr/local/bin/app ./cmd/main
 
-FROM gcr.io/distroless/static-debian12:nonroot AS goreleaser
+FROM --platform=${BUILDPLATFORM} gcr.io/distroless/static-debian12:nonroot AS goreleaser
 
 LABEL org.opencontainers.image.authors="kemadev"
 LABEL org.opencontainers.image.url="ghcr.io/kemadev/go-framework"
@@ -110,7 +110,7 @@ FROM dev AS debug
 ENTRYPOINT [ "dlv", "dap", "--listen", ":50000" ]
 
 # hadolint ignore=DL3007
-FROM gcr.io/distroless/static-debian12:nonroot AS main
+FROM --platform=${BUILDPLATFORM} gcr.io/distroless/static-debian12:nonroot AS main
 
 LABEL org.opencontainers.image.authors="kemadev"
 LABEL org.opencontainers.image.url="ghcr.io/kemadev/go-framework"

@@ -92,23 +92,9 @@ func main() {
 		),
 	)
 
-	// Create groups and sub-groups
+	// Create groups (sub-groups are also possible)
 	r.Group(func(r *router.Router) {
-		r.Use(timeout.NewMiddleware(2 * time.Second))
-
-		r.Group(func(r *router.Router) {
-			r.Use(maxbytes.NewMiddleware(500000))
-
-			r.Handle(
-				otel.WrapHandler(
-					"GET /bar/{baz}",
-					http.HandlerFunc(ExampleHandler),
-				),
-			)
-		})
-	})
-
-	r.Group(func(r *router.Router) {
+		// Secure frontend with security headers
 		r.Use(sechead.NewMiddleware(sechead.SecHeadersDefaultStrict))
 
 		// Handle template assets
