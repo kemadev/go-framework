@@ -33,7 +33,8 @@ services:
       KEMA_RUNTIME_APP_VERSION: dev
       KEMA_RUNTIME_APP_NAMESPACE: whatever
       KEMA_OBSERVABILITY_ENDPOINT_URL: http://kemadev-go-framework-jaeger-1:4317
-      KEMA_CLIENT_DATABASE_CLIENT_ADDRESS: "postgresql://dev:dev@kemadev-go-framework-postgresql-1:5432/dev"
+      KEMA_CLIENT_DATABASE_CONNECTION_URL: "postgresql://dev:1234567890@kemadev-go-framework-postgresql-1:5432/dev"
+      # KEMA_CLIENT_DATABASE_CLIENT_ADDRESS: "postgresql://dev:dev@kemadev-go-framework-postgresql-1:5432/dev"
       KEMA_CLIENT_CACHE_CLIENT_ADDRESS: "kemadev-go-framework-valkey-1:6379"
       KEMA_CLIENT_CACHE_PASSWORD: "dev"
       # Set this to a strictly positive duration to export metrics to stdout

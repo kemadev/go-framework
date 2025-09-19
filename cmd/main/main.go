@@ -33,7 +33,7 @@ import (
 	"github.com/valkey-io/valkey-go"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
-	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.37.0"
 )
 
 const packageName = "github/go-framework/go-framework/cmd/main"
@@ -47,6 +47,12 @@ func main() {
 		flog.FallbackError(fmt.Errorf("error getting config: %w", err))
 		os.Exit(1)
 	}
+
+	redacted, err := conf.Redact()
+	if err != nil {
+		slog.Error(err.Error())
+	}
+	fmt.Println(redacted.String())
 
 	// Create clients, for use in handlers
 	client, err := cache.NewClient(conf.Client.Cache)

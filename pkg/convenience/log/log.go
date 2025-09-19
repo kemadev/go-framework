@@ -6,7 +6,7 @@ package log
 import (
 	"log/slog"
 
-	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.37.0"
 )
 
 // Logger retrieves the logger nammed after name. Name should be the package name.

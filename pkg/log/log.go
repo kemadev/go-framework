@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"os"
 
-	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.37.0"
 )
 
 // createFallbackLogger returns a fallback logger that is used when the OpenTelemetry logger is not available.
