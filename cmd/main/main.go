@@ -13,7 +13,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/kemadev/go-framework/pkg/client"
+	"github.com/kemadev/go-framework/pkg/client/cache"
 	"github.com/kemadev/go-framework/pkg/config"
 	"github.com/kemadev/go-framework/pkg/convenience/headval"
 	"github.com/kemadev/go-framework/pkg/convenience/log"
@@ -49,7 +49,7 @@ func main() {
 	}
 
 	// Create clients, for use in handlers
-	client, err := client.NewCacheClient(conf.Client.Cache)
+	client, err := cache.NewClient(conf.Client.Cache)
 	if err != nil {
 		flog.FallbackError(err)
 		os.Exit(1)

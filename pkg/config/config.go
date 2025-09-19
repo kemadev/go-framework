@@ -4,6 +4,7 @@
 package config
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -20,6 +21,11 @@ import (
 )
 
 const ConfigurationEnvVarPrefix = "kema"
+
+var (
+	ErrCantRedactDBConnURL = errors.New("database connection URL is not redactable")
+	ErrCantMarshallConfig  = errors.New("config is not marshallable to JSON")
+)
 
 var (
 	ErrVariableRequired  = errors.New("environment variable required")
@@ -413,4 +419,36 @@ func (conf *Runtime) SlogLevel() slog.Level {
 	}
 
 	return slog.LevelInfo
+}
+
+// Redact returns a modified version of conf, redacting sensible values
+func (conf Global) Redact() (Global, error) {
+	conf.Client.Cache.Password = conf.Client.Cache.Password[0:(len(conf.Client.Cache.Password)/4)] + "..."
+	conf.Client.ObjectStorage.SecretAccessKey = conf.Client.ObjectStorage.SecretAccessKey[0:(len(conf.Client.ObjectStorage.SecretAccessKey)/4)] + "..."
+	DBPasswd, present := conf.Client.Database.ConnectionURL.User.Password()
+	if present {
+		redactedPasswd := DBPasswd[0:(len(DBPasswd)/4)] + "..."
+		redactedURLParts := strings.Split(conf.Client.Database.ConnectionURL.String(), DBPasswd)
+		if len(redactedURLParts) != 2 {
+			return Global{}, ErrCantRedactDBConnURL
+		} else {
+			redactedURLStr := strings.Join(redactedURLParts, redactedPasswd)
+			redactedURL, err := url.Parse(redactedURLStr)
+			if err != nil {
+				return Global{}, ErrCantRedactDBConnURL
+			}
+			conf.Client.Database.ConnectionURL = *redactedURL
+		}
+	}
+
+	return conf, nil
+}
+
+func (conf Global) String() (string, error) {
+	b, err := json.Marshal(conf)
+	if err != nil {
+		return "", ErrCantMarshallConfig
+	}
+
+	return string(b), nil
 }

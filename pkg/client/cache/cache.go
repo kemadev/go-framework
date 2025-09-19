@@ -1,4 +1,4 @@
-package client
+package cache
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"github.com/valkey-io/valkey-go"
 )
 
-func NewCacheClient(conf config.CacheConfig) (valkey.Client, error) {
+func NewClient(conf config.CacheConfig) (valkey.Client, error) {
 	client, err := valkey.NewClient(valkey.ClientOption{
 		InitAddress:         conf.ClientAddress,
 		ShuffleInit:         true,
