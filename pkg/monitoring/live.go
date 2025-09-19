@@ -43,7 +43,7 @@ func LivenessHandler(
 			status.Checks["config"] = StatusDown
 		}
 
-		status.Version = conf.Runtime.AppVersion
+		status.Version = conf.Runtime.AppVersion.String()
 		status.Environment = conf.Runtime.Environment
 
 		body, err := json.Marshal(status)

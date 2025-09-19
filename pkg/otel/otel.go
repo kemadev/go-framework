@@ -81,7 +81,7 @@ func SetupOTelSDK(
 		resource.WithAttributes(
 			semconv.ServiceName(conf.Runtime.AppName),
 			semconv.ServiceNamespace(conf.Runtime.AppNamespace),
-			semconv.ServiceVersion(conf.Runtime.AppVersion),
+			semconv.ServiceVersion(conf.Runtime.AppVersion.String()),
 			semconv.DeploymentEnvironmentName(conf.Runtime.Environment),
 			attribute.KeyValue{
 				Key: "process.config",
@@ -154,7 +154,7 @@ func newLoggerProvider(
 	grpcExporter, err := otlploggrpc.New(
 		c,
 		otlploggrpc.WithCompressor(conf.Observability.ExporterCompression),
-		otlploggrpc.WithEndpointURL(conf.Observability.EndpointURL),
+		otlploggrpc.WithEndpointURL(conf.Observability.EndpointURL.String()),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("error initializing OpenTelemetry logger: %w", err)
@@ -227,7 +227,7 @@ func newMeterProvider(
 		exp, err := otlpmetricgrpc.New(
 			c,
 			otlpmetricgrpc.WithCompressor(conf.Observability.ExporterCompression),
-			otlpmetricgrpc.WithEndpointURL(conf.Observability.EndpointURL),
+			otlpmetricgrpc.WithEndpointURL(conf.Observability.EndpointURL.String()),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("error initializing OpenTelemetry metric: %w", err)
@@ -262,7 +262,7 @@ func newTracerProvider(
 	exp, err := otlptracegrpc.New(
 		c,
 		otlptracegrpc.WithCompressor(conf.Observability.ExporterCompression),
-		otlptracegrpc.WithEndpointURL(conf.Observability.EndpointURL),
+		otlptracegrpc.WithEndpointURL(conf.Observability.EndpointURL.String()),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("error initializing OpenTelemetry tracer: %w", err)
