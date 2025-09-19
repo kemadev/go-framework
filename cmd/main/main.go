@@ -48,12 +48,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	redacted, err := conf.Redact()
-	if err != nil {
-		slog.Error(err.Error())
-	}
-	fmt.Println(redacted.String())
-
 	// Create clients, for use in handlers
 	client, err := cache.NewClient(conf.Client.Cache)
 	if err != nil {
