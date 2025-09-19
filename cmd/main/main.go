@@ -49,7 +49,7 @@ func main() {
 	}
 
 	// Create clients, for use in handlers
-	client, err := client.NewValkeyDBClient(conf.Client.Database)
+	client, err := client.NewCacheClient(conf.Client.Cache)
 	if err != nil {
 		flog.FallbackError(err)
 		os.Exit(1)

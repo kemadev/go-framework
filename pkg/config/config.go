@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/url"
 	"os"
 	"reflect"
 	"strconv"
@@ -94,12 +95,13 @@ type Client struct {
 
 type DatabaseConfig struct {
 	// Connection URL used to connect to the database
-	ConnectionURL string `required:"false"`
+	ConnectionURL url.URL `required:"false"`
 }
 
 type CacheConfig struct {
 	ClientAddress         []string      `required:"true"`
-	ShardsRefreshInterval time.Duration `required:"true" default:"120s"`
+	ShardsRefreshInterval time.Duration `required:"true"  default:"120s"`
+	SentinelMasterSet     string        `required:"false"`
 	Username              string        `required:"true"`
 	Password              string        `required:"true"`
 }
@@ -245,7 +247,7 @@ func processField(
 }
 
 // setFieldValue sets the field value based on its type.
-func setFieldValue(field reflect.Value, value, envVarName string) error {
+func setFieldValue(field reflect.Value, value string, envVarName string) error {
 	switch field.Kind() {
 	case reflect.String:
 		field.SetString(value)
@@ -296,6 +298,27 @@ func setFieldValue(field reflect.Value, value, envVarName string) error {
 		}
 
 		field.SetBool(boolVal)
+	case reflect.Struct:
+		switch field.Type() {
+		case reflect.TypeOf(url.URL{}):
+			parsedURL, err := url.Parse(value)
+			if err != nil {
+				return fmt.Errorf(
+					"%s - invalid URL %s: %w",
+					envVarName,
+					value,
+					ErrVariableMalformed,
+				)
+			}
+			field.Set(reflect.ValueOf(*parsedURL))
+		default:
+			return fmt.Errorf(
+				"%s - unsupported struct type %s: %w",
+				envVarName,
+				field.Type(),
+				ErrVariableMalformed,
+			)
+		}
 	default:
 		return fmt.Errorf("%s - %s: %w", field.Kind(), envVarName, ErrVariableMalformed)
 	}
