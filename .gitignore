@@ -18,9 +18,3 @@ go.work.sum
 
 # Build artifacts
 dist/*
-!dist/PURPOSE.md
-# Temporary files
-tmp/*
-# Container mount files
-mnt/*
-!mnt/PURPOSE.md
