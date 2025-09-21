@@ -1,9 +1,0 @@
-# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
-_commit: v1.1.4
-_src_path: https://github.com/kemadev/repo-template
-codeowner_default: '@kemadev/maintainers'
-vcs_namespace: kemadev
-vcs_provider: github
-vcs_repo: go-framework
-vcs_server_host: github.com
-vcs_url_scheme: https://

@@ -1,8 +1,0 @@
-MD013:
-  line_length: 400
-MD026:
-  punctuation: ',;'
-# Allow inline HTML
-MD033: false
-# Allow emphasis instead of headings
-MD036: false
