@@ -1,0 +1,107 @@
+version: 2
+
+dist: dist/goreleaser
+
+builds:
+  - id: default
+    main: ./cmd/{{ .ProjectName }}
+    ldflags:
+      - -s -w
+    # asmflags:
+    # gcflags:
+    # buildmode:
+    # tags:
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    goamd64:
+      # See https://en.wikipedia.org/wiki/X86-64#Microarchitecture_levels
+      - v3
+      # - v4
+    goarm64:
+      # Neoverse N1 / E1 - Cortex A76 (e.g. Raspberry Pi 5)
+      - v8.2
+      # Apple M1 - Neoverse V1
+      # - v8.4
+      # Apple M2 / M3
+      # - v8.6
+      # Neoverse V2 / N2 / E2
+      # - v9.0
+      # Apple M4 - Neoverse V3 / N3
+      # - v9.2
+    mod_timestamp: '{{ .CommitTimestamp }}'
+
+gomod:
+  env:
+    - GOPRIVATE=github.com/kemadev/server-bootstrap
+  mod: mod
+
+snapshot:
+  version_template: '{{ .Version }}-devel-{{ .ShortCommit }}'
+
+report_sizes: true
+
+archives:
+  - id: default
+    files:
+      - LICENSE*
+      - README*
+
+source:
+  enabled: true
+
+checksum:
+  split: true
+
+sboms:
+  - id: default
+    artifacts: binary
+    documents:
+      - '{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}-{{ if .Arm64 }}{{ .Arm64 }}{{ end }}{{ if .Amd64 }}{{ .Amd64 }}{{ end }}.spdx.json'
+
+changelog:
+  format: '{{ .SHA }}: {{ .Message }}'
+  abbrev: 8
+  groups:
+    - title: Breaking Changes 💥
+      regexp: '^.*?[[:word:]](\([[:word:]]+\))??!:.+$'
+      order: 0
+    - title: Reverts ⏪
+      regexp: '^.*?revert(\([[:word:]]+\))??!?:.+$'
+      order: 100
+    - title: New Features 🚀
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 200
+    - title: Bug Fixes 🐛
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 300
+    - title: Performance Improvements ⚡
+      regexp: '^.*?perf(\([[:word:]]+\))??!?:.+$'
+      order: 400
+    - title: Refactoring 🛠️
+      regexp: '^.*?refactor(\([[:word:]]+\))??!?:.+$'
+      order: 500
+    - title: Tests ✅
+      regexp: '^.*?test(\([[:word:]]+\))??!?:.+$'
+      order: 600
+    - title: Code Style 🎨
+      regexp: '^.*?style(\([[:word:]]+\))??!?:.+$'
+      order: 700
+    - title: Build System 🏗️
+      regexp: '^.*?build(\([[:word:]]+\))??!?:.+$'
+      order: 800
+    - title: Continuous Integration 🤖
+      regexp: '^.*?ci(\([[:word:]]+\))??!?:.+$'
+      order: 900
+    - title: Documentation 📚
+      regexp: '^.*?docs(\([[:word:]]+\))??!?:.+$'
+      order: 950
+    - title: Chores 🧹
+      regexp: '^.*?chore(\([[:word:]]+\))??!?:.+$'
+      order: 970
+    - title: Other Changes 🔄
+      order: 999
