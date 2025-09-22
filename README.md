@@ -15,4 +15,4 @@
 
 # go-framework
 
-- Simple framework for Go
+Simple framework for Go
