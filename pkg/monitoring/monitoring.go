@@ -51,7 +51,7 @@ func (s Status) String() string {
 	}
 }
 
-// MarshalText satisfies [encoding.TextMarshaller]
+// MarshalText satisfies [encoding.TextMarshaller].
 func (s Status) MarshalText() ([]byte, error) {
 	return []byte(s.String()), nil
 }

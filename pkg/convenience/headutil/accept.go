@@ -1,3 +1,6 @@
+// Copyright 2025 kemadev
+// SPDX-License-Identifier: MPL-2.0
+
 package headutil
 
 import (
@@ -8,28 +11,28 @@ import (
 	"github.com/kemadev/go-framework/pkg/convenience/headkey"
 )
 
-// AcceptedValue represents a parsed Accept header value with its quality factor
+// AcceptedValue represents a parsed Accept header value with its quality factor.
 type AcceptedValue struct {
 	Value   string
 	Quality float64
 }
 
-// Accepts returns whether client signals accepting given media type (based on Accept header)
+// Accepts returns whether client signals accepting given media type (based on Accept header).
 func Accepts(h http.Header, encoding string) bool {
 	return accepts(h.Get(headkey.Accept), encoding)
 }
 
-// AcceptsEncoding returns whether client signals accepting given encoding
+// AcceptsEncoding returns whether client signals accepting given encoding.
 func AcceptsEncoding(h http.Header, encoding string) bool {
 	return accepts(h.Get(headkey.AcceptEncoding), encoding)
 }
 
-// AcceptsLanguage returns whether client signals accepting given language
+// AcceptsLanguage returns whether client signals accepting given language.
 func AcceptsLanguage(h http.Header, language string) bool {
 	return accepts(h.Get(headkey.AcceptLanguage), language)
 }
 
-func accepts(head string, val string) bool {
+func accepts(head, val string) bool {
 	if val == "" {
 		return false
 	}
@@ -77,8 +80,10 @@ func parseAcceptHeader(header string) []AcceptedValue {
 
 		if len(parts) < 2 {
 			accepted = append(accepted, acceptedValue)
+
 			continue
 		}
+
 		if len(parts) != 2 {
 			// Malformed quality
 			continue

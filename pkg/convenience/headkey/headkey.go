@@ -1,3 +1,6 @@
+// Copyright 2025 kemadev
+// SPDX-License-Identifier: MPL-2.0
+
 package headkey
 
 const (
@@ -145,7 +148,7 @@ const (
 	WWWAuthenticate = "WWW-Authenticate"
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Content-Type-Options
 	XContentTypeOptions = "X-Content-Type-Options"
-	// Custom token used as CSRF token
+	// Custom token used as CSRF token.
 	XCSRFToken = "X-CSRF-Token"
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Frame-Options
 	XFrameOptions = "X-Frame-Options"

@@ -1,3 +1,6 @@
+// Copyright 2025 kemadev
+// SPDX-License-Identifier: MPL-2.0
+
 package sechead
 
 import (
@@ -55,7 +58,7 @@ type ContentSecurityPolicyFetchDirectives struct {
 }
 
 const (
-	// Custom, special value to set strict sandbox (renders as `sandbox;`)
+	// Custom, special value to set strict sandbox (renders as `sandbox;`).
 	ContentSecurityPolicySandboxStrict = "true"
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/sandbox#allow-downloads
 	ContentSecurityPolicySandboxAllowDownloads = "allow-downloads"
@@ -287,36 +290,42 @@ func (conf *ContentSecurityPolicy) buildCSPHeader() string {
 			fmt.Sprintf("default-src '%s'", conf.FetchDirectives.DefaultSource),
 		)
 	}
+
 	if conf.FetchDirectives.ChildSource != "" {
 		directives = append(
 			directives,
 			fmt.Sprintf("child-src '%s'", conf.FetchDirectives.ChildSource),
 		)
 	}
+
 	if conf.FetchDirectives.ConnectSource != "" {
 		directives = append(
 			directives,
 			fmt.Sprintf("connect-src '%s'", conf.FetchDirectives.ConnectSource),
 		)
 	}
+
 	if conf.FetchDirectives.FontSource != "" {
 		directives = append(
 			directives,
 			fmt.Sprintf("font-src '%s'", conf.FetchDirectives.FontSource),
 		)
 	}
+
 	if conf.FetchDirectives.FrameSource != "" {
 		directives = append(
 			directives,
 			fmt.Sprintf("frame-src '%s'", conf.FetchDirectives.FrameSource),
 		)
 	}
+
 	if conf.FetchDirectives.ImageSource != "" {
 		directives = append(
 			directives,
 			fmt.Sprintf("img-src '%s'", conf.FetchDirectives.ImageSource),
 		)
 	}
+
 	if conf.FetchDirectives.ManifestSource != "" {
 		directives = append(
 			directives,
@@ -326,30 +335,35 @@ func (conf *ContentSecurityPolicy) buildCSPHeader() string {
 			),
 		)
 	}
+
 	if conf.FetchDirectives.MediaSource != "" {
 		directives = append(
 			directives,
 			fmt.Sprintf("media-src '%s'", conf.FetchDirectives.MediaSource),
 		)
 	}
+
 	if conf.FetchDirectives.ObjectSource != "" {
 		directives = append(
 			directives,
 			fmt.Sprintf("object-src '%s'", conf.FetchDirectives.ObjectSource),
 		)
 	}
+
 	if conf.FetchDirectives.ScriptSource != "" {
 		directives = append(
 			directives,
 			fmt.Sprintf("script-src '%s'", conf.FetchDirectives.ScriptSource),
 		)
 	}
+
 	if conf.FetchDirectives.StyleSource != "" {
 		directives = append(
 			directives,
 			fmt.Sprintf("style-src '%s'", conf.FetchDirectives.StyleSource),
 		)
 	}
+
 	if conf.FetchDirectives.WorkerSource != "" {
 		directives = append(
 			directives,
@@ -363,6 +377,7 @@ func (conf *ContentSecurityPolicy) buildCSPHeader() string {
 			fmt.Sprintf("base-uri '%s'", conf.DocumentDirectives.BaseURI),
 		)
 	}
+
 	if conf.DocumentDirectives.Sandbox != "" {
 		if conf.DocumentDirectives.Sandbox == "true" {
 			directives = append(directives, "sandbox")
@@ -380,6 +395,7 @@ func (conf *ContentSecurityPolicy) buildCSPHeader() string {
 			),
 		)
 	}
+
 	if conf.NavigationDirectives.FrameAncestors != "" {
 		directives = append(
 			directives,

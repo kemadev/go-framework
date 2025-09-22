@@ -1,3 +1,6 @@
+// Copyright 2025 kemadev
+// SPDX-License-Identifier: MPL-2.0
+
 package headutil
 
 import (
@@ -15,10 +18,11 @@ func Date(h http.Header) time.Time {
 	if err != nil {
 		return time.Time{}
 	}
+
 	return date
 }
 
-// IsMIME returns whether the request satisfies given MIME
+// IsMIME returns whether the request satisfies given MIME.
 func IsMIME(h http.Header, mim string) bool {
 	typ, _, _ := mime.ParseMediaType(h.Get(headkey.ContentType))
 	if typ == "" {

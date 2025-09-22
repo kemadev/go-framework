@@ -1,3 +1,6 @@
+// Copyright 2025 kemadev
+// SPDX-License-Identifier: MPL-2.0
+
 package headutil
 
 import (
@@ -29,21 +32,21 @@ type CacheHeader struct {
 	StaleIfError         bool
 }
 
-// CacheBehavior represents a behavior on how to handle caching
+// CacheBehavior represents a behavior on how to handle caching.
 type CacheBehavior int
 
 const (
-	// Allow caching
+	// Allow caching.
 	CacheAllow CacheBehavior = iota
-	// Revalidate cache
+	// Revalidate cache.
 	CacheRevalidate
-	// Refresh cache entry
+	// Refresh cache entry.
 	CacheRefresh
-	// Skip cache
+	// Skip cache.
 	CacheBypass
 )
 
-// Build constructs the Cache-Control header value for given CacheHeader
+// Build constructs the Cache-Control header value for given CacheHeader.
 func (head *CacheHeader) Build() string {
 	if head == nil {
 		return ""
@@ -97,18 +100,19 @@ func (head *CacheHeader) addDuration(b *strings.Builder, directive string, durat
 	b.WriteString(strconv.Itoa(int(duration.Seconds())))
 }
 
-// SetCachePolicy sets cache control header with given cache header
+// SetCachePolicy sets cache control header with given cache header.
 func SetCachePolicy(w http.ResponseWriter, head CacheHeader) {
 	w.Header().Set(headkey.CacheControl, head.Build())
 }
 
-// CacheDecision return a caching decision from based on the request headers
+// CacheDecision return a caching decision from based on the request headers.
 func CacheDecision(r *http.Request) CacheBehavior {
 	cacheControl := r.Header.Get(headkey.CacheControl)
 	if cacheControl != "" {
 		if strings.Contains(cacheControl, "no-cache") {
 			return CacheBypass
 		}
+
 		if strings.Contains(cacheControl, "max-age=0") {
 			return CacheRefresh
 		}

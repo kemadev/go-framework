@@ -15,8 +15,8 @@ func Logger(name string) *slog.Logger {
 }
 
 // ErrLog retrieves the logger nammed after name and logs [msg], attaching [err] as attribute.
-func ErrLog(name string, msg string, err error) {
+func ErrLog(name, msg string, err error) {
 	GetPackageLogger(
 		name,
-	).Error("error occured", slog.String(string(semconv.ErrorMessageKey), err.Error()))
+	).Error("error occurred", slog.String(string(semconv.ErrorMessageKey), err.Error()))
 }

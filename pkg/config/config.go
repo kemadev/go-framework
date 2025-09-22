@@ -32,10 +32,7 @@ var (
 	ErrVariableMalformed = errors.New("environment malformed")
 )
 
-// Global is the server configuration struct.
-// Values are populated from environment variables nammed after
-// their relative position in the struct with [ConfigurationEnvVarPrefix] as prefix, using SCREAMING_SNAKE_CASE.
-// e.g. [Global.Observability.EndpointURL] is populated from environment variable `[ConfigurationEnvVarPrefix]_OBSERVABILITY_ENDPOINT_URL`.
+// E.g. [Global.Observability.EndpointURL] is populated from environment variable `[ConfigurationEnvVarPrefix]_OBSERVABILITY_ENDPOINT_URL`.
 type Global struct {
 	// Server holds the HTTP server configuration
 	Server Server `required:"true"`
@@ -255,7 +252,7 @@ func processField(
 }
 
 // setFieldValue sets the field value based on its type.
-func setFieldValue(field reflect.Value, value string, envVarName string) error {
+func setFieldValue(field reflect.Value, value, envVarName string) error {
 	switch field.Kind() {
 	case reflect.String:
 		field.SetString(value)
@@ -263,6 +260,7 @@ func setFieldValue(field reflect.Value, value string, envVarName string) error {
 		if field.Type().Elem().Kind() == reflect.String {
 			return setStringSlice(field, value)
 		}
+
 		return fmt.Errorf(
 			"%s - unsupported slice type %s: %w",
 			envVarName,
@@ -318,6 +316,7 @@ func setFieldValue(field reflect.Value, value string, envVarName string) error {
 					ErrVariableMalformed,
 				)
 			}
+
 			field.Set(reflect.ValueOf(*parsedURL))
 		case reflect.TypeOf(semver.Version{}):
 			parsedVersion, err := semver.Parse(value)
@@ -329,6 +328,7 @@ func setFieldValue(field reflect.Value, value string, envVarName string) error {
 					ErrVariableMalformed,
 				)
 			}
+
 			field.Set(reflect.ValueOf(parsedVersion))
 		default:
 			return fmt.Errorf(
@@ -341,12 +341,14 @@ func setFieldValue(field reflect.Value, value string, envVarName string) error {
 	default:
 		return fmt.Errorf("%s - %s: %w", field.Kind(), envVarName, ErrVariableMalformed)
 	}
+
 	return nil
 }
 
 func setStringSlice(field reflect.Value, value string) error {
 	if value == "" {
 		field.Set(reflect.MakeSlice(field.Type(), 0, 0))
+
 		return nil
 	}
 
@@ -364,6 +366,7 @@ func setStringSlice(field reflect.Value, value string) error {
 	for i, str := range result {
 		slice.Index(i).SetString(str)
 	}
+
 	field.Set(slice)
 
 	return nil
@@ -421,23 +424,27 @@ func (conf *Runtime) SlogLevel() slog.Level {
 	return slog.LevelInfo
 }
 
-// Redact returns a modified version of conf, redacting sensible values
+// Redact returns a modified version of conf, redacting sensible values.
 func (conf Global) Redact() (Global, error) {
 	DBPasswd, present := conf.Client.Database.ConnectionURL.User.Password()
 	if present {
 		redactedPasswd := DBPasswd[0:(len(DBPasswd)/4)] + "..."
+
 		redactedURLParts := strings.Split(conf.Client.Database.ConnectionURL.String(), DBPasswd)
 		if len(redactedURLParts) != 2 {
 			return Global{}, ErrCantRedactDBConnURL
 		} else {
 			redactedURLStr := strings.Join(redactedURLParts, redactedPasswd)
+
 			redactedURL, err := url.Parse(redactedURLStr)
 			if err != nil {
 				return Global{}, ErrCantRedactDBConnURL
 			}
+
 			conf.Client.Database.ConnectionURL = *redactedURL
 		}
 	}
+
 	cachePasswdLen := len(conf.Client.Cache.Password)
 	if cachePasswdLen > 0 {
 		conf.Client.Cache.Password = conf.Client.Cache.Password[0:(cachePasswdLen/4)] + "..."

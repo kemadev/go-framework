@@ -1,3 +1,6 @@
+// Copyright 2025 kemadev
+// SPDX-License-Identifier: MPL-2.0
+
 package encoding
 
 import (
@@ -35,7 +38,7 @@ type compressResponseWriter struct {
 	statusCode        int
 }
 
-// gzip overhead makes response bigger for small bodies, and thus wastes CPU time for counter-productive results
+// gzip overhead makes response bigger for small bodies, and thus wastes CPU time for counter-productive results.
 const CompressionMinThreshold = 2 * 1024
 
 // CompressMiddleware returns a middleware that performs automatic gzip compression of response body
@@ -64,6 +67,7 @@ func CompressMiddlewareWithConfig(conf CompressConfig) func(http.Handler) http.H
 
 			if !headutil.AcceptsEncoding(r.Header, headval.EncodingGzip) {
 				next.ServeHTTP(w, r)
+
 				return
 			}
 
@@ -121,6 +125,7 @@ func CompressMiddlewareWithConfig(conf CompressConfig) func(http.Handler) http.H
 					if crw.wroteHeader {
 						crw.ResponseWriter.WriteHeader(crw.statusCode)
 					}
+
 					_, err := crw.buffer.WriteTo(crw.ResponseWriter)
 					if err != nil {
 						log.ErrLog(packageName, "error writing uncompressed response", err)
@@ -132,6 +137,7 @@ func CompressMiddlewareWithConfig(conf CompressConfig) func(http.Handler) http.H
 
 						return
 					}
+
 					gzipWriter.Reset(io.Discard)
 				}
 
@@ -180,6 +186,7 @@ func (w *compressResponseWriter) Write(data []byte) (int, error) {
 			w.minLengthExceeded = true
 
 			w.Header().Set(headkey.ContentEncoding, headval.EncodingGzip)
+
 			if w.wroteHeader {
 				w.ResponseWriter.WriteHeader(w.statusCode)
 			}
@@ -227,6 +234,7 @@ func (w *compressResponseWriter) Flush() {
 
 				return
 			}
+
 			w.buffer.Reset()
 		}
 
@@ -235,6 +243,7 @@ func (w *compressResponseWriter) Flush() {
 		if flusher, ok := w.ResponseWriter.(http.Flusher); ok {
 			flusher.Flush()
 		}
+
 		return
 	}
 
@@ -282,11 +291,12 @@ func (w *compressResponseWriter) Unwrap() http.ResponseWriter {
 
 func gzipCompressPool(conf CompressConfig) sync.Pool {
 	return sync.Pool{
-		New: func() interface{} {
+		New: func() any {
 			w, err := gzip.NewWriterLevel(io.Discard, conf.Level)
 			if err != nil {
 				return err
 			}
+
 			return w
 		},
 	}
@@ -294,8 +304,9 @@ func gzipCompressPool(conf CompressConfig) sync.Pool {
 
 func bufferPool() sync.Pool {
 	return sync.Pool{
-		New: func() interface{} {
+		New: func() any {
 			b := &bytes.Buffer{}
+
 			return b
 		},
 	}

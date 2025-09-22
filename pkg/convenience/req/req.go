@@ -1,3 +1,6 @@
+// Copyright 2025 kemadev
+// SPDX-License-Identifier: MPL-2.0
+
 package req
 
 import (
@@ -38,6 +41,7 @@ func JSONFromBody[T any](w http.ResponseWriter, r *http.Request) (T, int, error)
 	}
 
 	var result T
+
 	dec := json.NewDecoder(r.Body)
 	dec.DisallowUnknownFields()
 

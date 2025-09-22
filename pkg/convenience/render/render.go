@@ -1,3 +1,6 @@
+// Copyright 2025 kemadev
+// SPDX-License-Identifier: MPL-2.0
+
 package render
 
 import (
@@ -16,12 +19,12 @@ const packageName = "github.com/kemadev/go-framework/pkg/convenience/render"
 
 var ErrTemplateNotFound = errors.New("template not found")
 
-// TemplateRenderer handles template parsing and rendering
+// TemplateRenderer handles template parsing and rendering.
 type TemplateRenderer struct {
 	templates map[string]*template.Template
 }
 
-// New creates a new template renderer with all templates parsed
+// New creates a new template renderer with all templates parsed.
 func New(tmpl embed.FS) (*TemplateRenderer, error) {
 	tr := &TemplateRenderer{
 		templates: make(map[string]*template.Template),
@@ -63,7 +66,7 @@ func (tr *TemplateRenderer) loadTemplates(tmpl embed.FS) error {
 	})
 }
 
-// Execute executes a template with the given data
+// Execute executes a template with the given data.
 func (tr *TemplateRenderer) Execute(
 	w http.ResponseWriter,
 	templateName string,

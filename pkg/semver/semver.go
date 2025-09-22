@@ -1,3 +1,6 @@
+// Copyright 2025 kemadev
+// SPDX-License-Identifier: MPL-2.0
+
 package semver
 
 import (
@@ -59,9 +62,11 @@ func (v Version) Compare(other Version) int {
 	if v.PreRelease.Type == PreReleaseTypeNone && other.PreRelease.Type == PreReleaseTypeNone {
 		return 0
 	}
+
 	if v.PreRelease.Type == PreReleaseTypeNone && other.PreRelease.Type != PreReleaseTypeNone {
 		return 1
 	}
+
 	if v.PreRelease.Type != PreReleaseTypeNone && other.PreRelease.Type == PreReleaseTypeNone {
 		return -1
 	}
@@ -74,6 +79,7 @@ func (m MajMinPatch) Compare(other MajMinPatch) int {
 		if m.Major < other.Major {
 			return -1
 		}
+
 		return 1
 	}
 
@@ -81,6 +87,7 @@ func (m MajMinPatch) Compare(other MajMinPatch) int {
 		if m.Minor < other.Minor {
 			return -1
 		}
+
 		return 1
 	}
 
@@ -88,6 +95,7 @@ func (m MajMinPatch) Compare(other MajMinPatch) int {
 		if m.Patch < other.Patch {
 			return -1
 		}
+
 		return 1
 	}
 
@@ -99,6 +107,7 @@ func (p PreRelease) Compare(other PreRelease) int {
 		if p.Type < other.Type {
 			return -1
 		}
+
 		return 1
 	}
 
@@ -144,6 +153,7 @@ func (v Version) String() string {
 	if v.PreRelease.Type == PreReleaseTypeNone {
 		return fmt.Sprintf("%d.%d.%d", v.Version.Major, v.Version.Minor, v.Version.Patch)
 	}
+
 	return fmt.Sprintf("%d.%d.%d-%s.%d.%d.%d",
 		v.Version.Major, v.Version.Minor, v.Version.Patch,
 		v.PreRelease.Type.String(),
@@ -196,6 +206,7 @@ func Parse(str string) (Version, error) {
 				err,
 			)
 		}
+
 		preMajor = ver
 
 		ver, err = strconv.Atoi(result[CaptureGroupKeyPreMinor])
@@ -206,6 +217,7 @@ func Parse(str string) (Version, error) {
 				err,
 			)
 		}
+
 		preMinor = ver
 
 		ver, err = strconv.Atoi(result[CaptureGroupKeyPrePatch])
@@ -216,6 +228,7 @@ func Parse(str string) (Version, error) {
 				err,
 			)
 		}
+
 		prePatch = ver
 	}
 

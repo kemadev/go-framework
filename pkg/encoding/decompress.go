@@ -1,3 +1,6 @@
+// Copyright 2025 kemadev
+// SPDX-License-Identifier: MPL-2.0
+
 package encoding
 
 import (
@@ -22,6 +25,7 @@ func DecompressMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get(headkey.ContentEncoding) != headval.EncodingGzip {
 			next.ServeHTTP(w, r)
+
 			return
 		}
 
@@ -46,8 +50,9 @@ func DecompressMiddleware(next http.Handler) http.Handler {
 		err := decompressReader.Reset(body)
 		if err != nil {
 			// Ignore empty body errors
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				next.ServeHTTP(w, r)
+
 				return
 			}
 
@@ -58,6 +63,7 @@ func DecompressMiddleware(next http.Handler) http.Handler {
 					http.StatusText(http.StatusRequestEntityTooLarge),
 					http.StatusRequestEntityTooLarge,
 				)
+
 				return
 			}
 
@@ -82,8 +88,9 @@ func DecompressMiddleware(next http.Handler) http.Handler {
 
 func gzipDecompressPool() sync.Pool {
 	return sync.Pool{
-		New: func() interface{} {
+		New: func() any {
 			r := new(gzip.Reader)
+
 			return r
 		},
 	}
