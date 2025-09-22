@@ -218,7 +218,7 @@ func (g *Service) TagSemver() (bool, error) {
 
 		nextVersion = ver
 	} else {
-		ver, err := svu.PreRelease(svu.WithPreRelease(branchName))
+		ver, err := svu.PreRelease()
 		if err != nil {
 			return false, fmt.Errorf("error getting next pre release version: %w", err)
 		}
