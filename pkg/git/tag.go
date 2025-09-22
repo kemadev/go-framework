@@ -11,7 +11,7 @@ import (
 	"github.com/go-git/go-git/v6/plumbing/transport/http"
 )
 
-var ErrBranchNameInvalid = errors.New("branche name not in valid set")
+var ErrBranchNameInvalid = errors.New("branch name not in valid set")
 
 func (g *Service) TagSemver() (bool, error) {
 	repo, err := g.GetGitRepo()
@@ -31,7 +31,7 @@ func (g *Service) TagSemver() (bool, error) {
 
 	slog.Debug("got version", slog.String("current-version", currentVersion))
 
-	branchName := head.Name().String()
+	branchName := head.Name().Short()
 
 	nextVersion, err := NextTag(branchName, repo)
 	if err != nil {
@@ -90,7 +90,7 @@ func NextTag(
 
 		return ver, nil
 	case BranchNext:
-		ver, err := svu.PreRelease()
+		ver, err := svu.PreRelease(svu.WithPreRelease(branchName))
 		if err != nil {
 			return "", fmt.Errorf("branch name %q: %w", branchName, err)
 		}
