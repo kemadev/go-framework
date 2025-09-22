@@ -86,6 +86,7 @@ jobs:
   #     - name: Go CD
   #       id: go-cd
   #       env:
+  #         REPOSITORY: ${{ github.repository }}
   #         BRANCH: ${{ github.ref_name }}
   #         KUBECONFIG: ${{ secrets.KUBECONFIG }}
   #       run: |
