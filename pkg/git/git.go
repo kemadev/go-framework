@@ -5,16 +5,12 @@ package git
 
 import (
 	"fmt"
-	"log/slog"
-	"os"
 	"strings"
 
-	"github.com/caarlos0/svu/v3/pkg/svu"
 	"github.com/go-git/go-git/v6"
 	"github.com/go-git/go-git/v6/plumbing"
 	"github.com/go-git/go-git/v6/plumbing/object"
 	"github.com/go-git/go-git/v6/plumbing/storer"
-	"github.com/go-git/go-git/v6/plumbing/transport/http"
 	"github.com/go-git/go-git/v6/storage/memory"
 )
 
@@ -190,70 +186,6 @@ func (g *Service) GetGitBasePathWithRepo(repo *git.Repository) (string, error) {
 	basePath = strings.TrimSuffix(basePath, ".git")
 
 	return basePath, nil
-}
-
-func (g *Service) TagSemver() (bool, error) {
-	repo, err := g.GetGitRepo()
-	if err != nil {
-		return false, fmt.Errorf("error getting git repository: %w", err)
-	}
-
-	head, err := repo.Head()
-	if err != nil {
-		return false, fmt.Errorf("error getting HEAD reference: %w", err)
-	}
-
-	currentVersion, err := svu.Current()
-	if err != nil {
-		return false, fmt.Errorf("error getting current version: %w", err)
-	}
-
-	slog.Debug("got version", slog.String("current-version", currentVersion))
-
-	branchName := head.Name().String()
-
-	nextVersion, err := NextTag(branchName, repo)
-	if err != nil {
-		return false, fmt.Errorf("error getting next version: %w", err)
-	}
-
-	slog.Debug("got version", slog.String("next-version", nextVersion.String()))
-
-	if currentVersion == nextVersion.String() {
-		return true, nil
-	}
-
-	ref, err := repo.CreateTag(nextVersion.String(), head.Hash(), nil)
-	if err != nil {
-		return false, fmt.Errorf("error creating tag: %w", err)
-	}
-
-	slog.Info("tag created", slog.String("tag", ref.Name().Short()))
-
-	return false, nil
-}
-
-func (g *Service) PushTag() error {
-	repo, err := g.GetGitRepo()
-	if err != nil {
-		return fmt.Errorf("error getting git repository: %w", err)
-	}
-
-	err = repo.Push(&git.PushOptions{
-		RemoteName: "origin",
-		FollowTags: true,
-		Auth: &http.BasicAuth{
-			Username: "git",
-			Password: os.Getenv("GITHUB_TOKEN"),
-		},
-	})
-	if err != nil {
-		return fmt.Errorf("error pushing tags: %w", err)
-	}
-
-	slog.Debug("pushed tag")
-
-	return nil
 }
 
 func (g *Service) GetRemoteGitRepo(remoteURL string) (*git.Repository, error) {
