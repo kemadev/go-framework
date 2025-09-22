@@ -105,3 +105,7 @@ changelog:
       order: 970
     - title: Other Changes 🔄
       order: 999
+
+release:
+  prerelease: auto
+  make_latest: '{{ contains .Branch "main" }}'
