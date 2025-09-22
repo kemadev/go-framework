@@ -18,7 +18,10 @@ import (
 	"github.com/go-git/go-git/v6/storage/memory"
 )
 
-const BranchMain = "main"
+const (
+	BranchMain = "main"
+	BranchNext = "next"
+)
 
 var (
 	ErrRemoteURLNotFound = fmt.Errorf("remote URL not found")
@@ -208,31 +211,19 @@ func (g *Service) TagSemver() (bool, error) {
 	slog.Debug("got version", slog.String("current-version", currentVersion))
 
 	branchName := head.Name().String()
-	nextVersion := ""
 
-	if branchName == BranchMain {
-		ver, err := svu.Next()
-		if err != nil {
-			return false, fmt.Errorf("error getting next version: %w", err)
-		}
-
-		nextVersion = ver
-	} else {
-		ver, err := svu.PreRelease()
-		if err != nil {
-			return false, fmt.Errorf("error getting next pre release version: %w", err)
-		}
-
-		nextVersion = ver
+	nextVersion, err := NextTag(branchName, repo)
+	if err != nil {
+		return false, fmt.Errorf("error getting next version: %w", err)
 	}
 
-	slog.Debug("got version", slog.String("next-version", nextVersion))
+	slog.Debug("got version", slog.String("next-version", nextVersion.String()))
 
-	if currentVersion == nextVersion {
+	if currentVersion == nextVersion.String() {
 		return true, nil
 	}
 
-	ref, err := repo.CreateTag(nextVersion, head.Hash(), nil)
+	ref, err := repo.CreateTag(nextVersion.String(), head.Hash(), nil)
 	if err != nil {
 		return false, fmt.Errorf("error creating tag: %w", err)
 	}
