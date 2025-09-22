@@ -18,6 +18,8 @@ import (
 	"github.com/go-git/go-git/v6/storage/memory"
 )
 
+const BranchMain = "main"
+
 var (
 	ErrRemoteURLNotFound = fmt.Errorf("remote URL not found")
 	ErrGitRepoNil        = fmt.Errorf("git repository is nil")
@@ -188,24 +190,6 @@ func (g *Service) GetGitBasePathWithRepo(repo *git.Repository) (string, error) {
 }
 
 func (g *Service) TagSemver() (bool, error) {
-	currentVersion, err := svu.Current()
-	if err != nil {
-		return false, fmt.Errorf("error getting current version: %w", err)
-	}
-
-	slog.Debug("got version", slog.String("current-version", currentVersion))
-
-	nextVersion, err := svu.Next()
-	if err != nil {
-		return false, fmt.Errorf("error getting next version: %w", err)
-	}
-
-	slog.Debug("got version", slog.String("next-version", nextVersion))
-
-	if currentVersion == nextVersion {
-		return true, nil
-	}
-
 	repo, err := g.GetGitRepo()
 	if err != nil {
 		return false, fmt.Errorf("error getting git repository: %w", err)
@@ -214,6 +198,38 @@ func (g *Service) TagSemver() (bool, error) {
 	head, err := repo.Head()
 	if err != nil {
 		return false, fmt.Errorf("error getting HEAD reference: %w", err)
+	}
+
+	currentVersion, err := svu.Current()
+	if err != nil {
+		return false, fmt.Errorf("error getting current version: %w", err)
+	}
+
+	slog.Debug("got version", slog.String("current-version", currentVersion))
+
+	branchName := head.Name().String()
+	nextVersion := ""
+
+	if branchName == BranchMain {
+		ver, err := svu.Next()
+		if err != nil {
+			return false, fmt.Errorf("error getting next version: %w", err)
+		}
+
+		nextVersion = ver
+	} else {
+		ver, err := svu.Next(svu.WithPreRelease(branchName))
+		if err != nil {
+			return false, fmt.Errorf("error getting next version: %w", err)
+		}
+
+		nextVersion = ver
+	}
+
+	slog.Debug("got version", slog.String("next-version", nextVersion))
+
+	if currentVersion == nextVersion {
+		return true, nil
 	}
 
 	ref, err := repo.CreateTag(nextVersion, head.Hash(), nil)
