@@ -115,8 +115,6 @@ func main() {
 	// 	),
 	// )
 
-	log.Logger(packageName).Warn("starting server")
-
 	server.Run(otel.WrapMux(r, packageName), *conf)
 }
 
