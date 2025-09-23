@@ -1,8 +1,7 @@
 <!-- markdownlint-disable MD041 -->
 <div align=center>
-  <a href="https://github.com/kemadev/go-framework/actions/workflows/go-cd.yaml"><img alt="Go - CD - main" src="https://github.com/kemadev/go-framework/actions/workflows/go-cd.yaml/badge.svg?branch=main&event=push"></a>
-  <a href="https://github.com/kemadev/go-framework/actions/workflows/go-cd.yaml"><img alt="Go - CD - next" src="https://github.com/kemadev/go-framework/actions/workflows/go-cd.yaml/badge.svg?branch=next&event=push"></a>
-  <a href="https://github.com/kemadev/go-framework/actions/workflows/go-release.yaml"><img alt="Go - Release" src="https://github.com/kemadev/go-framework/actions/workflows/go-release.yaml/badge.svg?branch=main&event=push"></a>
+  <a href="https://github.com/kemadev/go-framework/actions/workflows/go-release.yaml"><img alt="Go - Release - main" src="https://github.com/kemadev/go-framework/actions/workflows/go-release.yaml/badge.svg?branch=main&event=push"></a>
+  <a href="https://github.com/kemadev/go-framework/actions/workflows/go-release.yaml"><img alt="Go - Release - next" src="https://github.com/kemadev/go-framework/actions/workflows/go-release.yaml/badge.svg?branch=next&event=push"></a>
   <a href="https://github.com/kemadev/go-framework/actions/workflows/docker-ci.yaml"><img alt="Docker - CI" src="https://github.com/kemadev/go-framework/actions/workflows/docker-ci.yaml/badge.svg?branch=main&event=schedule"></a>
   <a href="https://github.com/kemadev/go-framework/actions/workflows/global-ci.yaml"><img alt="Global - CI" src="https://github.com/kemadev/go-framework/actions/workflows/global-ci.yaml/badge.svg?branch=main&event=schedule"></a>
   <a href="https://github.com/kemadev/go-framework/actions/workflows/go-ci.yaml"><img alt="Go - CI" src="https://github.com/kemadev/go-framework/actions/workflows/go-ci.yaml/badge.svg?branch=main&event=schedule"></a>
