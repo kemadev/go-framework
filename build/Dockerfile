@@ -1,0 +1,124 @@
+ARG ALPINE_VERSION=3.22.1@sha256:4bcff63911fcb4448bd4fdacec207030997caf25e9bea4045fa6c8c44de311d1
+
+FROM --platform=${BUILDPLATFORM} docker.io/alpine:${ALPINE_VERSION} AS alpine-base
+
+FROM alpine-base AS go-deps
+
+SHELL ["/bin/ash", "-o", "pipefail", "-c"]
+
+# Docker buildx ARGs
+ARG BUILDPLATFORM
+
+WORKDIR /deps
+
+# hadolint ignore=DL3018
+RUN apk add --no-cache curl grep tar gzip zip
+
+ENV BUILDPLATFORM=${BUILDPLATFORM}
+
+RUN --mount=type=bind,source=go.mod,target=go.mod curl -fsSL "https://go.dev/dl/go$(grep -oP 'go\s+\K([0-9.]+)' <go.mod).$(echo ${BUILDPLATFORM} | sed 's|/|-|g').tar.gz" | tar -C /usr/local -xz
+
+# Ensure future GOPATH exists
+RUN mkdir -p /root/go
+
+FROM alpine-base AS clean-deps
+
+WORKDIR /deps
+
+COPY --link --from=go-deps /usr/local/go /usr/local/go
+COPY --link --from=go-deps /root/go /root/go
+
+ENV PATH="/root/go/bin:/usr/local/go/bin:${PATH}"
+
+FROM clean-deps AS base
+
+WORKDIR /src
+
+# Docker buildx ARGs
+ARG TARGETOS
+ARG TARGETARCH
+
+ARG CGO_ENABLED=0
+ARG GOAMD64=v3
+ARG GOARM64=v8.2
+
+ENV CGO_ENABLED=${CGO_ENABLED} GOOS=${TARGETOS} GOARCH=${TARGETARCH} GOARM64=${GOARM64} GOAMD64=${GOAMD64}
+
+# hadolint ignore=DL3018
+RUN apk add --no-cache git
+RUN --mount=type=secret,id=netrc \
+	--mount=type=cache,target=/root/go/pkg \
+	--mount=type=bind,source=go.mod,target=go.mod \
+	--mount=type=bind,source=go.sum,target=go.sum \
+	cp /run/secrets/netrc /root/.netrc && \
+	go mod download -x
+
+FROM base AS build
+
+RUN --mount=type=cache,target=/root/go/pkg \
+	--mount=type=cache,target=/root/.cache \
+	--mount=type=bind,source=.,target=. \
+	go build -ldflags='-s -w' -o /usr/local/bin/app ./cmd/go-framework
+
+FROM base AS debug-build
+
+RUN --mount=type=cache,target=/root/go/pkg \
+	--mount=type=cache,target=/root/.cache \
+	--mount=type=bind,source=.,target=. \
+	go build -gcflags="all=-N -l" -o /usr/local/bin/app ./cmd/go-framework
+
+FROM --platform=${BUILDPLATFORM} gcr.io/distroless/static-debian12:nonroot@sha256:e8a4044e0b4ae4257efa45fc026c0bc30ad320d43bd4c1a7d5271bd241e386d0 AS goreleaser
+
+LABEL org.opencontainers.image.authors="kemadev"
+LABEL org.opencontainers.image.url="ghcr.io/kemadev/go-framework"
+LABEL org.opencontainers.image.documentation="https://github.com/kemadev/go-framework"
+LABEL org.opencontainers.image.source="https://github.com/kemadev/go-framework"
+LABEL org.opencontainers.image.vendor="kemadev"
+LABEL org.opencontainers.image.licenses="MPL-2.0"
+
+COPY go-framework /app
+
+ENTRYPOINT ["/app"]
+
+FROM alpine-base AS dev
+
+WORKDIR /src
+
+# hadolint ignore=DL3018
+RUN apk add --no-cache git sudo && \
+	adduser -D -u 1000 nonroot && \
+	echo "nonroot ALL=(ALL) NOPASSWD: ALL" >/etc/sudoers.d/nonroot && \
+	chmod 0440 /etc/sudoers.d/nonroot
+
+COPY --link --from=go-deps /usr/local/go /usr/local/go
+COPY --link --chown=nonroot:nonroot --from=go-deps /root/go /home/nonroot/go
+
+ENV PATH="/home/nonroot/go/bin:/usr/local/go/bin:${PATH}"
+
+USER 1000:1000
+
+RUN go install github.com/go-delve/delve/cmd/dlv@latest && \
+	git config --global --add safe.directory /src
+
+COPY --link --from=debug-build /usr/local/bin/app /app
+COPY --link ./tool/dev/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+
+FROM dev AS debug
+
+ENTRYPOINT [ "dlv", "dap", "--listen", ":50000" ]
+
+# hadolint ignore=DL3007
+FROM --platform=${BUILDPLATFORM} gcr.io/distroless/static-debian12:nonroot@sha256:e8a4044e0b4ae4257efa45fc026c0bc30ad320d43bd4c1a7d5271bd241e386d0 AS main
+
+LABEL org.opencontainers.image.authors="kemadev"
+LABEL org.opencontainers.image.url="ghcr.io/kemadev/go-framework"
+LABEL org.opencontainers.image.documentation="https://github.com/kemadev/go-framework"
+LABEL org.opencontainers.image.source="https://github.com/kemadev/go-framework"
+LABEL org.opencontainers.image.vendor="kemadev"
+LABEL org.opencontainers.image.licenses="MPL-2.0"
+
+COPY --link --from=build /usr/local/bin/app /app
+
+ENTRYPOINT ["/app"]
