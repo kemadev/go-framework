@@ -86,9 +86,14 @@ func SetupOTelSDK(
 			attribute.KeyValue{
 				Key: "process.config",
 				Value: attribute.StringValue(func() string {
-					d, err := json.Marshal(conf)
+					c, err := conf.Redact()
 					if err != nil {
-						return fmt.Sprintf("%+v", conf)
+						return "error redacting config"
+					}
+
+					d, err := json.Marshal(c)
+					if err != nil {
+						return "error marshalling redacted config"
 					}
 
 					return string(d)

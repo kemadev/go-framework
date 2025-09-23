@@ -47,6 +47,9 @@ func main() {
 		os.Exit(1)
 	}
 
+	red, _ := conf.Redact()
+	fmt.Println(red.String())
+
 	// Create clients, for use in handlers
 	client, err := cache.NewClient(conf.Client.Cache)
 	if err != nil {
