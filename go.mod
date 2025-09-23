@@ -4,7 +4,7 @@ go 1.24.6
 
 require (
 	github.com/caarlos0/svu/v3 v3.2.3
-	github.com/go-git/go-git/v6 v6.0.0-20250922134601-9bda2a038490
+	github.com/go-git/go-git/v6 v6.0.0-20250923080731-ebc56f97b3d2
 	github.com/valkey-io/valkey-go v1.0.65
 	go.opentelemetry.io/contrib/bridges/otelslog v0.13.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.63.0
@@ -49,7 +49,6 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.38.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.8.0 // indirect
 	golang.org/x/crypto v0.42.0 // indirect
-	golang.org/x/exp v0.0.0-20250911091902-df9299821621 // indirect
 	golang.org/x/net v0.44.0 // indirect
 	golang.org/x/sys v0.36.0 // indirect
 	golang.org/x/text v0.29.0 // indirect
