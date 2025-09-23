@@ -29,6 +29,7 @@ import (
 	"github.com/kemadev/go-framework/pkg/router"
 	"github.com/kemadev/go-framework/pkg/server"
 	"github.com/kemadev/go-framework/pkg/timeout"
+	"github.com/kemadev/go-framework/web"
 	"github.com/valkey-io/valkey-go"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
@@ -99,24 +100,24 @@ func main() {
 		// Secure frontend with security headers
 		r.Use(sechead.NewMiddleware(sechead.SecHeadersDefaultStrict))
 
-		// // Handle template assets
-		// tmplFS := web.GetTmplFS()
-		// renderer, _ := render.New(tmplFS)
-		// r.Handle(
-		// 	otel.WrapHandler(
-		// 		"GET /",
-		// 		ExampleTemplateRender(renderer),
-		// 	),
-		// )
+		// Handle template assets
+		tmplFS := web.GetTmplFS()
+		renderer, _ := render.New(tmplFS)
+		r.Handle(
+			otel.WrapHandler(
+				"GET /",
+				ExampleTemplateRender(renderer),
+			),
+		)
 	})
 
-	// // Handle static (public) assets
-	// r.Handle(
-	// 	otel.WrapHandler(
-	// 		"GET /static/",
-	// 		http.FileServerFS(web.GetStaticFS()).ServeHTTP,
-	// 	),
-	// )
+	// Handle static (public) assets
+	r.Handle(
+		otel.WrapHandler(
+			"GET /static/",
+			http.FileServerFS(web.GetStaticFS()).ServeHTTP,
+		),
+	)
 
 	server.Run(otel.WrapMux(r, packageName), *conf)
 }
