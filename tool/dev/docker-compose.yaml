@@ -29,10 +29,10 @@ services:
       GOPRIVATE: "github.com/kemadev/*"
       KEMA_RUNTIME_ENVIRONMENT: dev
       KEMA_RUNTIME_APP_NAME: go-framework
-      KEMA_RUNTIME_APP_VERSION: dev
+      KEMA_RUNTIME_APP_VERSION: v0.0.0-dev.0.0.0
       KEMA_RUNTIME_APP_NAMESPACE: whatever
       KEMA_OBSERVABILITY_ENDPOINT_URL: http://kemadev-go-framework-jaeger-1:4317
-      KEMA_CLIENT_DATABASE_CLIENT_ADDRESS: "postgresql://dev:dev@kemadev-go-framework-postgresql-1:5432/dev"
+      KEMA_CLIENT_DATABASE_CONNECTION_URL: "postgresql://dev:dev@kemadev-go-framework-postgresql-1:5432/dev"
       KEMA_CLIENT_CACHE_CLIENT_ADDRESS: "kemadev-go-framework-valkey-1:6379"
       KEMA_CLIENT_CACHE_PASSWORD: "dev"
       # Set this to a strictly positive duration to export metrics to stdout
@@ -140,7 +140,7 @@ volumes:
 services:
   opensearch:
     profiles:
-      - dev
+      - never
     image: opensearchproject/opensearch:3
     environment:
       cluster.name: dev
@@ -167,7 +167,7 @@ services:
       - app
   opensearch-dashboards:
     profiles:
-      - dev
+      - never
     image: opensearchproject/opensearch-dashboards:3
     ports:
       - 5601:5601

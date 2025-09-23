@@ -198,18 +198,28 @@ func processStruct(prefix string, v reflect.Value, parentPath string, parentRequ
 
 		switch field.Kind() {
 		case reflect.Struct:
-			// Check if this struct field is required
-			structRequired := fieldType.Tag.Get("required") == "true"
+			if field.Type() != reflect.TypeOf(url.URL{}) &&
+				field.Type() != reflect.TypeOf(semver.Version{}) {
+				// Check if this struct field is required
+				structRequired := fieldType.Tag.Get("required") == "true"
 
-			// If parent is not required, this struct is also not required
-			if !parentRequired {
-				structRequired = false
-			}
+				// If parent is not required, this struct is also not required
+				if !parentRequired {
+					structRequired = false
+				}
 
-			err := processStruct(prefix, field, buildPath(parentPath, fieldName), structRequired)
-			if err != nil {
-				return fmt.Errorf("error processing struct field %s: %w", fieldName, err)
+				err := processStruct(
+					prefix,
+					field,
+					buildPath(parentPath, fieldName),
+					structRequired,
+				)
+				if err != nil {
+					return fmt.Errorf("error processing struct field %s: %w", fieldName, err)
+				}
+				break
 			}
+			fallthrough
 		default:
 			err := processField(field, fieldType, envVarName, parentRequired)
 			if err != nil {
@@ -252,7 +262,7 @@ func processField(
 }
 
 // setFieldValue sets the field value based on its type.
-func setFieldValue(field reflect.Value, value, envVarName string) error {
+func setFieldValue(field reflect.Value, value string, envVarName string) error {
 	switch field.Kind() {
 	case reflect.String:
 		field.SetString(value)
@@ -422,40 +432,6 @@ func (conf *Runtime) SlogLevel() slog.Level {
 	}
 
 	return slog.LevelInfo
-}
-
-// Redact returns a modified version of conf, redacting sensible values.
-func (conf Global) Redact() (Global, error) {
-	DBPasswd, present := conf.Client.Database.ConnectionURL.User.Password()
-	if present {
-		redactedPasswd := DBPasswd[0:(len(DBPasswd)/4)] + "..."
-
-		redactedURLParts := strings.Split(conf.Client.Database.ConnectionURL.String(), DBPasswd)
-		if len(redactedURLParts) != 2 {
-			return Global{}, ErrCantRedactDBConnURL
-		} else {
-			redactedURLStr := strings.Join(redactedURLParts, redactedPasswd)
-
-			redactedURL, err := url.Parse(redactedURLStr)
-			if err != nil {
-				return Global{}, ErrCantRedactDBConnURL
-			}
-
-			conf.Client.Database.ConnectionURL = *redactedURL
-		}
-	}
-
-	cachePasswdLen := len(conf.Client.Cache.Password)
-	if cachePasswdLen > 0 {
-		conf.Client.Cache.Password = conf.Client.Cache.Password[0:(cachePasswdLen/4)] + "..."
-	}
-
-	ObjectStorageAccessKeyLen := len(conf.Client.ObjectStorage.SecretAccessKey)
-	if ObjectStorageAccessKeyLen > 0 {
-		conf.Client.ObjectStorage.SecretAccessKey = conf.Client.ObjectStorage.SecretAccessKey[0:(ObjectStorageAccessKeyLen/4)] + "..."
-	}
-
-	return conf, nil
 }
 
 func (conf Global) String() (string, error) {

@@ -25,7 +25,7 @@ const (
 )
 
 // RegExp adapted from https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
-const SemverRegex string = `^(?P<` + CaptureGroupKeyMajor + `>0|[1-9]\d*)\.(?P<` + CaptureGroupKeyMinor + `>0|[1-9]\d*)\.(?P<` + CaptureGroupKeyPatch + `>0|[1-9]\d*)(?:-(?P<` + CaptureGroupKeyPreRelease + `>(?:(?P<` + CaptureGroupKeyPreType + `>[a-zA-Z][0-9a-zA-Z-]*)\.)?(?P<` + CaptureGroupKeyPreMajor + `>0|[1-9]\d*)\.(?P<` + CaptureGroupKeyPreMinor + `>0|[1-9]\d*)\.(?P<` + CaptureGroupKeyPrePatch + `>0|[1-9]\d*)|(?:[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*)))?(?:\+(?P<` + CaptureGroupKeyBuildMetadata + `>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$`
+const SemverRegex string = `^v?(?P<` + CaptureGroupKeyMajor + `>0|[1-9]\d*)\.(?P<` + CaptureGroupKeyMinor + `>0|[1-9]\d*)\.(?P<` + CaptureGroupKeyPatch + `>0|[1-9]\d*)(?:-(?P<` + CaptureGroupKeyPreRelease + `>(?:(?P<` + CaptureGroupKeyPreType + `>[a-zA-Z][0-9a-zA-Z-]*)\.)?(?P<` + CaptureGroupKeyPreMajor + `>0|[1-9]\d*)\.(?P<` + CaptureGroupKeyPreMinor + `>0|[1-9]\d*)\.(?P<` + CaptureGroupKeyPrePatch + `>0|[1-9]\d*)|(?:[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*)))?(?:\+(?P<` + CaptureGroupKeyBuildMetadata + `>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$`
 
 type PreReleaseType string
 
