@@ -7,7 +7,7 @@ import (
 //go:embed static/*
 var static embed.FS
 
-//go:embed tmpl/*.gotmpl.html
+//go:embed tmpl/*.html
 var tmpl embed.FS
 
 // GetStaticFS returns static assets as an [embed.FS]
