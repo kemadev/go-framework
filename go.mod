@@ -4,7 +4,7 @@ go 1.24.6
 
 require (
 	github.com/caarlos0/svu/v3 v3.2.3
-	github.com/go-git/go-git/v6 v6.0.0-20250921083035-edb95f36f415
+	github.com/go-git/go-git/v6 v6.0.0-20250922134601-9bda2a038490
 	github.com/valkey-io/valkey-go v1.0.65
 	go.opentelemetry.io/contrib/bridges/otelslog v0.13.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.63.0
