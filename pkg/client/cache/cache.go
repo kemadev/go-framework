@@ -28,7 +28,7 @@ func NewClient(conf config.CacheConfig) (valkey.Client, error) {
 		Password: conf.Password,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("error creating valkey client: %w", err)
+		return nil, fmt.Errorf("error creating cache client: %w", err)
 	}
 
 	return client, nil

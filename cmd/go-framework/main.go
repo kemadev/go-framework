@@ -13,7 +13,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/kemadev/go-framework/pkg/client/cache"
+	"github.com/kemadev/go-framework/pkg/client/database"
 	"github.com/kemadev/go-framework/pkg/config"
 	"github.com/kemadev/go-framework/pkg/convenience/headval"
 	"github.com/kemadev/go-framework/pkg/convenience/log"
@@ -48,16 +50,20 @@ func main() {
 		os.Exit(1)
 	}
 
-	red, _ := conf.Redact()
-	fmt.Println(red.String())
-
 	// Create clients, for use in handlers
-	client, err := cache.NewClient(conf.Client.Cache)
+	cacheClient, err := cache.NewClient(conf.Client.Cache)
 	if err != nil {
 		flog.FallbackError(err)
 		os.Exit(1)
 	}
-	defer client.Close()
+	defer cacheClient.Close()
+
+	databaseClient, err := database.NewClient(conf.Client.Database)
+	if err != nil {
+		flog.FallbackError(err)
+		os.Exit(1)
+	}
+	defer databaseClient.Close()
 
 	r := router.New()
 
@@ -90,8 +96,15 @@ func main() {
 
 	r.Handle(
 		otel.WrapHandler(
-			"GET /db",
-			ExampleDBHandler(client),
+			"GET /cache",
+			ExampleCacheHandler(cacheClient),
+		),
+	)
+
+	r.Handle(
+		otel.WrapHandler(
+			"GET /database",
+			ExampleDatabaseHandler(databaseClient),
 		),
 	)
 
@@ -201,12 +214,12 @@ func ExampleTemplateRender(
 	}
 }
 
-func ExampleDBHandler(client valkey.Client) func(w http.ResponseWriter, r *http.Request) {
+func ExampleCacheHandler(client valkey.Client) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := client.Do(r.Context(), client.B().Set().Key("key").Value(time.Now().String()).Build()).
 			Error()
 		if err != nil {
-			log.ErrLog(packageName, "error db set", err)
+			log.ErrLog(packageName, "error cache set", err)
 			// Prefer graceful degradation instead of throwing a 5XX error
 			http.Error(
 				w,
@@ -217,6 +230,41 @@ func ExampleDBHandler(client valkey.Client) func(w http.ResponseWriter, r *http.
 			return
 		}
 
-		resp.JSON(w, "ok")
+		type ExampleOutput struct {
+			Success bool
+		}
+
+		resp.JSON(w, ExampleOutput{
+			Success: true,
+		})
+	}
+}
+
+func ExampleDatabaseHandler(client *pgxpool.Pool) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var id int
+
+		err := client.QueryRow(
+			r.Context(),
+			`INSERT INTO tasks (created_at) VALUES ($1) RETURNING id`,
+			time.Now(),
+		).Scan(&id)
+		if err != nil {
+			log.ErrLog(packageName, "error database insert", err)
+			// Prefer graceful degradation instead of throwing a 5XX error
+			http.Error(
+				w,
+				http.StatusText(http.StatusInternalServerError),
+				http.StatusInternalServerError,
+			)
+
+			return
+		}
+
+		type ExampleOutput struct {
+			ID int
+		}
+
+		resp.JSON(w, ExampleOutput{ID: id})
 	}
 }
