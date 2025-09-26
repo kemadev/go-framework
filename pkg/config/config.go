@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net"
 	"net/url"
 	"os"
 	"reflect"
@@ -94,6 +95,8 @@ type Client struct {
 	Database DatabaseConfig `required:"false"`
 	// Cache holds cache configuration
 	Cache CacheConfig `required:"false"`
+	// Search holds search configuration
+	Search SearchConfig `required:"false"`
 	// ObjectStorage holds object storage configuration
 	ObjectStorage ObjectStorageConfig `required:"false"`
 }
@@ -103,8 +106,14 @@ type DatabaseConfig struct {
 	ConnectionURL url.URL `required:"false"`
 }
 
+type SearchConfig struct {
+	ClientAddress []url.URL `required:"true"`
+	Username      string    `required:"true"`
+	Password      string    `required:"true"`
+}
+
 type CacheConfig struct {
-	ClientAddress         []string      `required:"true"`
+	ClientAddress         []url.URL     `required:"true"`
 	ShardsRefreshInterval time.Duration `required:"true"  default:"120s"`
 	SentinelMasterSet     string        `required:"false"`
 	Username              string        `required:"true"`
@@ -112,10 +121,10 @@ type CacheConfig struct {
 }
 
 type ObjectStorageConfig struct {
-	EndpointAddressAddress string `required:"true"`
-	AccessKeyID            string `required:"true"`
-	SecretAccessKey        string `required:"true"`
-	SSL                    bool   `required:"true"`
+	EndpointAddressAddress net.Addr `required:"true"`
+	AccessKeyID            string   `required:"true"`
+	SecretAccessKey        string   `required:"true"`
+	SSL                    bool     `required:"true"`
 }
 
 // Manager handles configuration loading and caching.
@@ -271,6 +280,10 @@ func setFieldValue(field reflect.Value, value string, envVarName string) error {
 			return setStringSlice(field, value)
 		}
 
+		if field.Type().Elem() == reflect.TypeOf(url.URL{}) {
+			return setURLSlice(field, value, envVarName)
+		}
+
 		return fmt.Errorf(
 			"%s - unsupported slice type %s: %w",
 			envVarName,
@@ -378,6 +391,37 @@ func setStringSlice(field reflect.Value, value string) error {
 	}
 
 	field.Set(slice)
+
+	return nil
+}
+
+// setURLSlice parses a comma-separated string of URLs into a []url.URL slice
+func setURLSlice(field reflect.Value, value string, envVarName string) error {
+	if value == "" {
+		field.Set(reflect.MakeSlice(field.Type(), 0, 0))
+
+		return nil
+	}
+
+	parts := strings.Split(value, ",")
+	result := make([]url.URL, len(parts))
+
+	for i, str := range parts {
+		str = strings.TrimSpace(str)
+		parsed, err := url.Parse(str)
+		if err != nil {
+			return fmt.Errorf(
+				"%s - invalid URL %s at index %d: %w",
+				envVarName,
+				str,
+				i,
+				ErrVariableMalformed,
+			)
+		}
+		result[i] = *parsed
+	}
+
+	field.Set(reflect.ValueOf(result))
 
 	return nil
 }

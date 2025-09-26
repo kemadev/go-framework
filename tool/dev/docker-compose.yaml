@@ -35,6 +35,9 @@ services:
       KEMA_CLIENT_DATABASE_CONNECTION_URL: "postgresql://dev:dev@kemadev-go-framework-postgresql-1:5432/dev"
       KEMA_CLIENT_CACHE_CLIENT_ADDRESS: "kemadev-go-framework-valkey-1:6379"
       KEMA_CLIENT_CACHE_PASSWORD: "dev"
+      KEMA_CLIENT_SEARCH_CLIENT_ADDRESS: "https://kemadev-go-framework-opensearch-1:9200"
+      KEMA_CLIENT_SEARCH_USERNAME: "admin"
+      KEMA_CLIENT_SEARCH_PASSWORD: "OpenSearchDev_1"
       # Set this to a strictly positive duration to export metrics to stdout
       KEMA_OBSERVABILITY_METRICS_EXPORT_INTERVAL: 0s
     ports:
@@ -140,7 +143,7 @@ volumes:
 services:
   opensearch:
     profiles:
-      - never
+      - dev
     image: opensearchproject/opensearch:3
     environment:
       cluster.name: dev
@@ -167,7 +170,7 @@ services:
       - app
   opensearch-dashboards:
     profiles:
-      - never
+      - dev
     image: opensearchproject/opensearch-dashboards:3
     ports:
       - 5601:5601

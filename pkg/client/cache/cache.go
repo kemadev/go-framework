@@ -11,8 +11,13 @@ import (
 )
 
 func NewClient(conf config.CacheConfig) (valkey.Client, error) {
+	clientAddresses := []string{}
+	for _, addr := range conf.ClientAddress {
+		clientAddresses = append(clientAddresses, addr.String())
+	}
+
 	client, err := valkey.NewClient(valkey.ClientOption{
-		InitAddress:         conf.ClientAddress,
+		InitAddress:         clientAddresses,
 		ShuffleInit:         true,
 		EnableReplicaAZInfo: true,
 		SendToReplicas: func(cmd valkey.Completed) bool {
