@@ -8,6 +8,9 @@ import (
 	"github.com/kemadev/go-framework/pkg/config"
 	"github.com/opensearch-project/opensearch-go/v4"
 	"github.com/opensearch-project/opensearch-go/v4/opensearchapi"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	semconv "go.opentelemetry.io/otel/semconv/v1.37.0"
+	"go.opentelemetry.io/otel/trace"
 )
 
 func NewClient(conf config.SearchConfig, runtime config.Runtime) (*opensearchapi.Client, error) {
@@ -16,11 +19,20 @@ func NewClient(conf config.SearchConfig, runtime config.Runtime) (*opensearchapi
 		clientAddresses = append(clientAddresses, addr.String())
 	}
 
+	baseTransport := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+
+	instrumentedTransport := otelhttp.NewTransport(
+		baseTransport,
+		otelhttp.WithSpanOptions(trace.WithAttributes(
+			semconv.DBSystemNameOpenSearch,
+		)),
+	)
+
 	client, err := opensearchapi.NewClient(opensearchapi.Config{
 		Client: opensearch.Config{
-			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-			},
+			Transport:     instrumentedTransport,
 			Addresses:     clientAddresses,
 			Username:      conf.Username,
 			Password:      conf.Password,

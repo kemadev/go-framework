@@ -8,6 +8,7 @@ import (
 
 	"github.com/kemadev/go-framework/pkg/config"
 	"github.com/valkey-io/valkey-go"
+	"github.com/valkey-io/valkey-go/valkeyotel"
 )
 
 func NewClient(conf config.CacheConfig) (valkey.Client, error) {
@@ -16,7 +17,7 @@ func NewClient(conf config.CacheConfig) (valkey.Client, error) {
 		clientAddresses = append(clientAddresses, addr.String())
 	}
 
-	client, err := valkey.NewClient(valkey.ClientOption{
+	client, err := valkeyotel.NewClient(valkey.ClientOption{
 		InitAddress:         clientAddresses,
 		ShuffleInit:         true,
 		EnableReplicaAZInfo: true,

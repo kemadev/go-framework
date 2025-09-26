@@ -495,6 +495,11 @@ func (conf Global) Redact() (Global, error) {
 		conf.Client.Cache.Password = conf.Client.Cache.Password[:(cachePasswdLen/4)] + redactStr
 	}
 
+	searchPasswdLen := len(conf.Client.Search.Password)
+	if searchPasswdLen > 0 {
+		conf.Client.Search.Password = conf.Client.Search.Password[:(searchPasswdLen/4)] + redactStr
+	}
+
 	ObjectStorageAccessKeyLen := len(conf.Client.ObjectStorage.SecretAccessKey)
 	if ObjectStorageAccessKeyLen > 0 {
 		conf.Client.ObjectStorage.SecretAccessKey = conf.Client.ObjectStorage.SecretAccessKey[:(ObjectStorageAccessKeyLen/4)] + redactStr
