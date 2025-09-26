@@ -37,7 +37,7 @@ builds:
 
 gomod:
   env:
-    - GOPRIVATE=github.com/kemadev/server-bootstrap
+    - GOPRIVATE=github.com/kemadev
   mod: mod
 
 snapshot:
