@@ -4,12 +4,10 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/kemadev/go-framework/pkg/config"
 	"github.com/opensearch-project/opensearch-go/v4"
 	"github.com/opensearch-project/opensearch-go/v4/opensearchapi"
-	"github.com/opensearch-project/opensearch-go/v4/opensearchtransport"
 )
 
 func NewClient(conf config.SearchConfig, runtime config.Runtime) (*opensearchapi.Client, error) {
@@ -27,16 +25,6 @@ func NewClient(conf config.SearchConfig, runtime config.Runtime) (*opensearchapi
 			Username:      conf.Username,
 			Password:      conf.Password,
 			EnableMetrics: true,
-			Logger: func() opensearchtransport.Logger {
-				if runtime.IsLocalEnvironment() {
-					return &opensearchtransport.ColorLogger{
-						Output: os.Stdout,
-					}
-				}
-				return &opensearchtransport.JSONLogger{
-					Output: os.Stdout,
-				}
-			}(),
 		},
 	})
 	if err != nil {
