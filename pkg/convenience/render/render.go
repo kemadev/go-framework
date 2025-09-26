@@ -11,6 +11,7 @@ import (
 	"io/fs"
 	"net/http"
 	"path/filepath"
+	"strings"
 
 	"github.com/kemadev/go-framework/pkg/convenience/headkey"
 )
@@ -25,12 +26,12 @@ type TemplateRenderer struct {
 }
 
 // New creates a new template renderer with all templates parsed.
-func New(tmpl embed.FS) (*TemplateRenderer, error) {
+func New(tmpl embed.FS, baseDirName string) (*TemplateRenderer, error) {
 	tr := &TemplateRenderer{
 		templates: make(map[string]*template.Template),
 	}
 
-	err := tr.loadTemplates(tmpl)
+	err := tr.loadTemplates(tmpl, baseDirName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load templates: %w", err)
 	}
@@ -38,7 +39,7 @@ func New(tmpl embed.FS) (*TemplateRenderer, error) {
 	return tr, nil
 }
 
-func (tr *TemplateRenderer) loadTemplates(tmpl embed.FS) error {
+func (tr *TemplateRenderer) loadTemplates(tmpl embed.FS, baseDirName string) error {
 	return fs.WalkDir(tmpl, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -60,7 +61,7 @@ func (tr *TemplateRenderer) loadTemplates(tmpl embed.FS) error {
 			return fmt.Errorf("failed to parse template %s: %w", path, err)
 		}
 
-		tr.templates[path] = t
+		tr.templates[strings.TrimPrefix(path, baseDirName+"/")] = t
 
 		return nil
 	})
@@ -73,7 +74,7 @@ func (tr *TemplateRenderer) Execute(
 	data any,
 	contentType string,
 ) error {
-	t, exists := tr.templates[templateName]
+	t, exists := tr.templates[strings.TrimPrefix(templateName, "/")]
 
 	if !exists {
 		return fmt.Errorf("%s: %w", templateName, ErrTemplateNotFound)

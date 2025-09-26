@@ -4,8 +4,12 @@ import (
 	"embed"
 )
 
+const StaticBaseDirName = "static"
+
 //go:embed static/*
 var static embed.FS
+
+const TemplateBaseDirName = "tmpl"
 
 //go:embed tmpl/*.html
 var tmpl embed.FS

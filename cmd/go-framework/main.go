@@ -130,7 +130,7 @@ func main() {
 
 		// Handle template assets
 		tmplFS := web.GetTmplFS()
-		renderer, _ := render.New(tmplFS)
+		renderer, _ := render.New(tmplFS, web.TemplateBaseDirName)
 		r.Handle(
 			otel.WrapHandler(
 				"GET /",
@@ -142,7 +142,7 @@ func main() {
 	// Handle static (public) assets
 	r.Handle(
 		otel.WrapHandler(
-			"GET /static/",
+			"GET /"+web.StaticBaseDirName+"/",
 			http.FileServerFS(web.GetStaticFS()).ServeHTTP,
 		),
 	)
@@ -200,7 +200,7 @@ func ExampleTemplateRender(
 		err := tr.Execute(
 			w,
 			// Mind directory name in tmplate FS
-			"tmpl/hello.html",
+			"hello.html",
 			map[string]any{
 				"WorldName": "WoRlD",
 			},
