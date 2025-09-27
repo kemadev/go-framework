@@ -31,11 +31,11 @@ func NewClient(conf config.DatabaseConfig) (*pgxpool.Pool, error) {
 	return pool, nil
 }
 
-func Check(p *pgxpool.Pool) monitoring.StatusCheck {
+func Check(p *pgxpool.Pool, statusOnPingFail monitoring.Status) monitoring.StatusCheck {
 	err := p.Ping(context.Background())
 	if err != nil {
 		return monitoring.StatusCheck{
-			Status:  monitoring.StatusDown,
+			Status:  statusOnPingFail,
 			Message: "ping failed",
 		}
 	}

@@ -48,11 +48,11 @@ func NewClient(conf config.SearchConfig, runtime config.Runtime) (*opensearchapi
 	return client, nil
 }
 
-func Check(c *opensearchapi.Client) monitoring.StatusCheck {
+func Check(c *opensearchapi.Client, statusOnPingFail monitoring.Status) monitoring.StatusCheck {
 	resp, err := c.Ping(context.Background(), &opensearchapi.PingReq{})
 	if err != nil || resp.IsError() {
 		return monitoring.StatusCheck{
-			Status:  monitoring.StatusDown,
+			Status:  statusOnPingFail,
 			Message: "ping failed",
 		}
 	}

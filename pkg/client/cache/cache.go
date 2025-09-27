@@ -42,11 +42,11 @@ func NewClient(conf config.CacheConfig) (valkey.Client, error) {
 	return client, nil
 }
 
-func Check(c valkey.Client) monitoring.StatusCheck {
+func Check(c valkey.Client, statusOnPingFail monitoring.Status) monitoring.StatusCheck {
 	err := c.Do(context.Background(), c.B().Ping().Build()).Error()
 	if err != nil {
 		return monitoring.StatusCheck{
-			Status:  monitoring.StatusDown,
+			Status:  statusOnPingFail,
 			Message: "ping failed",
 		}
 	}

@@ -96,9 +96,10 @@ func main() {
 		monitoring.ReadinessHandler(
 			func() monitoring.CheckResults {
 				return monitoring.CheckResults{
-					"database": database.Check(databaseClient),
-					"cache":    cache.Check(cacheClient),
-					"search":   search.Check(searchClient),
+					// Adjust status on ping fail
+					"database": database.Check(databaseClient, monitoring.StatusDown),
+					"cache":    cache.Check(cacheClient, monitoring.StatusDown),
+					"search":   search.Check(searchClient, monitoring.StatusDown),
 					// Add your check functions
 				}
 			},
