@@ -31,6 +31,7 @@ type PreReleaseType string
 
 var (
 	PreReleaseTypeNone  PreReleaseType = ""
+	PreReleaseTypeDev   PreReleaseType = "dev"
 	PreReleaseTypeNext  PreReleaseType = "next"
 	PreReleaseTypeAlpha PreReleaseType = "alpha"
 	PreReleaseTypeBeta  PreReleaseType = "beta"
@@ -135,18 +136,7 @@ func (v Version) Equal(other Version) bool {
 }
 
 func (p PreReleaseType) String() string {
-	switch p {
-	case PreReleaseTypeNone:
-		return ""
-	case PreReleaseTypeNext:
-		return "next"
-	case PreReleaseTypeAlpha:
-		return "alpha"
-	case PreReleaseTypeBeta:
-		return "beta"
-	default:
-		return "unknown"
-	}
+	return string(p)
 }
 
 func (v Version) String() string {
