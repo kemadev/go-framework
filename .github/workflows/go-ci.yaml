@@ -26,7 +26,7 @@ jobs:
       contents: read
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/kemadev/ci-cd:latest@sha256:113f40af60f42642919c6ec9e64639e32b7ed381cb7ad5f80b5e7e1d0a6870a5
+      image: ghcr.io/kemadev/ci-cd:latest@sha256:32be91b52ab261ac5989b194993696f3734c24ccfd1efa4d42e83d9ed96fca4f
       env:
         # Make race detection possible
         CGO_ENABLED: 1
@@ -49,7 +49,7 @@ jobs:
       contents: read
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/kemadev/ci-cd:latest@sha256:113f40af60f42642919c6ec9e64639e32b7ed381cb7ad5f80b5e7e1d0a6870a5
+      image: ghcr.io/kemadev/ci-cd:latest@sha256:32be91b52ab261ac5989b194993696f3734c24ccfd1efa4d42e83d9ed96fca4f
       # GitHub Actions workaround, see https://docs.github.com/en/actions/reference/dockerfile-support-for-github-actions#user
       options: --user root:root
       credentials:
@@ -69,7 +69,7 @@ jobs:
       contents: read
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/kemadev/ci-cd:latest@sha256:113f40af60f42642919c6ec9e64639e32b7ed381cb7ad5f80b5e7e1d0a6870a5
+      image: ghcr.io/kemadev/ci-cd:latest@sha256:32be91b52ab261ac5989b194993696f3734c24ccfd1efa4d42e83d9ed96fca4f
       # GitHub Actions workaround, see https://docs.github.com/en/actions/reference/dockerfile-support-for-github-actions#user
       options: --user root:root
       credentials:
@@ -111,7 +111,7 @@ jobs:
       contents: read
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/kemadev/ci-cd:latest@sha256:113f40af60f42642919c6ec9e64639e32b7ed381cb7ad5f80b5e7e1d0a6870a5
+      image: ghcr.io/kemadev/ci-cd:latest@sha256:32be91b52ab261ac5989b194993696f3734c24ccfd1efa4d42e83d9ed96fca4f
       # GitHub Actions workaround, see https://docs.github.com/en/actions/reference/dockerfile-support-for-github-actions#user
       options: --user root:root
       credentials:
@@ -131,7 +131,7 @@ jobs:
       contents: read
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/kemadev/ci-cd:latest@sha256:113f40af60f42642919c6ec9e64639e32b7ed381cb7ad5f80b5e7e1d0a6870a5
+      image: ghcr.io/kemadev/ci-cd:latest@sha256:32be91b52ab261ac5989b194993696f3734c24ccfd1efa4d42e83d9ed96fca4f
       # GitHub Actions workaround, see https://docs.github.com/en/actions/reference/dockerfile-support-for-github-actions#user
       options: --user root:root
       credentials:
@@ -151,7 +151,7 @@ jobs:
       contents: read
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/kemadev/ci-cd:latest@sha256:113f40af60f42642919c6ec9e64639e32b7ed381cb7ad5f80b5e7e1d0a6870a5
+      image: ghcr.io/kemadev/ci-cd:latest@sha256:32be91b52ab261ac5989b194993696f3734c24ccfd1efa4d42e83d9ed96fca4f
       # GitHub Actions workaround, see https://docs.github.com/en/actions/reference/dockerfile-support-for-github-actions#user
       options: --user root:root
       credentials:
