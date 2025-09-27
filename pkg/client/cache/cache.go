@@ -4,9 +4,11 @@
 package cache
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/kemadev/go-framework/pkg/config"
+	"github.com/kemadev/go-framework/pkg/monitoring"
 	"github.com/valkey-io/valkey-go"
 	"github.com/valkey-io/valkey-go/valkeyotel"
 )
@@ -38,4 +40,19 @@ func NewClient(conf config.CacheConfig) (valkey.Client, error) {
 	}
 
 	return client, nil
+}
+
+func Check(c valkey.Client) monitoring.StatusCheck {
+	err := c.Do(context.Background(), c.B().Ping().Build()).Error()
+	if err != nil {
+		return monitoring.StatusCheck{
+			Status:  monitoring.StatusDown,
+			Message: "ping failed",
+		}
+	}
+
+	return monitoring.StatusCheck{
+		Status:  monitoring.StatusOK,
+		Message: monitoring.StatusOK.String(),
+	}
 }

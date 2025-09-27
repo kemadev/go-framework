@@ -86,14 +86,22 @@ func main() {
 	// Add monitoring endpoints
 	r.Handle(
 		monitoring.LivenessHandler(
-			// Add your check function
-			func() monitoring.CheckResults { return monitoring.CheckResults{} },
+			func() monitoring.CheckResults {
+				// Add your check function logic
+				return monitoring.CheckResults{}
+			},
 		),
 	)
 	r.Handle(
 		monitoring.ReadinessHandler(
-			// Add your check function
-			func() monitoring.CheckResults { return monitoring.CheckResults{} },
+			func() monitoring.CheckResults {
+				return monitoring.CheckResults{
+					"database": database.Check(databaseClient),
+					"cache":    cache.Check(cacheClient),
+					"search":   search.Check(searchClient),
+					// Add your check functions
+				}
+			},
 		),
 	)
 

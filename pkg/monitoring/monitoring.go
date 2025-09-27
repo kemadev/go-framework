@@ -6,6 +6,7 @@
 package monitoring
 
 import (
+	"errors"
 	"net/http"
 )
 
@@ -23,6 +24,11 @@ const (
 	StatusUnknown
 )
 
+type StatusCheck struct {
+	Status  Status
+	Message string
+}
+
 const (
 	HTTPLivenessCheckPath  = "/healthz"
 	HTTPReadinessCheckPath = "/readyz"
@@ -33,6 +39,11 @@ const (
 	// It is used by Kubernetes to check if the application is ready to serve traffic, as
 	// well as returning some metrics.
 	HTTPReadinessCheckPattern = "GET " + HTTPReadinessCheckPath
+)
+
+var (
+	ErrCantLoadConfig     = errors.New("error loading application config")
+	ErrCantMarshallConfig = errors.New("error marshalling application config")
 )
 
 // String returns the string representation of the status.
@@ -84,14 +95,14 @@ func (s Status) IsReady() bool {
 	return s == StatusOK || s == StatusDegraded
 }
 
-type CheckResults map[string]Status
+type CheckResults map[string]StatusCheck
 
 func (checks CheckResults) Status() Status {
 	status := StatusOK
 
 	for _, val := range checks {
-		if val > status {
-			status = val
+		if val.Status > status {
+			status = val.Status
 		}
 	}
 

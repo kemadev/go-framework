@@ -14,12 +14,12 @@ import (
 )
 
 type LivenessResponse struct {
-	Timestamp   time.Time         `json:"timestamp"`
-	Started     bool              `json:"started"`
-	Status      Status            `json:"status"`
-	Version     string            `json:"version"`
-	Environment string            `json:"environment"`
-	Checks      map[string]Status `json:"checks"`
+	Timestamp   time.Time              `json:"timestamp"`
+	Started     bool                   `json:"started"`
+	Status      Status                 `json:"status"`
+	Version     string                 `json:"version"`
+	Environment string                 `json:"environment"`
+	Checks      map[string]StatusCheck `json:"checks"`
 }
 
 // LivenessHandler returns the pattern that should handle liveness checks, as well as associated liveness checking function
@@ -40,7 +40,10 @@ func LivenessHandler(
 
 		conf, err := config.NewManager().Load()
 		if err != nil {
-			status.Checks["config"] = StatusDown
+			status.Checks["config"] = StatusCheck{
+				Status:  StatusDown,
+				Message: ErrCantLoadConfig.Error(),
+			}
 		}
 
 		status.Version = conf.Runtime.AppVersion.String()
@@ -48,7 +51,10 @@ func LivenessHandler(
 
 		body, err := json.Marshal(status)
 		if err != nil {
-			status.Checks["jsonMarshal"] = StatusDown
+			status.Checks["jsonMarshal"] = StatusCheck{
+				Status:  StatusDown,
+				Message: ErrCantMarshallConfig.Error(),
+			}
 		}
 
 		w.Header().Set(headkey.ContentType, headval.MIMEApplicationJSONCharsetUTF8)

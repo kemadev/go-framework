@@ -7,6 +7,7 @@ import (
 	"github.com/exaring/otelpgx"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/kemadev/go-framework/pkg/config"
+	"github.com/kemadev/go-framework/pkg/monitoring"
 )
 
 func NewClient(conf config.DatabaseConfig) (*pgxpool.Pool, error) {
@@ -27,9 +28,20 @@ func NewClient(conf config.DatabaseConfig) (*pgxpool.Pool, error) {
 		return nil, fmt.Errorf("error creating database client: %w", err)
 	}
 
-	if err := pool.Ping(ctx); err != nil {
-		return nil, fmt.Errorf("error pinging database: %w", err)
+	return pool, nil
+}
+
+func Check(p *pgxpool.Pool) monitoring.StatusCheck {
+	err := p.Ping(context.Background())
+	if err != nil {
+		return monitoring.StatusCheck{
+			Status:  monitoring.StatusDown,
+			Message: "ping failed",
+		}
 	}
 
-	return pool, nil
+	return monitoring.StatusCheck{
+		Status:  monitoring.StatusOK,
+		Message: monitoring.StatusOK.String(),
+	}
 }

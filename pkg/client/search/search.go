@@ -1,11 +1,13 @@
 package search
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"net/http"
 
 	"github.com/kemadev/go-framework/pkg/config"
+	"github.com/kemadev/go-framework/pkg/monitoring"
 	"github.com/opensearch-project/opensearch-go/v4"
 	"github.com/opensearch-project/opensearch-go/v4/opensearchapi"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -44,4 +46,19 @@ func NewClient(conf config.SearchConfig, runtime config.Runtime) (*opensearchapi
 	}
 
 	return client, nil
+}
+
+func Check(c *opensearchapi.Client) monitoring.StatusCheck {
+	resp, err := c.Ping(context.Background(), &opensearchapi.PingReq{})
+	if err != nil || resp.IsError() {
+		return monitoring.StatusCheck{
+			Status:  monitoring.StatusDown,
+			Message: "ping failed",
+		}
+	}
+
+	return monitoring.StatusCheck{
+		Status:  monitoring.StatusOK,
+		Message: monitoring.StatusOK.String(),
+	}
 }

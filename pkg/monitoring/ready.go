@@ -30,21 +30,16 @@ type CPUMetrics struct {
 }
 
 type ReadinessResponse struct {
-	Timestamp      time.Time         `json:"timestamp"`
-	Ready          Status            `json:"ready"`
-	RuntimeMetrics RuntimeMetrics    `json:"runtimeMetrics"`
-	Checks         map[string]Status `json:"checks"`
-}
-
-// CheckReadiness performs services checks and returns a map of results.
-func CheckReadiness() CheckResults {
-	return CheckResults{}
+	Timestamp      time.Time              `json:"timestamp"`
+	Ready          Status                 `json:"ready"`
+	RuntimeMetrics RuntimeMetrics         `json:"runtimeMetrics"`
+	Checks         map[string]StatusCheck `json:"checks"`
 }
 
 // ReadinessHandler returns the pattern that should handle readiness checks, as well as associated readiness checking function.
 // The function that is passed is used as status checker.
 func ReadinessHandler(
-	func() CheckResults,
+	readinessChecker func() CheckResults,
 ) (string, http.HandlerFunc) {
 	return HTTPReadinessCheckPattern, func(w http.ResponseWriter, r *http.Request) {
 		var m runtime.MemStats
@@ -55,7 +50,7 @@ func ReadinessHandler(
 			usagePercent = (float64(m.Alloc) / float64(m.Sys)) * 100
 		}
 
-		checks := CheckReadiness()
+		checks := readinessChecker()
 
 		status := ReadinessResponse{
 			Timestamp: time.Now().UTC(),
@@ -76,7 +71,10 @@ func ReadinessHandler(
 
 		body, err := json.Marshal(status)
 		if err != nil {
-			status.Checks["jsonMarshal"] = StatusDown
+			status.Checks["jsonMarshal"] = StatusCheck{
+				Status:  StatusDown,
+				Message: ErrCantMarshallConfig.Error(),
+			}
 		}
 
 		w.Header().Set(headkey.ContentType, headval.MIMEApplicationJSONCharsetUTF8)
