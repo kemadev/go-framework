@@ -5,7 +5,7 @@ go 1.24.6
 require (
 	github.com/caarlos0/svu/v3 v3.2.3
 	github.com/exaring/otelpgx v0.9.3
-	github.com/go-git/go-git/v6 v6.0.0-20250923080731-ebc56f97b3d2
+	github.com/go-git/go-git/v6 v6.0.0-20250929195514-145daf2492dd
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/opensearch-project/opensearch-go/v4 v4.5.0
 	github.com/valkey-io/valkey-go v1.0.65
@@ -28,7 +28,6 @@ require (
 )
 
 require (
-	dario.cat/mergo v1.0.2 // indirect
 	github.com/Masterminds/semver/v3 v3.4.0 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/ProtonMail/go-crypto v1.3.0 // indirect
