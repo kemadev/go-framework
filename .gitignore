@@ -18,4 +18,3 @@ go.work.sum
 
 # Build artifacts
 dist/*
-!dist/PURPOSE.md

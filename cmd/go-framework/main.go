@@ -208,8 +208,8 @@ func ExampleTemplateRender(
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := tr.Execute(
 			w,
-			// Mind directory name in tmplate FS
-			"hello.html",
+			// Mind about file extension
+			r.URL.Path+".gotmpl.html",
 			map[string]any{
 				"WorldName": "WoRlD",
 			},

@@ -25,8 +25,6 @@ services:
     secrets:
       - netrc
     environment:
-      # Not all projects under kemadev are private, but convenient not to set all exceptions
-      GOPRIVATE: "github.com/kemadev/*"
       KEMA_RUNTIME_ENVIRONMENT: dev
       KEMA_RUNTIME_APP_NAME: go-framework
       KEMA_RUNTIME_APP_VERSION: v0.0.0-dev.0.0.0
