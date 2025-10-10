@@ -5,7 +5,7 @@ go 1.24.6
 require (
 	github.com/caarlos0/svu/v3 v3.2.3
 	github.com/exaring/otelpgx v0.9.3
-	github.com/go-git/go-git/v6 v6.0.0-20250923080731-ebc56f97b3d2
+	github.com/go-git/go-git/v6 v6.0.0-20251009132922-75a182125145
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/opensearch-project/opensearch-go/v4 v4.5.0
 	github.com/valkey-io/valkey-go v1.0.65
@@ -28,7 +28,6 @@ require (
 )
 
 require (
-	dario.cat/mergo v1.0.2 // indirect
 	github.com/Masterminds/semver/v3 v3.4.0 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/ProtonMail/go-crypto v1.3.0 // indirect
@@ -55,11 +54,11 @@ require (
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.38.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.8.0 // indirect
-	golang.org/x/crypto v0.42.0 // indirect
-	golang.org/x/net v0.44.0 // indirect
+	golang.org/x/crypto v0.43.0 // indirect
+	golang.org/x/net v0.46.0 // indirect
 	golang.org/x/sync v0.17.0 // indirect
-	golang.org/x/sys v0.36.0 // indirect
-	golang.org/x/text v0.29.0 // indirect
+	golang.org/x/sys v0.37.0 // indirect
+	golang.org/x/text v0.30.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250922171735-9219d122eba9 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250922171735-9219d122eba9 // indirect
 	google.golang.org/grpc v1.75.1 // indirect
