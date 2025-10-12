@@ -154,4 +154,6 @@ const (
 	XFrameOptions = "X-Frame-Options"
 	// Common Forwarded alternative
 	XForwardedFor = "X-Forwarded-For"
+	// https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_conn_man/headers#x-envoy-external-address
+	XEnvoyExternalAddress = "X-Envoy-External-Address"
 )
