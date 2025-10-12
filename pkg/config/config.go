@@ -59,7 +59,7 @@ type Server struct {
 	IdleTimeout time.Duration `default:"60s"       required:"true"`
 	// ProxyHeader is the proxy header for forwarded entity
 	ProxyHeader string `default:"Forwarded" required:"true"`
-	// ShutdownGracePeriod is the grace period to give the server before canceling contexits t upon shutdown
+	// ShutdownGracePeriod is the grace period to give the server before canceling contexts upon shutdown
 	ShutdownGracePeriod time.Duration `default:"5s"        required:"true"`
 }
 
