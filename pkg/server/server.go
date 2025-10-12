@@ -78,6 +78,11 @@ func Run(handler http.Handler, conf config.Global) {
 		}
 	}()
 
+	// Enable HTTP1.1 & h2c
+	var protocols http.Protocols
+	protocols.SetHTTP1(true)
+	protocols.SetUnencryptedHTTP2(true)
+
 	// Start HTTP server.
 	srv := &http.Server{
 		Addr:         conf.Server.BindAddr + ":" + strconv.Itoa(conf.Server.BindPort),
@@ -89,7 +94,8 @@ func Run(handler http.Handler, conf config.Global) {
 			otelslog.NewLogger("net/http").Handler(),
 			conf.Runtime.SlogLevel(),
 		),
-		Handler: handler,
+		Handler:   handler,
+		Protocols: &protocols,
 	}
 
 	srvErr := make(chan error, 1)
