@@ -8,7 +8,7 @@ require (
 	github.com/go-git/go-git/v6 v6.0.0-20250923080731-ebc56f97b3d2
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/opensearch-project/opensearch-go/v4 v4.5.0
-	github.com/valkey-io/valkey-go v1.0.65
+	github.com/valkey-io/valkey-go v1.0.67
 	github.com/valkey-io/valkey-go/valkeyotel v1.0.65
 	go.opentelemetry.io/contrib/bridges/otelslog v0.13.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.63.0
