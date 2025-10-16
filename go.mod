@@ -3,7 +3,7 @@ module github.com/kemadev/go-framework
 go 1.24.6
 
 require (
-	github.com/caarlos0/svu/v3 v3.2.3
+	github.com/caarlos0/svu/v3 v3.2.4
 	github.com/exaring/otelpgx v0.9.3
 	github.com/go-git/go-git/v6 v6.0.0-20250923080731-ebc56f97b3d2
 	github.com/jackc/pgx/v5 v5.7.6
