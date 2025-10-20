@@ -7,11 +7,21 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/dgraph-io/ristretto/v2"
 	"github.com/kemadev/go-framework/pkg/config"
 	"github.com/kemadev/go-framework/pkg/monitoring"
 	"github.com/valkey-io/valkey-go"
 	"github.com/valkey-io/valkey-go/valkeyotel"
 )
+
+func NewLocal[K ristretto.Key, V any](config ristretto.Config[K, V]) (*ristretto.Cache[K, V], error) {
+	cache, err := ristretto.NewCache(&config)
+	if err != nil {
+		return nil, fmt.Errorf("error creating cache: %w", err)
+	}
+
+	return cache, nil
+}
 
 func NewClient(conf config.CacheConfig) (valkey.Client, error) {
 	clientAddresses := []string{}
