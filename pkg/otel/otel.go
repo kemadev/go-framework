@@ -12,6 +12,8 @@ import (
 
 	"github.com/kemadev/go-framework/pkg/config"
 	klog "github.com/kemadev/go-framework/pkg/log"
+	"go.opentelemetry.io/contrib/instrumentation/host"
+	"go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/contrib/processors/minsev"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -137,6 +139,16 @@ func SetupOTelSDK(
 
 	shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
 	otel.SetTracerProvider(tracerProvider)
+
+	err = runtime.Start(runtime.WithMeterProvider(meterProvider))
+	if err != nil {
+		return shutdown, fmt.Errorf("error starting runtime metrics collection: %w", err)
+	}
+
+	err = host.Start(host.WithMeterProvider(meterProvider))
+	if err != nil {
+		return shutdown, fmt.Errorf("error starting host metrics collection: %w", err)
+	}
 
 	return shutdown, nil
 }
