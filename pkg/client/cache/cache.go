@@ -4,7 +4,9 @@
 package cache
 
 import (
+	"bytes"
 	"context"
+	"encoding/gob"
 	"fmt"
 
 	"github.com/dgraph-io/ristretto/v2"
@@ -14,6 +16,33 @@ import (
 	"github.com/valkey-io/valkey-go/valkeyotel"
 )
 
+type ristrettoCache[R any] struct {
+	cache *ristretto.Cache[string, R]
+}
+
+func (r *ristrettoCache[V]) Get(key string) (V, bool) {
+	result, found := r.cache.Get(key)
+	if found {
+		return result, true
+	}
+	return *(new(V)), false
+}
+
+func (r *ristrettoCache[V]) Set(key string, value V) {
+	r.cache.Set(key, value, 0)
+}
+
+func NewFailsafeLocal[V any](config ristretto.Config[string, V]) (*ristrettoCache[V], error) {
+	c, err := NewLocal(config)
+	if err != nil {
+		return nil, fmt.Errorf("error creating ristretto cache: %w", err)
+	}
+
+	return &ristrettoCache[V]{
+		cache: c,
+	}, nil
+}
+
 func NewLocal[K ristretto.Key, V any](config ristretto.Config[K, V]) (*ristretto.Cache[K, V], error) {
 	cache, err := ristretto.NewCache(&config)
 	if err != nil {
@@ -21,6 +50,46 @@ func NewLocal[K ristretto.Key, V any](config ristretto.Config[K, V]) (*ristretto
 	}
 
 	return cache, nil
+}
+
+type valkeyCache[R any] struct {
+	client valkey.Client
+}
+
+func (v *valkeyCache[R]) Get(key string) (R, bool) {
+	ctx := context.Background()
+
+	result, err := v.client.Do(ctx, v.client.B().Get().Key(key).Build()).AsBytes()
+	if err != nil {
+		return *(new(R)), false
+	}
+
+	var typedResult R
+	buf := bytes.NewBuffer(result)
+
+	err = gob.NewDecoder(buf).Decode(&typedResult)
+	if err != nil {
+		return *(new(R)), false
+	}
+
+	return typedResult, true
+}
+
+func (v *valkeyCache[R]) Set(key string, value R) {
+	ctx := context.Background()
+	var buf bytes.Buffer
+
+	if err := gob.NewEncoder(&buf).Encode(value); err != nil {
+		return
+	}
+
+	v.client.Do(ctx, v.client.B().Set().Key(key).Value(buf.String()).Build())
+}
+
+func NewFailsafeShared[V any](client valkey.Client) *valkeyCache[V] {
+	return &valkeyCache[V]{
+		client: client,
+	}
 }
 
 func NewClient(conf config.CacheConfig) (valkey.Client, error) {
