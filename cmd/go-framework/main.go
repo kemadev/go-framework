@@ -136,6 +136,8 @@ func main() {
 	r.Group(func(r *router.Router) {
 		// Secure frontend with security headers
 		r.Use(sechead.NewMiddleware(sechead.SecHeadersDefaultStrict))
+		// Secure frontend with CORF checks (you can customize the middleware as needed)
+		r.Use(http.NewCrossOriginProtection().Handler)
 
 		// Handle template assets
 		tmplFS := web.GetTmplFS()
