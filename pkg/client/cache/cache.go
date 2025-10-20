@@ -8,11 +8,13 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
+	"time"
 
 	"github.com/dgraph-io/ristretto/v2"
 	"github.com/kemadev/go-framework/pkg/config"
 	"github.com/kemadev/go-framework/pkg/monitoring"
 	"github.com/valkey-io/valkey-go"
+	"github.com/valkey-io/valkey-go/internal/cmds"
 	"github.com/valkey-io/valkey-go/valkeyotel"
 )
 
@@ -54,6 +56,7 @@ func NewLocal[K ristretto.Key, V any](config ristretto.Config[K, V]) (*ristretto
 
 type valkeyCache[R any] struct {
 	client valkey.Client
+	ttl    time.Duration
 }
 
 func (v *valkeyCache[R]) Get(key string) (R, bool) {
@@ -83,12 +86,18 @@ func (v *valkeyCache[R]) Set(key string, value R) {
 		return
 	}
 
-	v.client.Do(ctx, v.client.B().Set().Key(key).Value(buf.String()).Build())
+	cmd := v.client.B().Set().Key(key).Value(buf.String())
+	if v.ttl > 0 {
+		cmd = cmds.SetValue(cmd.Ex(v.ttl))
+	}
+
+	v.client.Do(ctx, cmd.Build())
 }
 
-func NewFailsafeShared[V any](client valkey.Client) *valkeyCache[V] {
+func NewFailsafeShared[V any](client valkey.Client, ttl time.Duration) *valkeyCache[V] {
 	return &valkeyCache[V]{
 		client: client,
+		ttl:    ttl,
 	}
 }
 
