@@ -34,6 +34,8 @@ func NewClient(conf config.CacheConfig) (valkey.Client, error) {
 		},
 		Username: conf.Username,
 		Password: conf.Password,
+		// Let user define a failsafe strategy when calling
+		DisableRetry: true,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error creating cache client: %w", err)

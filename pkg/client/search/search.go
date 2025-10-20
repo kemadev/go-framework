@@ -39,6 +39,8 @@ func NewClient(conf config.SearchConfig, runtime config.Runtime) (*opensearchapi
 			Username:      conf.Username,
 			Password:      conf.Password,
 			EnableMetrics: true,
+			// Let user define a failsafe strategy when calling
+			DisableRetry: true,
 		},
 	})
 	if err != nil {

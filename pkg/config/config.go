@@ -271,7 +271,7 @@ func processField(
 }
 
 // setFieldValue sets the field value based on its type.
-func setFieldValue(field reflect.Value, value string, envVarName string) error {
+func setFieldValue(field reflect.Value, value, envVarName string) error {
 	switch field.Kind() {
 	case reflect.String:
 		field.SetString(value)
@@ -396,7 +396,7 @@ func setStringSlice(field reflect.Value, value string) error {
 }
 
 // setURLSlice parses a comma-separated string of URLs into a []url.URL slice
-func setURLSlice(field reflect.Value, value string, envVarName string) error {
+func setURLSlice(field reflect.Value, value, envVarName string) error {
 	if value == "" {
 		field.Set(reflect.MakeSlice(field.Type(), 0, 0))
 
