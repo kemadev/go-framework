@@ -14,7 +14,6 @@ import (
 	"github.com/kemadev/go-framework/pkg/config"
 	"github.com/kemadev/go-framework/pkg/monitoring"
 	"github.com/valkey-io/valkey-go"
-	"github.com/valkey-io/valkey-go/internal/cmds"
 	"github.com/valkey-io/valkey-go/valkeyotel"
 )
 
@@ -82,16 +81,18 @@ func (v *valkeyCache[R]) Set(key string, value R) {
 	ctx := context.Background()
 	var buf bytes.Buffer
 
-	if err := gob.NewEncoder(&buf).Encode(value); err != nil {
+	err := gob.NewEncoder(&buf).Encode(value)
+	if err != nil {
 		return
 	}
 
-	cmd := v.client.B().Set().Key(key).Value(buf.String())
 	if v.ttl > 0 {
-		cmd = cmds.SetValue(cmd.Ex(v.ttl))
+		v.client.Do(ctx, v.client.B().Set().Key(key).Value(buf.String()).Ex(v.ttl).Build())
+
+		return
 	}
 
-	v.client.Do(ctx, cmd.Build())
+	v.client.Do(ctx, v.client.B().Set().Key(key).Value(buf.String()).Build())
 }
 
 func NewFailsafeShared[V any](client valkey.Client, ttl time.Duration) *valkeyCache[V] {
