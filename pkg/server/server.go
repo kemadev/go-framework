@@ -78,9 +78,10 @@ func Run(handler http.Handler, conf config.Global) {
 		}
 	}()
 
-	// Enable HTTP1.1 & h2c
+	// Enable HTTP1.1, HTTP2 & h2c
 	var protocols http.Protocols
 	protocols.SetHTTP1(true)
+	protocols.SetHTTP2(true)
 	protocols.SetUnencryptedHTTP2(true)
 
 	// Start HTTP server.
