@@ -13,6 +13,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/dgraph-io/ristretto/v2"
 	"github.com/failsafe-go/failsafe-go"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/kemadev/go-framework/pkg/client/cache"
@@ -114,9 +115,16 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Create a caching backend (shared backend is also available)
+	cacheBackend, err := cache.NewFailsafeLocal(ristretto.Config[string, any]{})
+	if err != nil {
+		flog.FallbackError(err)
+		os.Exit(1)
+	}
+
 	// Use otelfailsafe to create failsafe executor / policies, so these are automatically instrumented.
 	// This policy is arbitrary and should be tailored to your needs
-	exec := pe.NewExecutor(pe.NewRetryBuilder().WithJitterFactor(.25).Build())
+	exec := pe.NewExecutor(pe.NewRetryBuilder().WithJitterFactor(.25).Build(), pe.NewCacheBuilder(cacheBackend).Build())
 
 	// Add handlers
 	r.Handle(
