@@ -13,6 +13,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/failsafe-go/failsafe-go"
+	"github.com/failsafe-go/failsafe-go/retrypolicy"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/kemadev/go-framework/pkg/client/cache"
 	"github.com/kemadev/go-framework/pkg/client/database"
@@ -29,6 +31,7 @@ import (
 	flog "github.com/kemadev/go-framework/pkg/log"
 	"github.com/kemadev/go-framework/pkg/maxbytes"
 	"github.com/kemadev/go-framework/pkg/monitoring"
+	"github.com/kemadev/go-framework/pkg/otelfailsafe"
 	"github.com/kemadev/go-framework/pkg/router"
 	"github.com/kemadev/go-framework/pkg/server"
 	"github.com/kemadev/go-framework/pkg/timeout"
@@ -105,29 +108,36 @@ func main() {
 		),
 	)
 
+	// Use otelfailsafe to create failsafe executor so it is automatically instrumented. This policy is arbitrary and should be tailored to your needs
+	failsafeExecutor, err := otelfailsafe.NewExecutor("example", retrypolicy.NewWithDefaults[any]())
+	if err != nil {
+		flog.FallbackError(err)
+		os.Exit(1)
+	}
+
 	// Add handlers
 	r.Handle(
-		otel.WrapHandler("GET /foo/{bar}", http.HandlerFunc(ExampleHandler)),
+		otel.WrapHandler("GET /foo/{bar}", NewExampleHandler(failsafeExecutor)),
 	)
 
 	r.Handle(
 		otel.WrapHandler(
 			"GET /cache",
-			ExampleCacheHandler(cacheClient),
+			NewExampleCacheHandler(cacheClient, failsafeExecutor),
 		),
 	)
 
 	r.Handle(
 		otel.WrapHandler(
 			"GET /database",
-			ExampleDatabaseHandler(databaseClient),
+			NewExampleDatabaseHandler(databaseClient, failsafeExecutor),
 		),
 	)
 
 	r.Handle(
 		otel.WrapHandler(
 			"GET /search",
-			ExampleSearchHandler(searchClient),
+			NewExampleSearchHandler(searchClient, failsafeExecutor),
 		),
 	)
 
@@ -144,7 +154,7 @@ func main() {
 		r.Handle(
 			otel.WrapHandler(
 				"GET /",
-				ExampleTemplateRender(renderer),
+				NewExampleTemplateRender(renderer, failsafeExecutor),
 			),
 		)
 	})
@@ -160,62 +170,65 @@ func main() {
 	server.Run(otel.WrapMux(r, packageName), conf)
 }
 
-func ExampleHandler(w http.ResponseWriter, r *http.Request) {
-	span := trace.Span(r.Context())
-	span.SetAttributes(attribute.String("bar", r.PathValue("bar")))
+func NewExampleHandler(exec failsafe.Executor[any]) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		span := trace.Span(r.Context())
+		span.SetAttributes(attribute.String("bar", r.PathValue("bar")))
 
-	// Use otelhttp to call external services so it is automatically instrumented
-	eresp, err := otelhttp.Get(r.Context(), "https://example.com")
-	if err != nil {
-		log.ErrLog(packageName, "error calling external http endpoint", err)
-		// Prefer graceful degradation instead of throwing a 5XX error
-		http.Error(
-			w,
-			http.StatusText(http.StatusInternalServerError),
-			http.StatusInternalServerError,
-		)
+		eresp, err := exec.Get(func() (any, error) {
+			// Use otelhttp to call external services so it is automatically instrumented
+			return otelhttp.Get(r.Context(), "https://example.com")
+		})
+		if err != nil {
+			log.ErrLog(packageName, "error calling external http endpoint", err)
+			http.Error(
+				w,
+				http.StatusText(http.StatusInternalServerError),
+				http.StatusInternalServerError,
+			)
 
-		return
+			return
+		}
+
+		type exampleResp struct {
+			Name  string
+			Attrs []string
+		}
+
+		res := eresp.(*http.Response)
+		var name []byte
+		_, err = res.Body.Read(name)
+		if err != nil {
+			log.ErrLog(packageName, "error calling external http endpoint", err)
+			http.Error(
+				w,
+				http.StatusText(http.StatusInternalServerError),
+				http.StatusInternalServerError,
+			)
+
+			return
+		}
+
+		resp.JSON(w, exampleResp{
+			Name:  string(name),
+			Attrs: []string{"whatever"},
+		})
 	}
-
-	type exampleResp struct {
-		Name  string
-		Attrs []string
-	}
-
-	var name []byte
-	_, err = eresp.Body.Read(name)
-	if err != nil {
-		log.ErrLog(packageName, "error calling external http endpoint", err)
-		// Prefer graceful degradation instead of throwing a 5XX error
-		http.Error(
-			w,
-			http.StatusText(http.StatusInternalServerError),
-			http.StatusInternalServerError,
-		)
-
-		return
-	}
-
-	resp.JSON(w, exampleResp{
-		Name:  string(name),
-		Attrs: []string{"whatever"},
-	})
 }
 
-func ExampleTemplateRender(
-	tr *render.TemplateRenderer,
-) http.HandlerFunc {
+func NewExampleTemplateRender(tr *render.TemplateRenderer, exec failsafe.Executor[any]) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		err := tr.Execute(
-			w,
-			// Mind about file extension
-			r.URL.Path+".gotmpl.html",
-			map[string]any{
-				"WorldName": "WoRlD",
-			},
-			headval.MIMETextHTMLCharsetUTF8,
-		)
+		err := exec.Run(func() error {
+			return tr.Execute(
+				w,
+				// Mind about file extension
+				r.URL.Path+".gotmpl.html",
+				map[string]any{
+					"WorldName": "WoRlD",
+				},
+				headval.MIMETextHTMLCharsetUTF8,
+			)
+		})
 		if err != nil {
 			if errors.Is(err, render.ErrTemplateNotFound) {
 				http.NotFound(w, r)
@@ -229,7 +242,6 @@ func ExampleTemplateRender(
 						err.Error(),
 					),
 				)
-			// Prefer graceful degradation instead of throwing a 5XX error
 			http.Error(
 				w,
 				http.StatusText(http.StatusInternalServerError),
@@ -239,13 +251,13 @@ func ExampleTemplateRender(
 	}
 }
 
-func ExampleCacheHandler(client valkey.Client) func(w http.ResponseWriter, r *http.Request) {
+func NewExampleCacheHandler(client valkey.Client, exec failsafe.Executor[any]) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		err := client.Do(r.Context(), client.B().Set().Key("key").Value(time.Now().String()).Build()).
-			Error()
+		err := exec.Run(func() error {
+			return client.Do(r.Context(), client.B().Set().Key("key").Value(time.Now().String()).Build()).Error()
+		})
 		if err != nil {
 			log.ErrLog(packageName, "error cache set", err)
-			// Prefer graceful degradation instead of throwing a 5XX error
 			http.Error(
 				w,
 				http.StatusText(http.StatusInternalServerError),
@@ -265,18 +277,19 @@ func ExampleCacheHandler(client valkey.Client) func(w http.ResponseWriter, r *ht
 	}
 }
 
-func ExampleDatabaseHandler(client *pgxpool.Pool) func(w http.ResponseWriter, r *http.Request) {
+func NewExampleDatabaseHandler(client *pgxpool.Pool, exec failsafe.Executor[any]) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var id int
 
-		err := client.QueryRow(
-			r.Context(),
-			`INSERT INTO tasks (created_at) VALUES ($1) RETURNING id`,
-			time.Now(),
-		).Scan(&id)
+		err := exec.Run(func() error {
+			return client.QueryRow(
+				r.Context(),
+				`INSERT INTO tasks (created_at) VALUES ($1) RETURNING id`,
+				time.Now(),
+			).Scan(&id)
+		})
 		if err != nil {
 			log.ErrLog(packageName, "error database insert", err)
-			// Prefer graceful degradation instead of throwing a 5XX error
 			http.Error(
 				w,
 				http.StatusText(http.StatusInternalServerError),
@@ -294,11 +307,11 @@ func ExampleDatabaseHandler(client *pgxpool.Pool) func(w http.ResponseWriter, r 
 	}
 }
 
-func ExampleSearchHandler(
-	client *opensearchapi.Client,
-) func(w http.ResponseWriter, r *http.Request) {
+func NewExampleSearchHandler(client *opensearchapi.Client, exec failsafe.Executor[any]) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		res, err := client.Info(r.Context(), nil)
+		res, err := exec.Get(func() (any, error) {
+			return client.Info(r.Context(), nil)
+		})
 		if err != nil {
 			log.ErrLog(packageName, "error search info", err)
 			http.Error(
@@ -313,8 +326,9 @@ func ExampleSearchHandler(
 			ClusterName string
 		}
 
+		info := res.(*opensearchapi.InfoResp)
 		resp.JSON(w, ExampleOutput{
-			ClusterName: res.ClusterName,
+			ClusterName: info.ClusterName,
 		})
 	}
 }

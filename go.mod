@@ -6,6 +6,7 @@ require (
 	github.com/caarlos0/svu/v3 v3.2.4
 	github.com/dgraph-io/ristretto/v2 v2.3.0
 	github.com/exaring/otelpgx v0.9.3
+	github.com/failsafe-go/failsafe-go v0.9.1
 	github.com/go-git/go-git/v6 v6.0.0-20251020083923-0fe67ec8dc1d
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/opensearch-project/opensearch-go/v4 v4.5.0
@@ -34,6 +35,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.4.0 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/ProtonMail/go-crypto v1.3.0 // indirect
+	github.com/bits-and-blooms/bitset v1.24.0 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudflare/circl v1.6.1 // indirect

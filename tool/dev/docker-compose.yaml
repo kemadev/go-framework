@@ -37,7 +37,7 @@ services:
       KEMA_CLIENT_SEARCH_USERNAME: "admin"
       KEMA_CLIENT_SEARCH_PASSWORD: "OpenSearchDev_1"
       # Set this to a strictly positive duration to export metrics to stdout
-      KEMA_OBSERVABILITY_METRICS_EXPORT_INTERVAL: 0s
+      KEMA_OBSERVABILITY_METRICS_EXPORT_INTERVAL: 1s
     ports:
       - 8080:8080
     restart: always
