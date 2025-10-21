@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/failsafe-go/failsafe-go"
-	"github.com/failsafe-go/failsafe-go/retrypolicy"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/kemadev/go-framework/pkg/client/cache"
 	"github.com/kemadev/go-framework/pkg/client/database"
@@ -108,36 +107,40 @@ func main() {
 		),
 	)
 
-	// Use otelfailsafe to create failsafe executor so it is automatically instrumented. This policy is arbitrary and should be tailored to your needs
-	failsafeExecutor, err := otelfailsafe.NewExecutor("example", retrypolicy.NewWithDefaults[any]())
+	// Use otelfailsafe to create a policy engine
+	pe, err := otelfailsafe.NewPolicyEngine[any]("example")
 	if err != nil {
 		flog.FallbackError(err)
 		os.Exit(1)
 	}
 
+	// Use otelfailsafe to create failsafe executor / policies, so these are automatically instrumented.
+	// This policy is arbitrary and should be tailored to your needs
+	exec := pe.NewExecutor(pe.NewRetryBuilder().WithJitterFactor(.25).Build())
+
 	// Add handlers
 	r.Handle(
-		otel.WrapHandler("GET /foo/{bar}", NewExampleHandler(failsafeExecutor)),
+		otel.WrapHandler("GET /foo/{bar}", NewExampleHandler(exec)),
 	)
 
 	r.Handle(
 		otel.WrapHandler(
 			"GET /cache",
-			NewExampleCacheHandler(cacheClient, failsafeExecutor),
+			NewExampleCacheHandler(cacheClient, exec),
 		),
 	)
 
 	r.Handle(
 		otel.WrapHandler(
 			"GET /database",
-			NewExampleDatabaseHandler(databaseClient, failsafeExecutor),
+			NewExampleDatabaseHandler(databaseClient, exec),
 		),
 	)
 
 	r.Handle(
 		otel.WrapHandler(
 			"GET /search",
-			NewExampleSearchHandler(searchClient, failsafeExecutor),
+			NewExampleSearchHandler(searchClient, exec),
 		),
 	)
 
@@ -154,7 +157,7 @@ func main() {
 		r.Handle(
 			otel.WrapHandler(
 				"GET /",
-				NewExampleTemplateRender(renderer, failsafeExecutor),
+				NewExampleTemplateRender(renderer, exec),
 			),
 		)
 	})
