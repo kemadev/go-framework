@@ -14,7 +14,6 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 	"unicode"
 
@@ -127,53 +126,16 @@ type ObjectStorageConfig struct {
 	SSL                    bool     `required:"true"`
 }
 
-// Manager handles configuration loading and caching.
-type Manager struct {
-	once   sync.Once
-	config *Global
-	err    error
-}
-
-// NewManager creates a new configuration manager.
-func NewManager() *Manager {
-	return &Manager{}
-}
-
 // Load loads configuration from environment variables
-// On first call, it loads the configuration from environment variables.
-// Subsequent calls return the cached configuration.
-func (m *Manager) Load() (*Global, error) {
-	m.once.Do(func() {
-		var conf Global
+func Load() (Global, error) {
+	var conf Global
 
-		err := load(ConfigurationEnvVarPrefix, &conf)
-		if err != nil {
-			m.err = fmt.Errorf("can't process config: %w", err)
-
-			return
-		}
-
-		m.config = &conf
-	})
-
-	if m.err != nil {
-		return nil, m.err
+	err := load(ConfigurationEnvVarPrefix, &conf)
+	if err != nil {
+		return Global{}, fmt.Errorf("can't process config: %w", err)
 	}
 
-	return m.config, nil
-}
-
-// Reset clears the cached configuration and allows Load() to reload it.
-// This is primarily useful for testing scenarios.
-func (m *Manager) Reset() {
-	m.once = sync.Once{}
-	m.config = nil
-	m.err = nil
-}
-
-// Get returns the loaded configuration or loads it if not already loaded.
-func (m *Manager) Get() (*Global, error) {
-	return m.Load()
+	return conf, nil
 }
 
 // EnvLocalValue is the value of the environment variable backing [Runtime.Environment] which is used to denote a local development environment.
@@ -185,7 +147,7 @@ func (conf *Runtime) IsLocalEnvironment() bool {
 }
 
 // load processes configuration from environment variables with the given prefix.
-func load(prefix string, cfg any) error {
+func load(prefix string, cfg *Global) error {
 	return processStruct(prefix, reflect.ValueOf(cfg).Elem(), "", true)
 }
 

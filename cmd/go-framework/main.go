@@ -44,9 +44,7 @@ const packageName = "github.com/kemadev/go-framework/cmd/go-framework"
 
 func main() {
 	// Get app config
-	configManager := config.NewManager()
-
-	conf, err := configManager.Get()
+	conf, err := config.Load()
 	if err != nil {
 		flog.FallbackError(fmt.Errorf("error getting config: %w", err))
 		os.Exit(1)
@@ -90,6 +88,7 @@ func main() {
 				// Add your check function logic
 				return monitoring.CheckResults{}
 			},
+			conf,
 		),
 	)
 	r.Handle(
@@ -158,7 +157,7 @@ func main() {
 		),
 	)
 
-	server.Run(otel.WrapMux(r, packageName), *conf)
+	server.Run(otel.WrapMux(r, packageName), conf)
 }
 
 func ExampleHandler(w http.ResponseWriter, r *http.Request) {

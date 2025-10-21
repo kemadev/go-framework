@@ -26,6 +26,7 @@ type LivenessResponse struct {
 // The function that is passed is used as status checker.
 func LivenessHandler(
 	livenessChecker func() CheckResults,
+	conf config.Global,
 ) (string, http.HandlerFunc) {
 	return HTTPLivenessCheckPattern, func(w http.ResponseWriter, r *http.Request) {
 		checks := livenessChecker()
@@ -36,14 +37,6 @@ func LivenessHandler(
 			Started: true,
 			Status:  checks.Status(),
 			Checks:  checks,
-		}
-
-		conf, err := config.NewManager().Load()
-		if err != nil {
-			status.Checks["config"] = StatusCheck{
-				Status:  StatusDown,
-				Message: ErrCantLoadConfig.Error(),
-			}
 		}
 
 		status.Version = conf.Runtime.AppVersion.String()

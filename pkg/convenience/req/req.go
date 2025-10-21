@@ -13,7 +13,6 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/kemadev/go-framework/pkg/config"
 	"github.com/kemadev/go-framework/pkg/convenience/headkey"
 	"github.com/kemadev/go-framework/pkg/convenience/headval"
 )
@@ -93,13 +92,8 @@ func JSONFromBody[T any](w http.ResponseWriter, r *http.Request) (T, int, error)
 
 // IP parses the Forwarded headers and returns the forwarded IP (the first to appear in the headers), and an error if any occurs.
 // Please note that this functions does not check proxy trust, it is the caller's responsibility to ensure the header is trusted.
-func IP(r *http.Request) (net.IP, error) {
-	conf, err := config.NewManager().Get()
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving app configuration: %w", err)
-	}
-
-	for _, head := range r.Header[conf.Server.ProxyHeader] {
+func IP(r *http.Request, proxyHeader string) (net.IP, error) {
+	for _, head := range r.Header[proxyHeader] {
 		if head == "" {
 			return nil, ErrNoForwardedHeader
 		}
@@ -141,15 +135,10 @@ func IP(r *http.Request) (net.IP, error) {
 
 // IPs parses the Forwarded headers and returns the forwarded IPs, and an error if any occurs.
 // Please note that this functions does not check proxy trust, it is the caller's responsibility to ensure the header is trusted.
-func IPs(r *http.Request) ([]*net.IP, error) {
-	conf, err := config.NewManager().Get()
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving app configuration: %w", err)
-	}
-
+func IPs(r *http.Request, proxyHeader string) ([]*net.IP, error) {
 	var ips []*net.IP
 
-	for _, head := range r.Header[conf.Server.ProxyHeader] {
+	for _, head := range r.Header[proxyHeader] {
 		if head == "" {
 			return nil, ErrNoForwardedHeader
 		}
@@ -195,13 +184,8 @@ func IPs(r *http.Request) ([]*net.IP, error) {
 
 // Host parses the Forwarded headers and returns the forwarded host (the first to appear in the headers), and an error if any occurs.
 // Please note that this functions does not check proxy trust, it is the caller's responsibility to ensure the header is trusted.
-func Host(r *http.Request) (*url.URL, error) {
-	conf, err := config.NewManager().Get()
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving app configuration: %w", err)
-	}
-
-	for _, head := range r.Header[conf.Server.ProxyHeader] {
+func Host(r *http.Request, proxyHeader string) (*url.URL, error) {
+	for _, head := range r.Header[proxyHeader] {
 		if head == "" {
 			return nil, ErrNoForwardedHeader
 		}
