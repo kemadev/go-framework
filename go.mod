@@ -7,7 +7,7 @@ require (
 	github.com/dgraph-io/ristretto/v2 v2.3.0
 	github.com/exaring/otelpgx v0.9.3
 	github.com/failsafe-go/failsafe-go v0.9.1
-	github.com/go-git/go-git/v6 v6.0.0-20251020083923-0fe67ec8dc1d
+	github.com/go-git/go-git/v6 v6.0.0-20251021092831-91c33c9361ce
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/opensearch-project/opensearch-go/v4 v4.5.0
 	github.com/valkey-io/valkey-go v1.0.67

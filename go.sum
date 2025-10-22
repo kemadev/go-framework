@@ -50,8 +50,8 @@ github.com/go-git/go-billy/v6 v6.0.0-20251016063423-4289a4e54aa4 h1:xQLkKmWcw9n5
 github.com/go-git/go-billy/v6 v6.0.0-20251016063423-4289a4e54aa4/go.mod h1:TpCYxdQ0tWZkrnAkd7yqK+z1C8RKcyjcaYAJNAcnUnM=
 github.com/go-git/go-git-fixtures/v5 v5.1.1 h1:OH8i1ojV9bWfr0ZfasfpgtUXQHQyVS8HXik/V1C099w=
 github.com/go-git/go-git-fixtures/v5 v5.1.1/go.mod h1:Altk43lx3b1ks+dVoAG2300o5WWUnktvfY3VI6bcaXU=
-github.com/go-git/go-git/v6 v6.0.0-20251020083923-0fe67ec8dc1d h1:hvQ7hYUflE00+G/N1QwBQhib9QXsTZRSYLJX7nuXEJs=
-github.com/go-git/go-git/v6 v6.0.0-20251020083923-0fe67ec8dc1d/go.mod h1:xtOWa43AoQlsqYogmpf0MnjBJHKPL2/3teh4fmZ/k+Y=
+github.com/go-git/go-git/v6 v6.0.0-20251021092831-91c33c9361ce h1:DFvDcCiFZk2yDXVreC9+B+SAZYHH2RssMmtR2zBwANE=
+github.com/go-git/go-git/v6 v6.0.0-20251021092831-91c33c9361ce/go.mod h1:xtOWa43AoQlsqYogmpf0MnjBJHKPL2/3teh4fmZ/k+Y=
 github.com/go-logr/logr v1.2.2/go.mod h1:jdQByPbusPIv2/zmleS9BjJVeZ6kBagPoEUsqbVz/1A=
 github.com/go-logr/logr v1.4.3 h1:CjnDlHq8ikf6E492q6eKboGOC0T8CDaOvkHCIg8idEI=
 github.com/go-logr/logr v1.4.3/go.mod h1:9T104GzyrTigFIr8wt5mBrctHMim0Nb2HLGrmQ40KvY=
