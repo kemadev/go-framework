@@ -116,7 +116,11 @@ func main() {
 	}
 
 	// Create a caching backend (shared backend is also available)
-	cacheBackend, err := cache.NewFailsafeLocal(ristretto.Config[string, any]{})
+	cacheBackend, err := cache.NewFailsafeLocal(ristretto.Config[string, any]{
+		NumCounters: 100,
+		MaxCost:     100,
+		BufferItems: 64,
+	})
 	if err != nil {
 		flog.FallbackError(err)
 		os.Exit(1)
