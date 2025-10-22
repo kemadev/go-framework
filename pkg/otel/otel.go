@@ -213,7 +213,7 @@ func newLoggerProvider(
 }
 
 // newMeterProvider returns a new OpenTelemetry meter provider, and an error if any occurred during the setup.
-// The meter provider is configured to batch export metrics to the OpenTelemetry collector, or synchrounously to stdout
+// The meter provider is configured to batch export metrics to the OpenTelemetry collector, or to stdout
 // if conf.Runtime.Environment is set to [github.com/kemadev/go-framework/pkg/config.EnvLocal].
 func newMeterProvider(
 	c context.Context,
@@ -286,10 +286,6 @@ func newTracerProvider(
 	}
 
 	batcher := trace.WithBatcher(exp)
-
-	if conf.Runtime.IsLocalEnvironment() {
-		batcher = trace.WithSyncer(exp)
-	}
 
 	var tracerProvider *trace.TracerProvider
 
