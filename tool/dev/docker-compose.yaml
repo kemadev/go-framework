@@ -16,7 +16,7 @@ services:
       - never
     build:
       context: ../../
-      dockerfile: build/Dockerfile
+      dockerfile: build/Containerfile
       target: dev
       secrets:
         - netrc
